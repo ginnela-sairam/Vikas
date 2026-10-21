@@ -1,0 +1,6 @@
+sar code=2999 (target 2999) conv_done=0
+[VIKAS RUN] simulated top `sar_tb`: 19 cycles, 192 ns, wall 0 ms
+  project      : 1 file(s) [1]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (10 signals · 10 driver sites)

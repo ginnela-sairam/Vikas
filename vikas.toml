@@ -1,0 +1,17 @@
+# VIKAS v1 session-as-code (feature 10)
+[project]
+top = "top"
+sources = ["rtl/*.sv", "rtl/*.v", "rtl/*.vh"]   # multi-file globs + filelists supported
+
+[clock]
+name = "clk"
+period_ns = 10
+
+[power]
+vdd_corners = [0.12, 0.4, 0.8]    # sweep --vdd list
+temp_k = [77, 300]                # cryo + nominal
+
+[analysis]
+assert_files = ["checks/*.sva"]
+max_energy_fj = 5000
+min_toggle_pct = 60

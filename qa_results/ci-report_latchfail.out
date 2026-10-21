@@ -1,0 +1,6 @@
+[VIKAS CI] CI regression gatekeeper:
+| check                     | result |
+|---------------------------|--------|
+| inferred latches = 0      | FAIL (2) |
+| combinational loops = 0   | PASS ✓ |
+| peak FO4 < 24             | PASS ✓ |

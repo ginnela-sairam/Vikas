@@ -1,0 +1,45 @@
+5 terminals launched in PARALLEL: A=5579 B=5580 C=5582 D=5583 E=5584
+
+======== PARALLEL 5-TERMINAL RESULTS ========
+A1 alu-rc:0
+A2 alu-golden:OK
+A3 latch-rc:2 (expect 2)
+A4 clean-latch:OK
+A5 mutant-rc:0
+A6 mutant-report:OK
+B1 nova-run-rc:0
+B2 nova-9of9:OK
+B3 kdb:OK
+B4 signoff-rc:0 (expect 0)
+B5 power:OK
+B6 power-clocktree:OK
+B7 trace:OK
+C1 sar-2999:OK
+C2 cosim:OK
+C3 subthreshold:OK
+C4 sweep:OK
+C5 spectrum:OK
+C6 radix:OK
+C7 energy:OK
+D1 vcd:OK
+D1 vwe:OK
+D1 vwi:OK
+D1 vwm:OK
+D1 vwp:OK
+D1 vwt:OK
+D2 vwt-roundtrip:OK
+D3 gui-455sig:OK
+D4 coverage:OK
+D5 anomaly:OK
+D6 perf:OK
+D7 decode:OK
+D8 tui-pty:5/5
+E1 env-i-version:OK
+E2 env-i-run:OK
+E3 ci-clean:OK
+E4 ci-latchgate(1):OK
+E5 mutant-json:OK
+E6 signoff-json:OK
+E7 topo:OK
+E8 fork:OK
+-------- 41/41 checks OK --------

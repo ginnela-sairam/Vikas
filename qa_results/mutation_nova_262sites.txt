@@ -1,0 +1,33 @@
+██╗   ██╗██╗██╗ ██╗ █████╗ ███████╗   ██╗   ██╗ ██╗
+ ██║ ██╔╝██║██║ ██╔╝██╔══██╗██╔════╝   ██║   ██╗███║
+  █████╔╝ ██████╔╝███████║███████╗   ╚██╗ ██╔╝╚██║
+  ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
+  ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
+  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
+  [VIKAS v1] Open Linux-Native RTL Platform — XEZIM Kernel + Open-KDB + Wave Engine
+  100% Rust core · C++20 mixed-signal twin · offline · zero Python
+
+[VIKAS MUTANT] mutation testing — top `nova_soc_tb`, DUT 17 module(s), 262 mutable site(s)
+  running golden + 25 mutants — 15 killed, 0 hang, 10 survived
+
+  MUTATION SCORE score: 60 / 100
+  gate    : min-score 70 (exit 3 below)
+
+  SURVIVING MUTANTS — testbench gap report (add checks that expose these):
+    [1] nova_alu (off-by-one)  literal 2 -> 3
+    [2] nova_alu (op-swap)  `(a - b)` op `-` -> `+`
+    [3] nova_alu (const-zero)  literal 3 -> 0
+    [4] nova_alu (op-swap)  `(a ^ b)` op `^` -> `&`
+    [5] nova_alu (const-zero)  literal 5 -> 0
+    [6] nova_alu (off-by-one)  literal 5 -> 6
+    [7] nova_alu (op-swap)  `(a | b)` op `|` -> `&`
+    [8] nova_alu (op-swap)  `(a << b[3:0])` op `<<` -> `>>`
+    [9] nova_alu (const-zero)  literal 3 -> 0
+    [10] nova_alu (off-by-one)  literal 3 -> 4
+
+  sample kills (testbench caught these):
+    KILL nova_pc `(pc + 1)` op `+` -> `-`  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> `NOVA-FAIL 1 gpio_out  = xxx…
+    KILL nova_pc literal 1 -> 0  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> `NOVA-FAIL 1 gpio_out  = xxx…
+    KILL nova_pc literal 1 -> 2  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> `NOVA-FAIL 1 gpio_out  = xxx…
+    KILL nova_alu literal 1 -> 0  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> `NOVA-FAIL 1 gpio_out  = xxx…
+    KILL nova_alu literal 1 -> 2  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> `NOVA-FAIL 1 gpio_out  = xxx…

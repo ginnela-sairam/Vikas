@@ -1,0 +1,15 @@
+// =====================================================================
+// NOVA-SoC UVM integration marker (.uvm extension — VIKAS detects UVM
+// intent from the manifest and runs UVM-aware elaboration).
+//
+// The full NOVA regression is a class-based UVM environment in the
+// production flow (nova_env_pkg with nova_driver / nova_monitor /
+// nova_scoreboard on `virtual nova_if`). For the offline VIKAS kernel
+// demo the equivalent checking is done procedurally inside
+// nova_soc_tb.sv so the design runs on any Linux box with zero deps.
+//
+//   +UVM_TESTNAME=nova_smoke_test
+//   +UVM_VERBOSITY=UVM_MEDIUM
+//   nova_sequences: nova_prog_load_seq, nova_uart_loopback_seq,
+//                   nova_spi_loopback_seq, nova_timer_irq_seq
+// =====================================================================

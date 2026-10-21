@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/vikas-linux",
+    "crates/vikas-kdb",
+    "crates/vikas-physics",
+    "crates/vikas-wave",
+    "crates/vikas-wcp",
+    "crates/vikas-sim",
+    "crates/vikas-cli",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"

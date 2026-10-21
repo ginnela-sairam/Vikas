@@ -1,0 +1,6 @@
+[VIKAS SESSION] declarative project config (vikas.toml):
+# VIKAS v1 session-as-code (feature 10)
+[project]
+top = "top"
+sources = ["rtl/*.sv", "rtl/*.v", "rtl/*.vh"]   # multi-file glob + filelists supported
+

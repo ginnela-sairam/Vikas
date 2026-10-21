@@ -1,0 +1,6 @@
+uart tx_done=0 busy=1
+[VIKAS RUN] simulated top `uart_tb`: 11 cycles, 105 ns, wall 0 ms
+  project      : 1 file(s) [1]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (16 signals · 13 driver sites)

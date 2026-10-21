@@ -1,0 +1,32 @@
+// =====================================================================
+// NOVA-SoC alternative manifest (.files extension variant)
+// Same project, flat list — proves VIKAS accepts every manifest flavor:
+//   vikas run nova_soc/docs/manifest.files
+// (entries relative to THIS file's directory, per industry rule)
+// =====================================================================
++incdir+../inc
++incdir+../rtl
++incdir+../tb
+
+../inc/nova_defs.vh
+../inc/nova_pkg.svh
+../rtl/core/nova_pc.sv
+../rtl/core/nova_regfile.sv
+../rtl/core/nova_alu.sv
+../rtl/core/nova_decoder.sv
+../rtl/core/nova_core.sv
+../rtl/bus/nova_arbiter.sv
+../rtl/bus/nova_bus.sv
+../rtl/periph/nova_ram.sv
+../rtl/periph/nova_gpio.sv
+../rtl/periph/nova_uart_tx.sv
+../rtl/periph/nova_spi.sv
+../rtl/periph/nova_timer.sv
+../rtl/periph/nova_pwm.sv
+../rtl/periph/nova_sync.v
+../rtl/legacy/nova_wdt.v
+../rtl/netlist/nova_tiecell.netlist
+../rtl/spec/nova_golden.vho
+../rtl/nova_soc_top.sv
+../tb/nova_soc_tb.sv
+../tb/nova_uvm_tag.uvm

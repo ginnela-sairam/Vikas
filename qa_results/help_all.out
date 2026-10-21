@@ -1,0 +1,6 @@
+══════════════════════════════════════════════════════════════
+  VIKAS v1 — command catalog (58 commands, 16 breakthroughs)
+══════════════════════════════════════════════════════════════
+
+■ SIMULATION (XEZIM kernel — multi-file, filelists, UVM-aware)
+  run <files|manifest.f> [--top m] [--max-ns N] [--gui]      simulate + auto-dump + Open-KDB + telemetry + latch alert

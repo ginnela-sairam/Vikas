@@ -1,0 +1,10 @@
+[package]
+name = "vikas-sim"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+vikas-wave = { path = "../vikas-wave" }
+anyhow = "1"
+
+[dev-dependencies]

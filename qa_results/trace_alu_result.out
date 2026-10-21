@@ -1,0 +1,2 @@
+[VIKAS TRACE] fan-in cone for `alu_result`:
+   · alu_result <= ex_result  (:53)

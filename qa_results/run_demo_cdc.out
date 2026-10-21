@@ -1,0 +1,6 @@
+data_b=c3
+[VIKAS RUN] simulated top `cdc_tb`: 2 cycles, 61 ns, wall 0 ms
+  project      : 1 file(s) [1]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (7 signals · 7 driver sites)

@@ -1,0 +1,6 @@
+[VIKAS EXPR] virtual signal `valid_in`:
+  t=     0 ns  value=0
+  t=    11 ns  value=0
+  t=    22 ns  value=1
+  t=    33 ns  value=1
+  t=    44 ns  value=1

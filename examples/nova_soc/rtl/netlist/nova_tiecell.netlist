@@ -1,0 +1,9 @@
+// =====================================================================
+// NOVA tie cell — physical-library zero-keeper (.netlist extension:
+// gate-level sources are first-class VIKAS project members)
+// =====================================================================
+module nova_tiecell (
+    output wire t
+);
+    assign t = 1'b0;
+endmodule

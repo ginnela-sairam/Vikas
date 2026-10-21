@@ -1,0 +1,6 @@
+ready_out=1 data_out=7
+[VIKAS RUN] simulated top `fifo_tb`: 9 cycles, 93 ns, wall 0 ms
+  project      : 1 file(s) [1]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (11 signals · 10 driver sites)

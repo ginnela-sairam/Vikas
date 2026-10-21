@@ -1,0 +1,20 @@
+██╗   ██╗██╗██╗ ██╗ █████╗ ███████╗   ██╗   ██╗ ██╗
+ ██║ ██╔╝██║██║ ██╔╝██╔══██╗██╔════╝   ██║   ██╗███║
+  █████╔╝ ██████╔╝███████║███████╗   ╚██╗ ██╔╝╚██║
+  ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
+  ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
+  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
+  [VIKAS v1] Open Linux-Native RTL Platform — XEZIM Kernel + Open-KDB + Wave Engine
+  100% Rust core · C++20 mixed-signal twin · offline · zero Python
+
+[VIKAS SIGNOFF] composite tapeout-risk scorecard — top `nova_soc_tb`
+  OK   latch audit                0 inferred latch(es) (-5 each)
+  OK   combinational loops        0 SCC loop(s) (-10 each)
+  OK   CDC synchronizers          0 unsynchronized crossing(s) (-3 each)
+  OK   toggle coverage            0 silent signal(s) (-1 each)
+  RISK liveness                   41 signal(s) froze before 25% of window (-2 each)
+  OK   TB verdict                 0 FAIL/FATAL print(s) (-10 flat)
+  SKIP  mutation score             (skipped — use --mutant to include)
+  INFO  design profile             0 FSM(s), 300 cycles, 3000 ns, 14696 glitches
+
+  SIGNOFF SCORE 90 / 100 — SIGNOFF READY

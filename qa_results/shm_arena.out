@@ -1,0 +1,2 @@
+[VIKAS SHM] arena: /dev/shm/vikas_arena_1001_demo (tmpfs RAM — zero disk wear, >20 GB/s)
+  probe readback   : PASS ✓ (RAM-speed arena verified)

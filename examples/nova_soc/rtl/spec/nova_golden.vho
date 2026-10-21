@@ -1,0 +1,18 @@
+-- =====================================================================
+-- NOVA-SoC golden reference model (.vho VHDL-output style — VIKAS
+-- recognizes the extension and tolerates non-instantiated spec text)
+--
+-- entity nova_golden is
+--     port (clk    : in  std_logic;
+--           rst_n  : in  std_logic;
+--           prog   : in  std_logic_vector(15 downto 0);
+--           result : out std_logic_vector(15 downto 0));
+-- end entity nova_golden;
+--
+-- architecture behavioral of nova_golden is
+--     -- ISA-level golden model: sum(0..9) * 7 = 70 (0x0046)
+--     -- SPI loopback returns the driven byte (0x5A)
+--     -- UART frame byte is 0xA5
+--     -- final GPIO expectation: 0x005A
+-- end architecture behavioral;
+-- =====================================================================

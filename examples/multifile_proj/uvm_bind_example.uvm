@@ -1,0 +1,9 @@
+// UVM-aware file: VIKAS extracts module-level RTL for simulation and notes
+// class-based UVM constructs for the TB-side (v1 supports the DUT/RTL subset).
+`include "uvm_macros.svh"
+module uvm_wrapper;
+    // functional-cover module VIKAS CAN simulate:
+    initial begin
+        $display("[UVM] bind-side monitor active");
+    end
+endmodule

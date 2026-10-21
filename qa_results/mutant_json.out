@@ -1,0 +1,6 @@
+[VIKAS MUTANT] mutation testing — top `soc_tb`, DUT 3 module(s), 10 mutable site(s)
+  running golden + 8 mutants — 8 killed, 0 hang, 0 survived
+{
+  "hang": 0,
+  "killed": 8,
+  "run": 8,

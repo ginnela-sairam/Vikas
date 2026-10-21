@@ -1,0 +1,5 @@
+[VIKAS PHYSICS] silicon physics report @ Vdd=0.12V, T=77K:
+  delay multiplier : 69× nominal
+  Ion/Ioff margin  : 8456677.23
+  peak FO4 depth   : 1
+  verdict          : SUB-THRESHOLD — paths deeper than FO4=4 may not close timing

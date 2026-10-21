@@ -1,0 +1,6 @@
+NOVA-OK   1 gpio_out  = 005a
+NOVA-OK   2 ram[0x40] = 70
+NOVA-OK   3 uart_rx   = a5
+NOVA-OK   4 spi_rx    = 5a
+NOVA-OK   5 timer_irq = 1
+NOVA-OK   6 wdt_bark  = 0

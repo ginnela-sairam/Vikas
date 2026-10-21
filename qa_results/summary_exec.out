@@ -1,0 +1,6 @@
+[VIKAS SUMMARY] executive simulation scorecard
+  duration      : 93 ns (203 events, 30 signals)
+  toggle        : 10/30 active (33.3%)
+  physics tracks: 2 (VIKAS_PHYSICS_instant_energy_fJ, VIKAS_PHYSICS_cumulative_energy_fJ)
+  causality     : 2 tracks (glitch hazards, latch holds)
+  dynamic energy: 87 fJ (Σ instant_energy_fJ)
