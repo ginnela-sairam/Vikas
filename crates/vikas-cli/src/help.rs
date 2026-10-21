@@ -33,7 +33,7 @@ pub fn catalog() {
         ]),
         ("WAVE ANALYSIS (features 21-30, 44-46)", &[
             ("tui [dump]", "terminal UI — j/k select, /filter, q quit (43)"),
-            ("gui [dump] [-o out.html]", "offline single-file HTML5 GUI with hover tooltips (42)"),
+            ("gui [dump] [-o out.html] [--no-open]", "self-contained HTML5 GUI, auto-opens your browser (new window); WSL-aware (42)"),
             ("summary [dump]", "executive telemetry scorecard (36)"),
             ("annotate <file.sv> --time t", "inline live-value RTL source annotator (15)"),
             ("find \"cond\" [--dump d]", "bit-parallel temporal search (b11/32)"),

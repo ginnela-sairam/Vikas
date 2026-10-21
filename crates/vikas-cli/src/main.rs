@@ -35,7 +35,7 @@ enum Cmd {
     Coverage { dump: PathBuf },
     // wave analysis
     Tui { dump: PathBuf },
-    Gui { dump: PathBuf, out: PathBuf },
+    Gui { dump: PathBuf, out: PathBuf, open: bool },
     Summary { dump: PathBuf },
     Annotate { file: PathBuf, time: u64 },
     Find { cond: String, dump: PathBuf },
@@ -141,10 +141,30 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         "schematic" => Ok(Cmd::Schematic { signal: rest.first().cloned().unwrap_or_default(), files: files(&rest[1..]) }),
         "coverage" => Ok(Cmd::Coverage { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "tui" => Ok(Cmd::Tui { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
-        "gui" | "html-report" => Ok(Cmd::Gui {
-            dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
-            out: flagv(&rest, "-o").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("vikas_gui.html")),
-        }),
+        "gui" | "html-report" => {
+            // positional dump must not swallow flags: skip every `-`-token and
+            // the value that belongs to `-o`, so `vikas gui -o out.html`,
+            // `vikas gui --no-open`, and `vikas gui dump.vwf -o o.html` all
+            // resolve the dump correctly.
+            let mut dump = PathBuf::from(".vikas/vikas_wave.vwf");
+            let mut it = rest.iter().peekable();
+            while let Some(t) = it.next() {
+                if t == "-o" {
+                    it.next(); // -o's value is not a positional dump
+                    continue;
+                }
+                if t.starts_with('-') {
+                    continue;
+                }
+                dump = PathBuf::from(t);
+                break;
+            }
+            Ok(Cmd::Gui {
+                dump,
+                out: flagv(&rest, "-o").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("vikas_gui.html")),
+                open: !rest.contains(&"--no-open".into()),
+            })
+        }
         "summary" => Ok(Cmd::Summary { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "annotate" => Ok(Cmd::Annotate {
             file: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("top.sv")),
@@ -235,7 +255,15 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             json: rest.contains(&"--json".into()),
         }),
         _ => {
-            bail!("unknown command `{}` — try `vikas help`", cmd);
+            // typo-help: point the user at the right door instead of a dead end
+            match util::suggest_command(&cmd) {
+                Some(k) => bail!(
+                    "unknown command `{}` — did you mean `vikas {}`? (full list: `vikas help`)",
+                    cmd,
+                    k
+                ),
+                None => bail!("unknown command `{}` — try `vikas help`", cmd),
+            }
         }
     }
 }
@@ -359,7 +387,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::Schematic { signal, files } => cmds::cmd_schematic(signal, files),
         Cmd::Coverage { dump } => cmds::cmd_coverage(dump),
         Cmd::Tui { dump } => tui::run(dump),
-        Cmd::Gui { dump, out } => cmds::cmd_gui(dump, out),
+        Cmd::Gui { dump, out, open } => cmds::cmd_gui(dump, out, open),
         Cmd::Summary { dump } => cmds::cmd_summary(dump),
         Cmd::Annotate { file, time } => cmds::cmd_annotate(file, time),
         Cmd::Find { cond, dump } => cmds::cmd_find(cond, dump),

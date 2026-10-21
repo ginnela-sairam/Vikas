@@ -532,10 +532,33 @@ pub fn cmd_coverage(dump: PathBuf) -> Result<()> {
 
 // ============================== WAVE COMMANDS ==============================
 
-pub fn cmd_gui(dump: PathBuf, out: PathBuf) -> Result<()> {
+pub fn cmd_gui(dump: PathBuf, out: PathBuf, open: bool) -> Result<()> {
     let d = load_dump(&dump)?;
     vikas_wcp::html_gui::generate_html_gui(&d, "HTML5 Waveform GUI", &out)?;
     println!("{} self-contained HTML5 GUI -> {} ({} signals, {} events, fully offline)", c("[VIKAS GUI]", CYAN), out.display(), d.signals.len(), d.changes.len());
+    if !open {
+        println!("{} --no-open: file written only (drop the flag to auto-launch your browser)", c("[VIKAS GUI]", CYAN));
+        return Ok(());
+    }
+    // Pop the GUI open in the OS default browser — new window, everything
+    // embedded, works offline. Auto-suppressed in pipes/CI (not a tty) and
+    // behind VIKAS_NO_OPEN=1, so scripted callers never surprise anyone.
+    if !wants_browser() {
+        return Ok(());
+    }
+    match open_in_browser(&out) {
+        BrowserOpen::Opened(how) => println!(
+            "{} opening in your default browser (new window) via {} — if no window pops up, open {} manually (all data embedded)",
+            c("[VIKAS GUI]", GREEN),
+            how,
+            out.display()
+        ),
+        BrowserOpen::NoBridge => println!(
+            "{} no desktop browser bridge here — the file is fully self-contained: open {} in any browser, or copy it to any machine",
+            c("[VIKAS GUI]", YELLOW),
+            out.display()
+        ),
+    }
     Ok(())
 }
 

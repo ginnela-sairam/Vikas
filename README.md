@@ -76,19 +76,23 @@ It speaks **58 commands** today, organized around one flow:
 # 0. get the source
 git clone https://github.com/ginnela-sairam/Vikas && cd Vikas
 
-# 1. build (one command: build + test + smoke-check)
+# 1. build (one command: build + test + smoke-check).
+#    `./build_linux.sh` works on a fresh clone; use `bash build_linux.sh`
+#    anywhere, any time — no permission bits required.
 ./build_linux.sh
 
-# 2. install to ~/.local/bin (optional)
+# 2. install to ~/.local/bin (optional, sudo-less by design)
 ./install_linux.sh
 
 # 3. first simulation — compile RTL, auto-dump waveform, build Open-KDB,
 #    run physics telemetry and latch analysis, all in one command:
 vikas run examples/demo_riscv_alu_hazard.sv
 
-# 4. open the waveform
-vikas gui .vikas/vikas_wave.vwf      # HTML5 GUI (offline single file, any browser)
-vikas tui .vikas/vikas_wave.vwf      # or the terminal UI
+# 4. open the waveform — pops up in your default browser automatically
+#    (new window; WSL-aware). All data embedded — works fully offline.
+vikas gui                             # browser window pops open
+vikas gui --no-open                   # ... or just write the HTML file
+vikas tui .vikas/vikas_wave.vwf       # or the terminal UI
 
 # 5. ask the design a question
 vikas why alu_result examples/demo_riscv_alu_hazard.sv
@@ -394,8 +398,9 @@ Every claim in this README is backed by a captured artifact in `qa_results/`:
 
 * **33/33 unit tests** — kernel semantics, latch L1, mutation engine,
   switching-power formula, E-graph, SAR twin, all 6 format round-trips
-* **75/75 command-matrix checks** — `test_matrix.sh` executes every command
-  path and captures its output
+* **80/80 command-matrix checks** — `test_matrix.sh` executes every command
+  path and captures its output, including the friendliness gates (GUI
+  auto-open headless-safety, typo "did you mean" help)
 * **NOVA-SoC 9/9 golden checks** on both manifests (`.f` and `.files`)
 * **5 terminals in parallel: 41/41 checks** — fresh-install, NOVA deep-run,
   physics/cosim, all 6 wave formats + GUI/TUI, `env -i` hardiness — all green
@@ -404,7 +409,8 @@ Every claim in this README is backed by a captured artifact in `qa_results/`:
   (build-from-zero, prebuilt-binary, foreign-cwd minimal-env) each reproduce the
   same goldens: version banner, SAR 2999, latch exit 2, NOVA 9/9, signoff READY
 * **GUI verified in real Chromium** at 455-signal scale — search narrows,
-  boolean temporal queries match, hover tooltips pop, 5.1 M pixels painted
+  boolean temporal queries match, hover tooltips pop, 5.1 M pixels painted;
+  `vikas gui` auto-opens the OS default browser (new window, WSL-aware)
 * **TUI verified in a real PTY** on the 455-signal NOVA dump — 5/5 checks
 
 ## 🧭 Philosophy

@@ -1,7 +1,7 @@
 # ============================================================================
 # VIKAS v1 — GitHub Actions CI: the zero-touch platform verifying itself.
 #   job "kernel"     : clean-room cargo build + 33 unit tests
-#   job "matrix"     : the full 77-check command matrix + NOVA-SoC deep gates
+#   job "matrix"     : the full 80-check command matrix + NOVA-SoC deep gates
 #   job "proof"      : golden demos (ALU 0xDEAD / SAR 2999 / SoC 200 / latch 2)
 #                      + one-command signoff evidence
 # Evidence (qa_results/, signoff report) is uploaded as a run artifact.
@@ -30,7 +30,7 @@ jobs:
         run: cargo test --release --locked
 
   matrix:
-    name: matrix (77-check command sweep)
+    name: matrix (80-check command sweep)
     needs: kernel
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -39,7 +39,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Build from zero
         run: cargo build --release --locked
-      - name: Full command matrix (50 features / 16 breakthroughs / 6 formats)
+      - name: Full command matrix (50 features / 16 breakthroughs / 6 formats + friendliness gates)
         run: bash test_matrix.sh
       - name: Upload matrix evidence
         if: always()
@@ -84,6 +84,22 @@ jobs:
         run: |
           ./target/release/vikas power examples/demo_sar_adc.sv --max-ns 3000 | grep -q "zero-touch power mode"
           ./target/release/vikas mutant examples/multifile_proj/project.f --max 6 --min-score 0 --max-ns 4000
+      - name: Friendliness gates (gui auto-open headless-safe + typo help)
+        run: |
+          ./target/release/vikas run examples/demo_riscv_alu_hazard.sv >/dev/null
+          # headless CI: gui must write the self-contained HTML and exit 0,
+          # NEVER attempting to launch a browser (no tty detected here)
+          ./target/release/vikas gui -o ci_gui.html > gui_msg.txt
+          grep -q "self-contained HTML5 GUI" gui_msg.txt
+          test -s ci_gui.html
+          grep -q "VIKAS v1" ci_gui.html
+          # explicit opt-out also supported
+          ./target/release/vikas gui --no-open -o ci_gui2.html | grep -q -e "--no-open: file written only"
+          # typo-help contract: exit 2 + "did you mean" guidance
+          rc=0
+          ./target/release/vikas gu > gu_msg.txt 2>&1 || rc=$?
+          test "$rc" -eq 2
+          grep -q "did you mean" gu_msg.txt
       - name: Offline proof — no Python, no TLS linked into the kernel
         run: |
           # VIKAS is pure Rust: the binary itself must never link Python or any

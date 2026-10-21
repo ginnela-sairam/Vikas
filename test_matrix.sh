@@ -100,6 +100,9 @@ check "coverage:toggle" 0 $VIKAS coverage .vikas/vikas_wave.vwf
 rm -rf .vikas
 $VIKAS run examples/demo_fifo_backpressure.sv >/dev/null 2>&1
 check "gui:html5" 0 $VIKAS gui .vikas/vikas_wave.vwf -o /tmp/vikas_gui_test.html
+check_grep "gui:no-open-flag" "--no-open: file written only" $VIKAS gui --no-open -o /tmp/vikas_gui_noopen.html
+check_grep "hint:did-you-mean" 'did you mean `vikas gui`' $VIKAS gu
+check "hint:parse-exit2" 2 $VIKAS zzzzzzzz
 check "summary:exec" 0 $VIKAS summary .vikas/vikas_wave.vwf
 check "find:temporal" 0 $VIKAS find valid_in --dump .vikas/vikas_wave.vwf
 check "expr:virtual" 0 $VIKAS expr valid_in --dump .vikas/vikas_wave.vwf
