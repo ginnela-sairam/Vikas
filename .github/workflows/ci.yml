@@ -71,8 +71,11 @@ jobs:
           ./target/release/vikas run examples/demo_sar_adc.sv | grep -q "sar code=2999 (target 2999)"
           # multi-file manifest result
           ./target/release/vikas run examples/multifile_proj/project.f | grep -q "result=200"
-          # inferred-latch gate exits 2
-          ./target/release/vikas latch examples/demo_latch_trap.sv; test $? -eq 2
+          # inferred-latch gate exits 2 (errexit-safe capture: plain
+          # `cmd; test $? -eq 2` would abort under bash -e before the test)
+          rc=0
+          ./target/release/vikas latch examples/demo_latch_trap.sv || rc=$?
+          test "$rc" -eq 2
       - name: One-command signoff (b16)
         run: |
           ./target/release/vikas signoff examples/nova_soc/nova.f --max-ns 8000 | tee signoff.txt

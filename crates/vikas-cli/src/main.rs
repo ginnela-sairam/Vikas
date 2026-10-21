@@ -241,6 +241,30 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
 }
 
 fn main() {
+    // ------------------------------------------------------------------
+    // Pipe-friendly stdout (the "silent reader" contract).
+    // When the consumer of our output closes the pipe early -- e.g.
+    //   vikas run demo.sv | grep -q "alu_result=57005"
+    //   vikas run demo.sv | head -20
+    // -- `println!` would otherwise panic with
+    //   "failed printing to stdout: Broken pipe (os error 32)".
+    // Under `bash -o pipefail` (GitHub Actions' default shell) that
+    // panic aborts the whole pipeline even though grep SUCCEEDED.
+    // Treat EPIPE on stdout/stderr as success-by-design: exit 0,
+    // like every well-behaved Unix filter. All other panics keep the
+    // default hook (full message + RUST_BACKTRACE support).
+    // ------------------------------------------------------------------
+    let default_panic_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let msg = info.to_string();
+        if msg.contains("failed printing to stdout")
+            || msg.contains("failed printing to stderr")
+        {
+            std::process::exit(0);
+        }
+        default_panic_hook(info);
+    }));
+
     let args: Vec<String> = std::env::args().skip(1).collect();
     let cmd = match parse_args(&args) {
         Ok(c) => c,
