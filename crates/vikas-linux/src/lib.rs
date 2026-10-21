@@ -13,7 +13,7 @@ pub struct ShmArena {
 
 impl ShmArena {
     pub fn open(tag: &str) -> ShmArena {
-        let uid = unsafe { libc_getuid() };
+        let uid = libc_getuid();
         let shm = PathBuf::from(format!("/dev/shm/vikas_arena_{}{}", uid, if tag.is_empty() { String::new() } else { format!("_{}", tag) }));
         if std::fs::create_dir_all(&shm).is_ok() {
             ShmArena { dir: shm, is_ram: true }

@@ -78,7 +78,7 @@ enum Cmd {
     Editor { file: Option<PathBuf> },
     // breakthroughs 14-16 (this build)
     Mutant { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, max_mutants: usize, min_score: f64, json: bool },
-    Power { dump: PathBuf, vdd: f64, cnode_ff: f64, freq_mhz: f64, json: bool },
+    Power { dump: PathBuf, vdd: f64, cnode_ff: f64, freq_mhz: f64, max_ns: u64, json: bool },
     Signoff { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, mutant: bool, json: bool },
 }
 
@@ -90,7 +90,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         const VALUED: &[&str] = &[
             "--top", "--max-ns", "-o", "--time", "--from", "--to", "--array",
             "--dump", "--addr", "--vdd", "--temp-k", "--bus",
-            "--max-mutants", "--min-score", "--cnode", "--freq-mhz",
+            "--max-mutants", "--max", "--min-score", "--cnode", "--freq-mhz",
         ];
         let mut out = Vec::new();
         let mut skip_next = false;
@@ -213,12 +213,15 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             files: files(&rest),
             top: flagv(&rest, "--top"),
             max_ns: numv(&rest, "--max-ns", 20_000),
-            max_mutants: numv(&rest, "--max-mutants", 200) as usize,
+            max_mutants: flagv(&rest, "--max-mutants").or_else(|| flagv(&rest, "--max"))
+                .and_then(|v| v.parse().ok()).unwrap_or(200) as usize,
             min_score: flagv(&rest, "--min-score").and_then(|v| v.parse().ok()).unwrap_or(70.0),
             json: rest.contains(&"--json".into()),
         }),
         "power" => Ok(Cmd::Power {
-            dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
+            // positional RTL source or dump; flags must not be mistaken for a path
+            dump: files(&rest).first().cloned().unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
+            max_ns: numv(&rest, "--max-ns", 50_000),
             vdd: flagv(&rest, "--vdd").and_then(|v| v.parse().ok()).unwrap_or(0.8),
             cnode_ff: flagv(&rest, "--cnode").and_then(|v| v.parse().ok()).unwrap_or(1.0),
             freq_mhz: flagv(&rest, "--freq-mhz").and_then(|v| v.parse().ok()).unwrap_or(100.0),
@@ -369,7 +372,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::AutogenTb { file } => cmds::cmd_autogen_tb(file),
         Cmd::Editor { file } => cmds::cmd_editor(file),
         Cmd::Mutant { files, top, max_ns, max_mutants, min_score, json } => cmds::cmd_mutant(files, top, max_ns, max_mutants, min_score, json),
-        Cmd::Power { dump, vdd, cnode_ff, freq_mhz, json } => cmds::cmd_power(dump, vdd, cnode_ff, freq_mhz, json),
+        Cmd::Power { dump, vdd, cnode_ff, freq_mhz, max_ns, json } => cmds::cmd_power(dump, vdd, cnode_ff, freq_mhz, max_ns, json),
         Cmd::Signoff { files, top, max_ns, mutant, json } => cmds::cmd_signoff(files, top, max_ns, mutant, json),
     }
 }

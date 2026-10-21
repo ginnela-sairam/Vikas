@@ -78,11 +78,11 @@ pub fn catalog() {
             ("gate-compare <rtl> <gate>", "RTL vs gate-level waveform co-verify (50)"),
         ]),
         ("BREAKTHROUGH #14 — MUTATION TESTING (testbench quality, CLI-native)", &[
-            ("mutant <files> [--max-mutants N] [--min-score S]", "inject op-swaps/const mutations into the DUT, re-sim, score TB kills (b14)"),
+            ("mutant <files> [--max-mutants N | --max N] [--min-score S]", "inject op-swaps/const mutations into the DUT, re-sim, score TB kills (b14)"),
             ("mutant --json <files>", "machine-readable survivor report for CI quality gates"),
         ]),
         ("BREAKTHROUGH #15 — SWITCHING POWER (waveform-driven)", &[
-            ("power [dump] [--vdd V] [--cnode fF] [--freq-mhz F]", "P = Σ ½CV²·f_tr from REAL toggle counts, hotspot ranking (b15)"),
+            ("power [dump|rtl] [--vdd V] [--cnode fF] [--freq-mhz F] [--max-ns N]", "P = Σ ½CV²·f_tr from REAL toggles; RTL input auto-simulates first (zero-touch) (b15)"),
             ("power --json [dump]", "per-signal power/energy JSON for power-budget CI"),
         ]),
         ("BREAKTHROUGH #16 — ONE-COMMAND SIGNOFF", &[

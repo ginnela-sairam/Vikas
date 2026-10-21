@@ -363,7 +363,7 @@ impl WaveDump {
                 continue;
             } else {
                 // 1-bit short form: "<val><id>"
-                let (val, id) = l.split_at(l.len().saturating_sub(1).max(l.len() - 1));
+                let (val, _id) = l.split_at(l.len().saturating_sub(1).max(l.len() - 1));
                 if l.len() >= 2 {
                     let (val, id) = (&l[..1], &l[1..]);
                     if "01xzXZ".contains(val) {

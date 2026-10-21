@@ -1,0 +1,6 @@
+[VIKAS POWER] input is RTL — auto-simulating 3000 ns first (zero-touch power mode)
+sar code=2999 (target 2999) conv_done=0
+  fresh dump   : .vikas/vikas_wave.vwf (342 events)
+[VIKAS POWER] switching-activity dynamic power (P = Σ ½·C·V²·f_tr)
+  model      : Vdd 0.8 V · Cnode 1 fF · window 192 ns (0.192 µs)
+  total power: 340.000 nW

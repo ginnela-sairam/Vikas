@@ -1,7 +1,7 @@
 //! VIKAS v1 — XEZIM elaborator: flattens module hierarchy into a flat
 //! signal namespace with port bindings. Supports multi-file projects.
 
-use super::parser::{ConnExpr, Expr, ModuleDef, Stmt, VarKind};
+use super::parser::{ConnExpr, Expr, ModuleDef, Stmt};
 use anyhow::Result;
 use std::collections::HashMap;
 

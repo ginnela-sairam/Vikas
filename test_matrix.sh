@@ -16,14 +16,15 @@ check() {
   local out
   out=$(timeout 90 "$@" 2>&1)
   local rc=$?
+  local safe="${name//:/_}"   # ':' is illegal in git/Windows paths
   if [ "$rc" -eq "$expect" ]; then
     PASS=$((PASS+1))
     echo "PASS [$name]"
-    echo "$out" | head -6 > "$RESULTS/$name.out"
+    echo "$out" | head -6 > "$RESULTS/$safe.out"
   else
     FAIL=$((FAIL+1)); FAILED_TESTS="$FAILED_TESTS\n  - $name (rc=$rc, expected $expect)"
     echo "FAIL [$name] rc=$rc"
-    echo "$out" | head -12 > "$RESULTS/$name.out"
+    echo "$out" | head -12 > "$RESULTS/$safe.out"
     echo "$out" | head -6
   fi
 }
@@ -34,14 +35,15 @@ check_grep() {
   local name="$1"; local pattern="$2"; shift 2
   local out
   out=$(timeout 120 "$@" 2>&1)
+  local safe="${name//:/_}"   # ':' is illegal in git/Windows paths
   if echo "$out" | grep -q -- "$pattern"; then
     PASS=$((PASS+1))
     echo "PASS [$name]"
-    echo "$out" | head -6 > "$RESULTS/$name.out"
+    echo "$out" | head -6 > "$RESULTS/$safe.out"
   else
     FAIL=$((FAIL+1)); FAILED_TESTS="$FAILED_TESTS\n  - $name (pattern '$pattern' not found)"
     echo "FAIL [$name] pattern-not-found"
-    echo "$out" | head -12 > "$RESULTS/$name.out"
+    echo "$out" | head -12 > "$RESULTS/$safe.out"
     echo "$out" | head -6
   fi
 }
@@ -67,6 +69,9 @@ check "nova:power" 0 bash -c "$VIKAS run examples/nova_soc/nova.f --max-ns 8000 
 check "nova:power-json" 0 bash -c "$VIKAS power .vikas/vikas_wave.vwf --json"
 check "mutant:fast-target" 0 $VIKAS mutant examples/multifile_proj/project.f --max-mutants 12 --min-score 50 --max-ns 4000
 check "mutant:json" 0 $VIKAS mutant examples/multifile_proj/project.f --max-mutants 8 --min-score 0 --max-ns 4000 --json
+# zero-touch UX: `--max` alias + power on RTL source auto-simulates first
+check "mutant:max-alias" 0 $VIKAS mutant examples/multifile_proj/project.f --max 6 --min-score 0 --max-ns 4000
+check_grep "power:auto-run-rtl" "zero-touch power mode" $VIKAS power examples/demo_sar_adc.sv --max-ns 3000
 check_grep "signoff:latch-trap-risk" "AT RISK" $VIKAS signoff examples/demo_latch_trap.sv --max-ns 2000
 
 # ---- breakthrough 13: latch detection (L1+L2+L3) ----

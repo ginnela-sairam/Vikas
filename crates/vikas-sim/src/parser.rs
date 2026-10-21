@@ -166,6 +166,9 @@ impl<'a> Parser<'a> {
             _ => "?".into(),
         }
     }
+    /// numeric-literal expression parser — kept for the planned parameter-table
+    /// grammar (`#(NUM)`) even though the main path folds constants in the lexer.
+    #[allow(dead_code)]
     fn number(&mut self) -> Expr {
         if let Some(Tok::Num { val, width, .. }) = self.peek() {
             let v = *val;
@@ -908,7 +911,7 @@ impl<'a> Parser<'a> {
                 }
                 Some(Tok::Ident(_)) => {
                     // named delay like #TICK — evaluate as expr
-                    let e = self.parse_expr();
+                    let _e = self.parse_expr();
                     (0, true)
                 }
                 _ => (1, false),

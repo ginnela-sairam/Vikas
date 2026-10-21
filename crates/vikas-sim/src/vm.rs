@@ -3,8 +3,8 @@
 //! edge-sensitive wake, taint dye, physics telemetry, latch-hold shadow signals.
 
 use super::elab::{BoundExpr, Design, PortBinding};
-use super::parser::{AlwaysBlock, Expr, ModuleDef, Stmt, VarKind};
-use vikas_wave::{SigKind, VVal, WaveDump};
+use super::parser::{AlwaysBlock, Expr, ModuleDef, Stmt};
+use vikas_wave::{VVal, WaveDump};
 
 #[derive(Clone)]
 pub struct SimResult {
@@ -20,6 +20,9 @@ pub struct SimResult {
 }
 
 struct Frame {
+    /// owning module index — kept to document frame provenance (the prefix
+    /// already disambiguates scopes today; index reserved for multi-scopes)
+    #[allow(dead_code)]
     module: usize,
     prefix: String,
 }
@@ -29,9 +32,14 @@ pub struct Vm {
     mods: Vec<ModuleDef>,
     vals: std::collections::HashMap<String, VVal>,
     prev: std::collections::HashMap<String, VVal>,
+    /// pending non-blocking-assign list — the NBA region is applied inline during
+    /// the first delta iteration of each time step; the field is kept as the
+    /// kernel's documented NBA hand-off point for upcoming delta-cycle split.
+    #[allow(dead_code)]
     nba: Vec<(String, VVal)>,
     /// time wheel: (time, (module idx, stmt ptr-path)) via closure re-entrancy is
     /// not possible in Rust easily — we instead run per-module PC-less walkers.
+    #[allow(dead_code)]
     wake_at: std::collections::BTreeMap<u64, Vec<usize>>, // time -> initial-block ids
     finished: bool,
     glitch_counts: std::collections::HashMap<String, u32>,
@@ -39,6 +47,9 @@ pub struct Vm {
     latch_hold_now: std::collections::HashMap<String, bool>,
     latch_finds: Vec<super::latchsim::LatchFind>,
     pub dump: WaveDump,
+    /// per-signal "already dumped at t=0" set — t=0 state is emitted wholesale
+    /// by dump_state(); the set is retained for planned incremental re-dumps.
+    #[allow(dead_code)]
     dumped: std::collections::HashSet<String>,
     taint: std::collections::HashMap<String, u64>,
     phys_energy: f64,
@@ -490,7 +501,7 @@ impl Vm {
                 // remaining iterations ran without parking only if delay-free
                 for _ in 1..n {
                     if !self.exec_seq(body, f, out) {
-                        let mut cont = std::mem::take(&mut out.parked_tail);
+                        let cont = std::mem::take(&mut out.parked_tail);
                         out.parked_tail = cont;
                         return false;
                     }
@@ -786,7 +797,7 @@ impl Vm {
                                     if self.vals.contains_key(p) {
                                         let w = self.design.sigs.get(p.as_str()).map(|s| s.width).unwrap_or(1);
                                         let cv2 = self.val(p);
-                                        let mut bits = Self::fit_width(&cv2, w).bits;
+                                        let bits = Self::fit_width(&cv2, w).bits;
                                         VVal { bits }
                                     } else {
                                         VVal::x(1)
@@ -923,7 +934,7 @@ impl Vm {
         // dump t=0 state
         self.dump_state();
 
-        let mut out = ExecSide::default();
+        let mut out;
         // main time loop
         let mut guard = 0u64;
         while !self.finished && self.cur_t <= max_ns && guard < 5_000_000 {

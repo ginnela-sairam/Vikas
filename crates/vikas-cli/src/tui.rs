@@ -9,6 +9,8 @@ use vikas_wave::{VVal, WaveDump};
 
 enum Mode {
     List,
+    /// zoomed per-signal lane view — entered via `w` in an upcoming TUI rev
+    #[allow(dead_code)]
     Wave,
 }
 
@@ -48,7 +50,7 @@ pub fn run(dump_path: PathBuf) -> Result<()> {
         shown.truncate(38);
         let span = end / (w as f64 - 60.0).max(1.0);
         let t0i = t0;
-        for (row, &si) in shown.iter().enumerate() {
+        for (_row, &si) in shown.iter().enumerate() {
             let s = &dump.signals[si];
             let mark = if Some(si) == *sel { ">" } else { " " };
             let name_p = format!("{:<38}", s.name.chars().take(38).collect::<String>());

@@ -1,0 +1,91 @@
+# ============================================================================
+# VIKAS v1 — GitHub Actions CI: the zero-touch platform verifying itself.
+#   job "kernel"     : clean-room cargo build + 33 unit tests
+#   job "matrix"     : the full 77-check command matrix + NOVA-SoC deep gates
+#   job "proof"      : golden demos (ALU 0xDEAD / SAR 2999 / SoC 200 / latch 2)
+#                      + one-command signoff evidence
+# Evidence (qa_results/, signoff report) is uploaded as a run artifact.
+# ============================================================================
+name: VIKAS CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  kernel:
+    name: kernel (build + unit tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build from zero
+        run: cargo build --release --locked
+      - name: Unit tests (XEZIM kernel + wave formats)
+        run: cargo test --release --locked
+
+  matrix:
+    name: matrix (77-check command sweep)
+    needs: kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build from zero
+        run: cargo build --release --locked
+      - name: Full command matrix (50 features / 16 breakthroughs / 6 formats)
+        run: bash test_matrix.sh
+      - name: Upload matrix evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vikas-matrix-evidence
+          path: qa_results/
+          retention-days: 30
+
+  proof:
+    name: proof (NOVA-SoC + goldens + signoff)
+    needs: kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build from zero
+        run: cargo build --release --locked
+      - name: NOVA-SoC 26-file deep project (both manifests, 9 golden checks)
+        run: |
+          ./target/release/vikas run examples/nova_soc/nova.f --max-ns 8000 | grep -q "NOVA-PASS 9/9"
+          ./target/release/vikas run examples/nova_soc/docs/manifest.files --max-ns 8000 | grep -q "NOVA-PASS 9/9"
+      - name: Classic goldens
+        run: |
+          # ALU pipeline drain = 0xDEAD (57005)
+          ./target/release/vikas run examples/demo_riscv_alu_hazard.sv | grep -q "alu_result=57005"
+          # SAR ADC converges to exactly the 12-bit target
+          ./target/release/vikas run examples/demo_sar_adc.sv | grep -q "sar code=2999 (target 2999)"
+          # multi-file manifest result
+          ./target/release/vikas run examples/multifile_proj/project.f | grep -q "result=200"
+          # inferred-latch gate exits 2
+          ./target/release/vikas latch examples/demo_latch_trap.sv; test $? -eq 2
+      - name: One-command signoff (b16)
+        run: |
+          ./target/release/vikas signoff examples/nova_soc/nova.f --max-ns 8000 | tee signoff.txt
+          grep -q "SIGNOFF READY" signoff.txt
+      - name: Zero-touch power (b15) + mutation engine (b14)
+        run: |
+          ./target/release/vikas power examples/demo_sar_adc.sv --max-ns 3000 | grep -q "zero-touch power mode"
+          ./target/release/vikas mutant examples/multifile_proj/project.f --max 6 --min-score 0 --max-ns 4000
+      - name: Offline proof — no Python, no TLS linked into the kernel
+        run: |
+          # VIKAS is pure Rust: the binary itself must never link Python or any
+          # network/TLS library — verified on the ELF itself, every run.
+          if ldd target/release/vikas | grep -iE 'python|ssl|crypto'; then
+            echo "unexpected runtime linkage found"; exit 1
+          fi
+          ./target/release/vikas run examples/demo_fsm_uart.sv >/dev/null && echo "offline kernel OK"

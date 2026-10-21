@@ -19,6 +19,13 @@
   <a href="#-verification-evidence">Verification</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/ginnela-sairam/Vikas/actions/workflows/ci.yml"><img src="https://github.com/ginnela-sairam/Vikas/actions/workflows/ci.yml/badge.svg" alt="VIKAS CI: kernel + matrix + proof"/></a>
+  <img src="https://img.shields.io/badge/core-100%25%20Rust-orange" alt="core: 100% Rust"/>
+  <img src="https://img.shields.io/badge/offline-zero%20network%20%C2%B7%20zero%20Python-blue" alt="offline: zero network · zero Python"/>
+  <img src="https://img.shields.io/badge/license-Apache--2.0-green" alt="license: Apache-2.0"/>
+</p>
+
 ---
 
 ## विकास — the name is the mission
@@ -66,6 +73,9 @@ It speaks **58 commands** today, organized around one flow:
 ## 🚀 Quick start
 
 ```bash
+# 0. get the source
+git clone https://github.com/ginnela-sairam/Vikas && cd Vikas
+
 # 1. build (one command: build + test + smoke-check)
 ./build_linux.sh
 

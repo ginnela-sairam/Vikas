@@ -250,7 +250,7 @@ fn visit_stmt(s: &mut Stmt, m: &str, f: &mut dyn FnMut(&str, &mut Expr, MutKind)
 
 fn visit_expr(e: &mut Expr, m: &str, f: &mut dyn FnMut(&str, &mut Expr, MutKind)) {
     match e {
-        Expr::Bin(op, l, r) => {
+        Expr::Bin(op, _l, _r) => {
             let swappable = swap_op(op).is_some();
             if swappable {
                 f(m, e, MutKind::OpSwap);

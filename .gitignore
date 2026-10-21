@@ -1,0 +1,20 @@
+# ---- Rust build ----
+/target/
+**/*.rs.bk
+
+# ---- VIKAS run-time state (regenerated per run; never commit) ----
+/.vikas/
+/.vikas_shm/
+vikas_gui.html
+vikas_export.svg
+vikas_export.wavedrom.json
+vikas_replay_tb.sv
+sar_tb_tb.sv
+vikas_ci_report.md
+
+# ---- editors / OS ----
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
