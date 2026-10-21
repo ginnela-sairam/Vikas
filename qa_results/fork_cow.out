@@ -1,5 +1,5 @@
 [VIKAS FORK] silicon time-forking via fork() CoW — 3 branch(es):
-  child pid  11275: fork 40 µs, CoW RSS 1.5 MB
-  child pid  11276: fork 42 µs, CoW RSS 1.5 MB
-  child pid  11277: fork 48 µs, CoW RSS 1.5 MB
-  ► total fork+exec+wait: 517 µs — <50µs/fork target for instant timeline branching
+  child pid   6579: fork 47 µs, CoW RSS 1.5 MB
+  child pid   6580: fork 39 µs, CoW RSS 1.5 MB
+  child pid   6581: fork 40 µs, CoW RSS 1.5 MB
+  ► total fork+exec+wait: 516 µs — <50µs/fork target for instant timeline branching

@@ -1,9 +1,12 @@
 # ============================================================================
 # VIKAS v1 — GitHub Actions CI: the zero-touch platform verifying itself.
-#   job "kernel"     : clean-room cargo build + 33 unit tests
+#   job "kernel"     : clean-room cargo build + 34 unit tests
 #   job "matrix"     : the full 80-check command matrix + NOVA-SoC deep gates
 #   job "proof"      : golden demos (ALU 0xDEAD / SAR 2999 / SoC 200 / latch 2)
 #                      + one-command signoff evidence
+#   job "exec-bits"  : fresh-clone guarantee — the three shell scripts must
+#                      arrive executable (100755) + LF-only; catches the
+#                      Windows `git add -A` silent mode-reset within seconds
 # Evidence (qa_results/, signoff report) is uploaded as a run artifact.
 # ============================================================================
 name: VIKAS CI
@@ -108,3 +111,34 @@ jobs:
             echo "unexpected runtime linkage found"; exit 1
           fi
           ./target/release/vikas run examples/demo_fsm_uart.sv >/dev/null && echo "offline kernel OK"
+
+  exec-bits:
+    name: exec-bits (friend-proof scripts)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fresh-clone guarantee (executable bits + LF endings)
+        run: |
+          fail=0
+          for f in build_linux.sh install_linux.sh test_matrix.sh; do
+            if [ -x "$f" ]; then
+              echo "OK   $f executable ($(stat -c '%a' "$f"))"
+            else
+              echo "FAIL $f NOT executable on a fresh clone — a friend typing './$f' gets 'Permission denied'"
+              fail=1
+            fi
+            if grep -q $'\r' "$f"; then
+              echo "FAIL $f contains CRLF line endings — bash will report command-not-found on every line"
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::Repo hygiene broken — a push from Windows most likely reset the modes (git add -A cannot store exec bits on NTFS)."
+            echo "::error::Self-heal from Git Bash or WSL, in the repo root:"
+            echo "::error::  git update-index --chmod=+x build_linux.sh install_linux.sh test_matrix.sh"
+            echo "::error::  git commit -m 'CI: restore script exec bits' && git push"
+            echo "::error::See PUSH_WINDOWS.md for the permanent 5-command recipe."
+            exit 1
+          fi
+          echo "Fresh-clone experience guaranteed: ./build_linux.sh just works."

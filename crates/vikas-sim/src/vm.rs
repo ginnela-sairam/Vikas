@@ -924,9 +924,23 @@ impl Vm {
             let _ = i;
             parked.push((0, init.0, init.1.clone(), init.2.clone()));
         }
-        // auto-detect the main clock for cycle counting (feature 45) if unset
+        // auto-detect the main clock for cycle counting (feature 45) if unset.
+        // KERNEL FIX #24 (run-to-run determinism): `vals` is a HashMap whose
+        // iteration order is randomized per process — picking the first
+        // clock-named key in iteration order made the SAME design report
+        // DIFFERENT cycle counts on different invocations (e.g. cdc_tb showed
+        // "6 cycles" in one process, "2 cycles" in the next). The main clock
+        // is now chosen deterministically: the alphabetically-first clock-
+        // named signal, which also naturally prefers top-level clocks
+        // ("t.clk" sorts before "t.dut.clk").
         if self.clock_names.is_empty() {
-            if let Some(clkq) = self.vals.keys().find(|k| k.rsplit('.').next().unwrap_or("").contains("clk")) {
+            let mut cands: Vec<String> = self.vals
+                .keys()
+                .filter(|k| k.rsplit('.').next().unwrap_or("").contains("clk"))
+                .cloned()
+                .collect();
+            cands.sort();
+            if let Some(clkq) = cands.first() {
                 self.clock_names.push(clkq.clone());
             }
         }

@@ -94,6 +94,29 @@ mod tests {
     }
 
     #[test]
+    fn kernel_fix24_main_clock_pick_is_deterministic() {
+        // Two clocks, deliberately named so that iteration order of the
+        // value HashMap could pick either. KERNEL FIX #24: main-clock
+        // auto-detection must choose the alphabetically-first clock every
+        // run, so the same design always reports the same cycle count
+        // (previously the pick followed randomized HashMap order and
+        // cdc_tb alternated between 6 and 2 cycles across invocations).
+        let src = r#"
+        module t;
+            reg zz_clk, aa_clk;
+            initial begin zz_clk = 0; forever #15 zz_clk = !zz_clk; end
+            initial begin aa_clk = 0; forever #5 aa_clk = !aa_clk; end
+            initial begin #61 $finish; end
+        endmodule
+        "#;
+        // aa_clk posedges: t=5,15,25,35,45,55 -> 6; zz_clk: t=15,45 -> 2
+        let r1 = simulate_source(src, None, 1000).unwrap();
+        let r2 = simulate_source(src, None, 1000).unwrap();
+        assert_eq!(r1.cycles, 6, "main clock must be aa_clk (alphabetically first), got {} cycles", r1.cycles);
+        assert_eq!(r1.cycles, r2.cycles, "cycle count must be stable run-to-run");
+    }
+
+    #[test]
     fn nba_produces_one_cycle_delay_vs_blocking() {
         let src = r#"
         module t;

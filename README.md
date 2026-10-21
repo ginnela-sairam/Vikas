@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ginnela-sairam/Vikas/actions/workflows/ci.yml"><img src="https://github.com/ginnela-sairam/Vikas/actions/workflows/ci.yml/badge.svg" alt="VIKAS CI: kernel + matrix + proof"/></a>
+  <a href="https://github.com/ginnela-sairam/Vikas/actions/workflows/ci.yml"><img src="https://github.com/ginnela-sairam/Vikas/actions/workflows/ci.yml/badge.svg" alt="VIKAS CI: kernel + matrix + proof + exec-bits"/></a>
   <img src="https://img.shields.io/badge/core-100%25%20Rust-orange" alt="core: 100% Rust"/>
   <img src="https://img.shields.io/badge/offline-zero%20network%20%C2%B7%20zero%20Python-blue" alt="offline: zero network · zero Python"/>
   <img src="https://img.shields.io/badge/license-Apache--2.0-green" alt="license: Apache-2.0"/>
@@ -76,13 +76,14 @@ It speaks **58 commands** today, organized around one flow:
 # 0. get the source
 git clone https://github.com/ginnela-sairam/Vikas && cd Vikas
 
-# 1. build (one command: build + test + smoke-check).
-#    `./build_linux.sh` works on a fresh clone; use `bash build_linux.sh`
-#    anywhere, any time — no permission bits required.
-./build_linux.sh
+# 1. build (one command: build + test + smoke-check) — the `bash` form works
+#    anywhere, any time, no permission bits required:
+bash build_linux.sh
+#    (`./build_linux.sh` also works on a fresh clone — the CI exec-bits
+#     guard guarantees the bits, so friends never see 'Permission denied')
 
 # 2. install to ~/.local/bin (optional, sudo-less by design)
-./install_linux.sh
+bash install_linux.sh
 
 # 3. first simulation — compile RTL, auto-dump waveform, build Open-KDB,
 #    run physics telemetry and latch analysis, all in one command:
@@ -396,11 +397,17 @@ shims anywhere in the core.
 
 Every claim in this README is backed by a captured artifact in `qa_results/`:
 
-* **33/33 unit tests** — kernel semantics, latch L1, mutation engine,
+* **34/34 unit tests** — kernel semantics (incl. run-to-run determinism of
+  main-clock auto-detection, kernel fix #24), latch L1, mutation engine,
   switching-power formula, E-graph, SAR twin, all 6 format round-trips
 * **80/80 command-matrix checks** — `test_matrix.sh` executes every command
   path and captures its output, including the friendliness gates (GUI
   auto-open headless-safety, typo "did you mean" help)
+* **Run-to-run determinism (kernel fix #24)** — the same `vikas run` reports
+  byte-identical cycle counts on every invocation; before the fix, the
+  main-clock auto-detect followed randomized HashMap order and multi-clock
+  designs could flip between clocks. Evidence:
+  `qa_results/determinism_kernel_fix24.txt` (20/20 identical runs)
 * **NOVA-SoC 9/9 golden checks** on both manifests (`.f` and `.files`)
 * **5 terminals in parallel: 41/41 checks** — fresh-install, NOVA deep-run,
   physics/cosim, all 6 wave formats + GUI/TUI, `env -i` hardiness — all green
@@ -448,6 +455,16 @@ kernel amber `#F5A623`. Type: Liberation Sans / Arial.
   gate-level SDF annotation, VPI-style C API
 * **v2** — multi-kernel `mmap` wave streaming across processes, remote
   debug sessions over WCP, coverage closure analytics on the KDB graph
+
+## 🪟 Maintaining this repo from Windows
+
+Windows cannot store Linux executable bits, so a plain
+`git add -A && git commit && git push` from Windows silently resets the three
+shell scripts to non-executable — and a friend's next fresh clone dies with
+`Permission denied` on their very first command. The CI **exec-bits guard** job
+catches that within seconds of a push and prints the exact two-line self-heal.
+The permanent 5-command recipe that prevents it entirely lives in
+[`PUSH_WINDOWS.md`](PUSH_WINDOWS.md).
 
 Contributions welcome — the codebase is deliberately small, readable Rust.
 A good first project: extend `vikas decode` with another bus protocol, or teach
