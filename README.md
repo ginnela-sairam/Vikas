@@ -12,9 +12,10 @@
 <p align="center">
   <a href="#-what-vikas-is">What is VIKAS</a> ·
   <a href="#-quick-start">Quick Start</a> ·
-  <a href="#-the-16-breakthroughs">16 Breakthroughs</a> ·
+  <a href="TROUBLESHOOTING.md">Troubleshooting</a> ·
+  <a href="#-the-17-breakthroughs">17 Breakthroughs</a> ·
   <a href="#-the-6-native-waveform-formats">6 Wave Formats</a> ·
-  <a href="#-command-catalog-58-commands">58 Commands</a> ·
+  <a href="#-command-catalog-59-commands">59 Commands</a> ·
   <a href="#%EF%B8%8F-architecture">Architecture</a> ·
   <a href="#-verification-evidence">Verification</a>
 </p>
@@ -46,6 +47,9 @@ VIKAS is built around that single idea. Every capability exists to make the path
   bench, on an air-gapped cluster, on a plane: identical behavior.
 * **AI-native** — an MCP JSON-RPC server and machine-readable `--json` outputs make
   VIKAS a first-class tool for AI coding agents, not a human-only island.
+* **Self-maintaining** — the binary knows the commit it was built from, warns the
+  moment it goes stale, and heals itself with one command (`vikas update`); if
+  anything looks wrong, `vikas doctor` diagnoses the environment in seconds.
 * **Yours** — every file you produce (dumps, graphs, reports) is an open, documented
   format you can parse with ten lines of any language.
 
@@ -63,10 +67,10 @@ VIKAS is a complete RTL development environment in a single `vikas` binary:
 | **Open-KDB design-graph intelligence** | A live CSR (cause–signal–result) graph of your design: driver cones, fan-in tracing, Tarjan SCC loop detection, CDC analysis, FSM extraction, counterfactual solving, SVA synthesis |
 | **Silicon-physics twin** | Live E = ½CV² energy tracks, switching power from real toggle counts, sub-threshold 0.12 V and cryo 77 K corner engines, glitch-hazard detection, P-Bit stochastic computing, HDC fingerprints, a C++20 RK4 closed-loop SAR-ADC co-simulator |
 | **Native wave engine** | Six innovative native waveform formats (plus full VCD interop), a temporal query engine, FFT signal-quality analytics, bus protocol decoding, RV32I disassembly, parallel diff |
-| **Three interfaces** | An offline single-file **HTML5 Canvas GUI**, a keyboard-driven **TUI**, a 58-command **CLI** — and a built-in vim-style editor |
+| **Three interfaces** | An offline single-file **HTML5 Canvas GUI**, a keyboard-driven **TUI**, a 59-command **CLI** — and a built-in vim-style editor |
 | **AI & CI integration** | MCP server for AI agents, WCP hot-reload socket server, JSON machine reports, exit-code gates for regression pipelines |
 
-It speaks **58 commands** today, organized around one flow:
+It speaks **59 commands** today, organized around one flow:
 **develop** (`run`, `quickrun`, `watch`, `edit`) → **verify** (`latch`, `kdb`, `cdc`,
 `loops`, `mutant`, `find`, `why`, `doctor`) → **sign off** (`signoff`, `ci`, `power`).
 
@@ -98,6 +102,28 @@ vikas tui .vikas/vikas_wave.vwf       # or the terminal UI
 # 5. ask the design a question
 vikas why alu_result examples/demo_riscv_alu_hazard.sv
 ```
+
+### 🔄 Everyday updates — never a stale binary (breakthrough #25)
+
+```bash
+# ONE command = git pull + rebuild + reinstall:
+vikas update
+
+# want to see what it would do first?
+vikas update --check
+
+# environment feels off? binary path, freshness, PATH, WSL bridge report:
+vikas doctor
+```
+
+Why this exists: a real friend pulled new code and ran the **old compiled
+binary** for hours — the GUI never opened and *nothing told him why*.
+VIKAS now fixes that class of failure permanently:
+
+* **every build stamps its commit hash into the binary** (`vikas version` → `build: v1.0.0+<hash> · <date> · <path>`)
+* **any command instantly warns** `BINARY IS STALE: built from X, checkout is at Y — fix: vikas update` when the checkout has moved on
+* **the GUI file itself** carries the build stamp and states it is an offline file — not a localhost page
+* `vikas update` refuses to touch a dirty tree (stash advice printed) and pulls strictly fast-forward
 
 ### A 5-minute tour
 
@@ -131,7 +157,7 @@ vikas cosim 12
 vikas watch examples/demo_fsm_uart.sv
 ```
 
-## ⚡ The 16 breakthroughs
+## ⚡ The 17 breakthroughs
 
 Capabilities that make VIKAS *VIKAS* — each one is a first-class CLI command with
 JSON output and CI exit codes.
@@ -154,6 +180,7 @@ JSON output and CI exit codes.
 | 14 | **RTL mutation testing** — op-swaps (`+↔−`, `==↔!=`, `<<↔>>`, `&&↔||`), const-zeroing and off-by-one injected into every DUT module (the testbench is never mutated), each mutant re-simulated against golden; survivors come back as a precise testbench-gap report | `vikas mutant` |
 | 15 | **Waveform-driven switching power** — P = Σ ½CV²·f_tr computed from *real* toggle counts in the dump: hotspot ranking, clock-tree share, clock-gating verdict, fJ/cycle budgets | `vikas power` |
 | 16 | **One-command tapeout-risk signoff** — latch audit + combinational loops + CDC + toggle coverage + liveness freeze + TB verdict (+ optional mutation score) composed into one weighted 0–100 scorecard; exit 0 READY / 1 AT RISK / 2 BLOCKED | `vikas signoff` |
+| 25 | **Self-aware binary: never stale again** — every build stamps its git commit into the binary; every command warns the moment the checkout moves ahead of the binary (the #1 real-world friend failure: `git pull` without rebuild), `vikas update` pulls + rebuilds + reinstalls in one word, and `vikas doctor` reports binary freshness, PATH, WSL browser bridge, git/cargo — the environment report a stuck friend actually needs | `vikas update`, `vikas doctor` |
 
 ## 🌊 The 6 native waveform formats
 
@@ -209,7 +236,7 @@ A keyboard-driven terminal UI with ASCII waveform lanes (`▔▔____▔▔`), `j
 navigation, `/` filtering, `q` quit — verified rendering in a real PTY. Falls back to a
 friendly message (never a raw OS error) when no terminal is attached.
 
-### CLI — 58 commands
+### CLI — 59 commands
 The full catalog lives in `vikas help` — every command prints human output by default
 and machine output with `--json` where it matters. Exit codes are CI-stable:
 `0` clean · `2` latches/defects found · `3` quality gate below `--min-score`.
@@ -218,7 +245,7 @@ and machine output with `--json` where it matters. Exit codes are CI-stable:
 A vim-style editor (`h j k l i :w :q`) so a fresh Linux box with nothing installed is
 already a complete RTL workbench.
 
-## 📋 Command catalog (58 commands)
+## 📋 Command catalog (59 commands)
 
 `vikas help` prints this catalog live from the binary. Every analysis command is
 designed for both humans (default output) and pipelines (`--json` + stable exit codes).
@@ -380,7 +407,7 @@ vikas-eda/
 │   │                    cache-line-aligned SPSC ring buffer, CPU topology
 │   ├── vikas-wcp/       WCP \0-framed socket server, .sucl generator, WaveDrom/SVG
 │   │                    export, MCP JSON-RPC 2.0 server, HTML5 GUI generator
-│   └── vikas-cli/       the `vikas` executable: 58 subcommands + TUI + editor
+│   └── vikas-cli/       the `vikas` executable: 59 subcommands + TUI + editor
 ├── examples/            single-file demos + multifile_proj + nova_soc (26-file SoC)
 ├── docs/logo/           brand asset suite (SVG masters + PNG renders)
 ├── qa_results/          captured verification evidence for every claim in this file

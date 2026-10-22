@@ -1,12 +1,15 @@
 #!/bin/bash
 # ============================================================================
 # VIKAS v1 — EXHAUSTIVE PER-FEATURE VERIFICATION MATRIX
-# Tests every command individually and captures PASS/FAIL feedback
+# Tests every command individually and captures PASS/FAIL feedback.
+# Evidence is written to ./.vikas_matrix/ — an IGNORED directory (see
+# .gitignore), so running the matrix never dirties the working tree and
+# never blocks a later `git pull` (a real friend hit that exact trap).
 # ============================================================================
 cd "$(dirname "$0")"
 VIKAS="$(pwd)/target/release/vikas"
 export VIKAS_NO_BANNER=1
-RESULTS=./qa_results
+RESULTS=./.vikas_matrix
 mkdir -p $RESULTS
 PASS=0; FAIL=0; FAILED_TESTS=""
 
@@ -102,6 +105,13 @@ $VIKAS run examples/demo_fifo_backpressure.sv >/dev/null 2>&1
 check "gui:html5" 0 $VIKAS gui .vikas/vikas_wave.vwf -o /tmp/vikas_gui_test.html
 check_grep "gui:no-open-flag" "--no-open: file written only" $VIKAS gui --no-open -o /tmp/vikas_gui_noopen.html
 check_grep "hint:did-you-mean" 'did you mean `vikas gui`' $VIKAS gu
+
+# ---- self-maintenance gates (breakthrough #25: never a stale binary) ----
+check_grep "version:build-stamp" "build: v1.0.0" $VIKAS version
+check_grep "gui:offline-note" "not a localhost page" $VIKAS gui --no-open -o /tmp/vikas_gui_noopen.html
+check_grep "doctor:env-report" "freshness" $VIKAS doctor
+check "update:check" 0 $VIKAS update --check
+check_grep "stale:foreign-note" "binary was built from" bash -c 'git clone -q . /tmp/vk_foreign >/dev/null 2>&1; cd /tmp/vk_foreign && git -c user.email=m@m -c user.name=m commit --allow-empty -qm future && VIKAS_FORCE_STALE_CHECK=1 '"$VIKAS"' version; rc=$?; cd /; rm -rf /tmp/vk_foreign; exit $rc'
 check "hint:parse-exit2" 2 $VIKAS zzzzzzzz
 check "summary:exec" 0 $VIKAS summary .vikas/vikas_wave.vwf
 check "find:temporal" 0 $VIKAS find valid_in --dump .vikas/vikas_wave.vwf

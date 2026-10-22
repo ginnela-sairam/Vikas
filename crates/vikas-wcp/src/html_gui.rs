@@ -6,7 +6,7 @@
 
 use vikas_wave::{WaveDump};
 
-pub fn generate_html_gui(dump: &WaveDump, title: &str, out_path: &std::path::Path) -> anyhow::Result<()> {
+pub fn generate_html_gui(dump: &WaveDump, title: &str, out_path: &std::path::Path, build_stamp: &str) -> anyhow::Result<()> {
     let end = dump.end_time();
     let sigs: Vec<serde_json::Value> = dump
         .signals
@@ -32,7 +32,7 @@ pub fn generate_html_gui(dump: &WaveDump, title: &str, out_path: &std::path::Pat
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>VIKAS v1 — {title}</title>
+<title>VIKAS v1 — {title} · {stamp}</title>
 <style>
 :root {{
   --bg: #0b1220; --panel: #101a2e; --edge: #1e2a44; --txt: #dbe6f5; --dim: #7a8bb0;
@@ -72,7 +72,7 @@ canvas {{ display:block; background:var(--bg); }}
 </head>
 <body>
 <div id="side">
-  <div id="logo"><svg width="26" height="26" viewBox="0 0 512 512" style="flex:none;border-radius:7px;background:#0b1220" aria-label="VIKAS logo"><polygon points="256,68 420.5,163 420.5,351 256,446 91.5,351 91.5,163" fill="none" stroke="#3b82f6" stroke-width="22" stroke-linejoin="round"/><line x1="150" y1="150" x2="256" y2="360" stroke="#22d3ee" stroke-width="34" stroke-linecap="round"/><line x1="362" y1="150" x2="256" y2="360" stroke="#818cf8" stroke-width="34" stroke-linecap="round"/><circle cx="256" cy="360" r="66" fill="#f5a623" opacity="0.25"/><circle cx="256" cy="360" r="44" fill="#f5a623"/></svg><span>VIKAS&nbsp;v1<small>native HTML5 waveform GUI · XEZIM dump · offline single-file</small></span></div>
+  <div id="logo"><svg width="26" height="26" viewBox="0 0 512 512" style="flex:none;border-radius:7px;background:#0b1220" aria-label="VIKAS logo"><polygon points="256,68 420.5,163 420.5,351 256,446 91.5,351 91.5,163" fill="none" stroke="#3b82f6" stroke-width="22" stroke-linejoin="round"/><line x1="150" y1="150" x2="256" y2="360" stroke="#22d3ee" stroke-width="34" stroke-linecap="round"/><line x1="362" y1="150" x2="256" y2="360" stroke="#818cf8" stroke-width="34" stroke-linecap="round"/><circle cx="256" cy="360" r="66" fill="#f5a623" opacity="0.25"/><circle cx="256" cy="360" r="44" fill="#f5a623"/></svg><span>VIKAS&nbsp;v1<small>native HTML5 waveform GUI · XEZIM dump · offline single-file<br/>{stamp} — open directly; this is NOT a localhost page</small></span></div>
   <div id="tree"></div>
 </div>
 <div id="main">
@@ -381,6 +381,7 @@ buildTree(); resize();
 </html>
 "##,
         title = title,
+        stamp = build_stamp,
         sigs = serde_json::to_string(&sigs)?,
         changes = chg,
         end = end,

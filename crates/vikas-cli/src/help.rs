@@ -4,7 +4,7 @@ use crate::util::*;
 
 pub fn catalog() {
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
-    println!("{}", c("  VIKAS v1 — command catalog (58 commands, 16 breakthroughs)", CYAN));
+    println!("{}", c("  VIKAS v1 — command catalog (59 commands, 17 breakthroughs)", CYAN));
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
     let groups: &[(&str, &[(&str, &str)])] = &[
         ("SIMULATION (XEZIM kernel — multi-file, filelists, UVM-aware)", &[
@@ -88,6 +88,11 @@ pub fn catalog() {
         ("BREAKTHROUGH #16 — ONE-COMMAND SIGNOFF", &[
             ("signoff <files> [--mutant] [--json]", "latch+loops+CDC+coverage+liveness+TB verdict (+mutation) → weighted tapeout-risk score; exit 0/1/2 (b16)"),
         ]),
+        ("SELF-MAINTENANCE (breakthrough #25 — never a stale binary again)", &[
+            ("update [--check]", "git pull --ff-only + rebuild + reinstall, one command; refuses on a dirty tree — the pull-and-forget-rebuild failure is now impossible"),
+            ("doctor [files]", "environment report first (binary freshness, PATH, WSL browser bridge, git/cargo) then design root-cause — run with no files for a pure env check"),
+            ("version | -V", "build commit stamp + source path — proof at a glance that your binary is fresh"),
+        ]),
     ];
     for (gname, cmds) in groups {
         println!("\n{} {}", c("■", MAGENTA), c(gname, BOLD));
@@ -97,6 +102,7 @@ pub fn catalog() {
     }
     println!("\n{} supported source types: .sv .svh .v .vh .svi .svp .svt .sva .uvm .vhd .vhdl + filelists (.f .flist .args .scr .q) — `vikas run manifest.f`", c("multi-file:", CYAN));
     println!("{} F1=help(zoom GUI) · Esc close · +,- zoom · arrows pan · hover-hold=tooltip", c("keys:", CYAN));
+    println!("{} if anything ever looks off: `vikas doctor` diagnoses, `vikas update` heals (see TROUBLESHOOTING.md)", c("self-help:", CYAN));
 }
 
 pub fn formats() {

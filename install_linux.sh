@@ -8,20 +8,23 @@
 set -e
 V_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if [ -f "$V_DIR/target/release/vikas" ]; then
-    BIN="$V_DIR/target/release/vikas"
-    echo "[install] using pre-built binary: $BIN"
-else
-    if ! command -v cargo >/dev/null 2>&1; then
-        echo "[install] cargo not found — installing rustup (minimal profile)"
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-        # shellcheck disable=SC1091
-        source "$HOME/.cargo/env"
-    fi
-    echo "[install] building VIKAS v1 from source (release + LTO, locked deps)..."
-    (cd "$V_DIR" && cargo build --release --locked)
-    BIN="$V_DIR/target/release/vikas"
+if ! command -v cargo >/dev/null 2>&1; then
+    echo "[install] cargo not found — installing rustup (minimal profile)"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+    # shellcheck disable=SC1091
+    source "$HOME/.cargo/env"
 fi
+# ALWAYS run cargo build — even when target/release/vikas already exists.
+# cargo is incremental: it is a fast no-op when the binary matches the tree,
+# and it re-stamps the build identity whenever the checkout moved on (the
+# "pre-built binary" shortcut silently shipped a STALE binary to a real
+# friend — pull without rebuild was invisible. Never again.)
+if [ -f "$V_DIR/target/release/vikas" ]; then
+    echo "[install] pre-built binary found — verifying it matches this checkout (incremental build)..."
+fi
+echo "[install] building VIKAS v1 from source (release, locked deps)..."
+(cd "$V_DIR" && cargo build --release --locked)
+BIN="$V_DIR/target/release/vikas"
 
 DEST="$HOME/.local/bin"
 mkdir -p "$DEST"
@@ -58,7 +61,14 @@ case ":$PATH:" in
         ;;
 esac
 echo ""
-echo "[install] sanity check: $($DEST/vikas version | tail -1)"
+echo "[install] build stamp of the binary you NOW have (proof of freshness):"
+$DEST/vikas version | tail -1
+echo ""
+echo "Keep it fresh forever:"
+echo "  vikas update          # git pull + rebuild + reinstall — one command"
+echo "  vikas update --check  # dry-run: see what an update would do"
+echo "  vikas doctor          # environment report (binary freshness, PATH, WSL bridge)"
+echo "  (any command also warns you if the binary is older than the checkout)"
 echo ""
 echo "Try:"
 echo "  vikas help"

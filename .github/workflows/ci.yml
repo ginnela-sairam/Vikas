@@ -1,13 +1,13 @@
 # ============================================================================
 # VIKAS v1 — GitHub Actions CI: the zero-touch platform verifying itself.
-#   job "kernel"     : clean-room cargo build + 34 unit tests
-#   job "matrix"     : the full 80-check command matrix + NOVA-SoC deep gates
+#   job "kernel"     : clean-room cargo build + 38 unit tests
+#   job "matrix"     : the full 85-check command matrix + NOVA-SoC deep gates
 #   job "proof"      : golden demos (ALU 0xDEAD / SAR 2999 / SoC 200 / latch 2)
-#                      + one-command signoff evidence
+#                      + one-command signoff + never-stale gate
 #   job "exec-bits"  : fresh-clone guarantee — the three shell scripts must
 #                      arrive executable (100755) + LF-only; catches the
 #                      Windows `git add -A` silent mode-reset within seconds
-# Evidence (qa_results/, signoff report) is uploaded as a run artifact.
+# Evidence (matrix output, signoff report) is uploaded as a run artifact.
 # ============================================================================
 name: VIKAS CI
 
@@ -33,7 +33,7 @@ jobs:
         run: cargo test --release --locked
 
   matrix:
-    name: matrix (80-check command sweep)
+    name: matrix (85-check command sweep)
     needs: kernel
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -42,14 +42,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Build from zero
         run: cargo build --release --locked
-      - name: Full command matrix (50 features / 16 breakthroughs / 6 formats + friendliness gates)
+      - name: Full command matrix (50 features / 17 breakthroughs / 6 formats + friendliness + self-maintenance gates)
         run: bash test_matrix.sh
       - name: Upload matrix evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vikas-matrix-evidence
-          path: qa_results/
+          path: .vikas_matrix/
           retention-days: 30
 
   proof:
@@ -103,6 +103,18 @@ jobs:
           ./target/release/vikas gu > gu_msg.txt 2>&1 || rc=$?
           test "$rc" -eq 2
           grep -q "did you mean" gu_msg.txt
+      - name: Never-stale gate (breakthrough #25 — build stamping + self-update)
+        run: |
+          # the binary must stamp itself with the commit it was built from;
+          # on CI that is HEAD by construction, so a mismatch means broken
+          # stamping, and a friend could never trust `vikas doctor` again.
+          H=$(git rev-parse --short HEAD)
+          echo "HEAD=$H — binary stamp must contain '+$H'"
+          ./target/release/vikas version | grep -q "+$H" \
+            || { echo "::error::build stamp does not match HEAD"; ./target/release/vikas version; exit 1; }
+          # self-maintenance surface must be alive end to end
+          ./target/release/vikas update --check
+          ./target/release/vikas doctor | grep -q "freshness"
       - name: Offline proof — no Python, no TLS linked into the kernel
         run: |
           # VIKAS is pure Rust: the binary itself must never link Python or any

@@ -58,3 +58,16 @@ git tag -f v1.0 main && git push -f origin v1.0
 # Option B — keep v1.0 untouched, cut a fresh tag instead
 git tag v1.1 main && git push origin v1.1
 ```
+
+## After you push — tell your friends just this
+
+From this commit onward the friend experience is self-healing:
+
+```bash
+cd ~/Vikas && vikas update && vikas gui
+```
+
+`vikas update` pulls, rebuilds and reinstalls by itself — and any command
+now warns loudly if someone pulls code but forgets to rebuild (the exact
+failure that cost a friend an afternoon). `vikas doctor` diagnoses any
+environment in seconds. See `TROUBLESHOOTING.md` for the full guide.

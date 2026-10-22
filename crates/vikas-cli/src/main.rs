@@ -20,6 +20,8 @@ enum Cmd {
     Help,
     Version,
     HelpFormats,
+    // self-maintenance (breakthrough #25)
+    Update { check: bool },
     // KDB / debug
     Kdb { files: Vec<PathBuf>, top: Option<String> },
     Trace { signal: String, files: Vec<PathBuf> },
@@ -127,6 +129,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         "latch" => Ok(Cmd::Latch { files: files(&rest), json: rest.contains(&"--json".into()) }),
         "help" | "--help" | "-h" => Ok(Cmd::Help),
         "version" | "--version" | "-V" => Ok(Cmd::Version),
+        "update" | "self-update" => Ok(Cmd::Update { check: rest.contains(&"--check".into()) }),
         "help-formats" => Ok(Cmd::HelpFormats),
         "kdb" => Ok(Cmd::Kdb { files: files(&rest), top: flagv(&rest, "--top") }),
         "trace" => Ok(Cmd::Trace { signal: rest.first().cloned().unwrap_or_default(), files: files(&rest[1..]) }),
@@ -306,6 +309,11 @@ fn main() {
     if !matches!(cmd, Cmd::Help) && !quiet_json {
         util::banner();
     }
+    // breakthrough #25: if this binary was built from an older commit than
+    // the checkout the user is working in, say so before anything else —
+    // the friend-failure this prevents is real and was observed in the wild
+    // (pulled code, ran the old binary, "gui didn't work").
+    util::warn_stale(&args);
     if let Err(e) = dispatch(cmd) {
         println!("{} {}", c("[VIKAS ERROR]", RED), e);
         std::process::exit(1);
@@ -363,9 +371,13 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Version => {
+            // line 1 is the golden contract (matrix + README depend on it);
+            // line 2 is the build identity — proof of freshness at a glance.
             println!("vikas 1.0.0 — XEZIM kernel, Open-KDB, physics twin, 6 native wave formats");
+            println!("build: {} · from {}", build_stamp(), build_src());
             Ok(())
         }
+        Cmd::Update { check } => cmds::cmd_update(check),
         Cmd::HelpFormats | Cmd::InfoFormats => {
             help::formats();
             Ok(())

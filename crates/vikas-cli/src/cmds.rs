@@ -54,7 +54,7 @@ pub fn cmd_run(files: Vec<PathBuf>, top: Option<String>, max_ns: u64, gui: bool)
     println!("  physics      : total E ≈ {:.1} fJ · glitches {} · cycles {}", res.energy_fj_total, res.glitches, res.cycles);
     if gui {
         let html = d.join("vikas_gui.html");
-        vikas_wcp::html_gui::generate_html_gui(&res.dump, &format!("{} — full-platform view", res.top), &html)?;
+        vikas_wcp::html_gui::generate_html_gui(&res.dump, &format!("{} — full-platform view", res.top), &html, &build_stamp())?;
         println!("  HTML5 GUI    : {} (open in any browser, fully offline)", html.display());
     }
     Ok(())
@@ -467,10 +467,262 @@ pub fn cmd_why(signal: String, files: Vec<PathBuf>) -> Result<()> {
     Ok(())
 }
 
+// ============================================================================
+// SELF-MAINTENANCE (breakthrough #25)
+// ============================================================================
+
+/// which(1) without spawning anything: scan $PATH for an executable file.
+/// (Spawning to test existence would actually launch GUI apps like
+/// explorer.exe — never do that from a diagnostic.)
+fn which(prog: &str) -> Option<PathBuf> {
+    let path = std::env::var_os("PATH")?;
+    for dir in std::env::split_paths(&path) {
+        let p = dir.join(prog);
+        if p.is_file() {
+            return Some(p);
+        }
+    }
+    None
+}
+
+fn git_in(repo: &Path, args: &[&str]) -> std::io::Result<std::process::Output> {
+    std::process::Command::new("git").current_dir(repo).args(args).output()
+}
+
+/// `git fetch origin` with a hard 30s deadline — a wedged network must
+/// never hang `vikas update`; treat it as "offline, continue with local".
+fn git_fetch_with_deadline(repo: &Path) -> bool {
+    let mut child = match std::process::Command::new("git")
+        .current_dir(repo)
+        .args(["fetch", "origin"])
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+    {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    loop {
+        match child.try_wait() {
+            Ok(Some(st)) => return st.success(),
+            Ok(None) => {
+                if std::time::Instant::now() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return false;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(50));
+            }
+            Err(_) => return false,
+        }
+    }
+}
+
+/// Breakthrough #25 — the one-word self-update:
+///   vikas update          git pull --ff-only + rebuild + reinstall
+///   vikas update --check  report what would happen, change nothing
+/// Refuses to touch a dirty working tree (tells the user exactly what to
+/// stash), never force-merges, and rebuilds through install_linux.sh so the
+/// friend's PATH sanity checks and aliases run too. This is the command that
+/// would have prevented the entire "old binary after git pull" failure chain.
+pub fn cmd_update(check: bool) -> Result<()> {
+    let repo = match find_repo(None) {
+        Some(r) => r,
+        None => bail!(
+            "no VIKAS source checkout found near the current directory.\n  \
+             `vikas update` works from inside the repo (cd ~/Vikas).\n  \
+             Zip/source installs: update by downloading the new source and re-running install."
+        ),
+    };
+    println!("{} source checkout : {}", c("[VIKAS UPDATE]", CYAN), repo.display());
+    println!("{} running binary   : {}", c("[VIKAS UPDATE]", CYAN), build_stamp());
+
+    // ---- dirty-tree scan (report always; block only the live update) ----
+    let dirty = if let Ok(o) = git_in(&repo, &["status", "--porcelain"]) {
+        if !o.status.success() {
+            bail!("git failed inside {} — is this actually a git clone?", repo.display());
+        }
+        !String::from_utf8_lossy(&o.stdout).trim().is_empty()
+    } else {
+        bail!("git not found — install git, then re-run `vikas update`");
+    };
+
+    // ---- fetch (best-effort, deadline-guarded) ----
+    let fetched = git_fetch_with_deadline(&repo);
+    if !fetched {
+        println!("{} could not reach origin (offline?) — continuing with local state", c("[VIKAS UPDATE]", YELLOW));
+    }
+    // how far behind origin are we? resolve the CURRENT branch's tracking
+    // ref dynamically — never hardcode origin/main: a clone whose default
+    // branch is 'master' (git init default) would silently look "up to date"
+    // forever while the real upstream moved on. (Caught by the freshness
+    // replay proof, scenario D.)
+    let branch = git_in(&repo, &["rev-parse", "--abbrev-ref", "HEAD"])
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_default();
+    let behind = if branch.is_empty() || branch == "HEAD" {
+        0 // detached HEAD: nothing to fast-forward toward
+    } else {
+        let tracking = format!("origin/{}", branch);
+        git_in(&repo, &["rev-list", "--count", &format!("HEAD..{}", tracking)])
+            .ok()
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8_lossy(&o.stdout).trim().parse::<u32>().ok())
+            .unwrap_or(0)
+    };
+    let fresh = matches!(check_freshness(), Freshness::Fresh);
+
+    if check {
+        println!("{} --check: dry run, nothing will be changed", c("[VIKAS UPDATE]", CYAN));
+        println!("{} working tree          : {}", c("[VIKAS UPDATE]", CYAN), if dirty { "has local changes (live update would refuse — stash or commit first)" } else { "clean ✓" });
+        println!("{} remote commits waiting : {}{}", c("[VIKAS UPDATE]", CYAN), behind, if fetched { "" } else { " (unknown: offline)" });
+        println!("{} binary freshness        : {}", c("[VIKAS UPDATE]", CYAN), if fresh { "fresh — matches the checkout" } else { "STALE — a rebuild is needed" });
+        let plan = if dirty {
+            "live update would refuse on the dirty tree: git stash (or commit), then re-run".to_string()
+        } else if behind > 0 {
+            format!("would run: git pull --ff-only (fast-forward {} commit(s)), then rebuild via install_linux.sh", behind)
+        } else if !fresh {
+            "no new remote commits, but the binary is stale: would rebuild via install_linux.sh".to_string()
+        } else {
+            "nothing to do: already up to date".to_string()
+        };
+        println!("{} plan                   : {}", c("[VIKAS UPDATE]", CYAN), plan);
+        return Ok(());
+    }
+
+    // ---- live update: never touch the user's local changes ----
+    if dirty {
+        println!("{} working tree has local changes — update refuses to touch them:", c("[VIKAS UPDATE]", YELLOW));
+        println!("{}   keep them    : git stash    (re-run vikas update, then git stash pop)", c("[VIKAS UPDATE]", YELLOW));
+        println!("{}   commit first : git add -A && git commit -m 'wip' && vikas update", c("[VIKAS UPDATE]", YELLOW));
+        std::process::exit(2);
+    }
+
+    // ---- pull (strict fast-forward — never invent a merge commit) ----
+    if behind > 0 {
+        println!("{} pulling {} new commit(s) (git pull --ff-only)...", c("[VIKAS UPDATE]", CYAN), behind);
+        let st = std::process::Command::new("git")
+            .current_dir(&repo)
+            .args(["pull", "--ff-only"])
+            .status();
+        match st {
+            Ok(s) if s.success() => {}
+            _ => {
+                println!("{} pull was not a fast-forward — your branch diverged from origin.", c("[VIKAS UPDATE]", YELLOW));
+                println!("{} resolve manually: git pull --rebase, or rebase your work, then re-run vikas update", c("[VIKAS UPDATE]", YELLOW));
+                std::process::exit(2);
+            }
+        }
+    } else if fresh && behind == 0 {
+        println!("{} already up to date — binary matches the checkout, nothing to do", c("[VIKAS UPDATE]", GREEN));
+        return Ok(());
+    } else {
+        println!("{} source unchanged, but the binary is stale — rebuilding...", c("[VIKAS UPDATE]", YELLOW));
+    }
+
+    // ---- rebuild (prefer the installer: it handles rustup, PATH, sanity) ----
+    let install_sh = repo.join("install_linux.sh");
+    let rebuilt = if which("bash").is_some() && install_sh.is_file() {
+        println!("{} rebuilding via bash install_linux.sh (PATH wiring + sanity checks included)...", c("[VIKAS UPDATE]", CYAN));
+        std::process::Command::new("bash")
+            .arg(&install_sh)
+            .current_dir(&repo)
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false)
+    } else if which("cargo").is_some() {
+        println!("{} rebuilding via cargo (install script not found)...", c("[VIKAS UPDATE]", CYAN));
+        let ok = std::process::Command::new("cargo")
+            .args(["build", "--release", "--locked"])
+            .current_dir(&repo)
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+        if ok {
+            let dest = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+            let dest = PathBuf::from(dest).join(".local/bin");
+            let _ = std::fs::create_dir_all(&dest);
+            std::fs::copy(repo.join("target/release/vikas"), dest.join("vikas")).is_ok()
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+    if !rebuilt {
+        bail!("rebuild failed — run it manually and read the error above: cd {} && bash install_linux.sh", repo.display());
+    }
+
+    // ---- proof of freshness: show the NEW binary's identity ----
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+    let new_bin = PathBuf::from(home).join(".local/bin/vikas");
+    let new_bin = if new_bin.is_file() { new_bin } else { repo.join("target/release/vikas") };
+    if let Ok(o) = std::process::Command::new(&new_bin).arg("version").output() {
+        for line in String::from_utf8_lossy(&o.stdout).lines().filter(|l| l.starts_with("build:")) {
+            println!("{} {} — binary is fresh", c("[VIKAS UPDATE]", GREEN), line);
+        }
+    }
+    println!("{} update complete — `vikas version` shows the build stamp from now on", c("[VIKAS UPDATE]", GREEN));
+    Ok(())
+}
+
 pub fn cmd_doctor(files: Vec<PathBuf>) -> Result<()> {
+    // ---- environment report (always, even with no design files): this is
+    // the section a stuck friend needs — binary freshness, PATH, WSL bridge
+    // — before any design analysis makes sense. ----
+    println!("{} environment:", c("[VIKAS DOCTOR]", CYAN));
+    let exe = std::env::current_exe().unwrap_or_default();
+    println!("  binary    : {}", exe.display());
+    println!("  identity  : {}", c(&build_stamp(), GREEN));
+    match check_freshness() {
+        Freshness::Fresh => println!("  freshness : {} binary matches the source checkout", c("fresh ✓", GREEN)),
+        Freshness::Stale { repo, built, now } => {
+            println!("  freshness : {} STALE — built from commit {}, checkout is at {}", c("✗", RED), built, now);
+            println!("               fix now : `vikas update`");
+            println!("               or      : cd {} && bash install_linux.sh", repo.display());
+        }
+        Freshness::Foreign { repo, built, now } => {
+            println!("  freshness : {} this checkout ({}) is at {}, binary was built from {}", c("!", YELLOW), repo.display(), now, built);
+            println!("               `vikas update` rebuilds from the checkout you are standing in");
+        }
+        Freshness::Untracked => println!("  freshness : {} source-snapshot build (no git stamp) — cannot compare", c("?", DIM)),
+    }
+    let home = std::env::var("HOME").unwrap_or_default();
+    let dest = format!("{}/.local/bin", home);
+    let on_path = std::env::var("PATH").unwrap_or_default().split(':').any(|p| p == dest);
+    println!("  PATH      : {}", if on_path {
+        c("~/.local/bin present — `vikas` resolvable ✓", GREEN)
+    } else {
+        c("~/.local/bin MISSING in this shell — run: export PATH=\"$HOME/.local/bin:$PATH\" (or open a new terminal)", YELLOW)
+    });
+    if is_wsl() {
+        let bridges = [("wslview", true), ("powershell.exe", false), ("cmd.exe", false), ("explorer.exe", false)];
+        let found: Vec<&str> = bridges.iter().filter(|(p, _)| which(p).is_some()).map(|(p, _)| *p).collect();
+        println!("  platform  : {} WSL detected — browser bridge: {}",
+            c("✓", GREEN),
+            if found.is_empty() { c("none found (install WSL interop or open vikas_gui.html from Windows Explorer)", YELLOW) } else { c(&found.join(" -> "), GREEN) });
+    } else if cfg!(target_os = "linux") {
+        let bridges = ["xdg-open", "gio", "explorer.exe"];
+        let found: Vec<&str> = bridges.iter().filter(|p| which(p).is_some()).copied().collect();
+        println!("  platform  : {} Linux — browser bridge: {}",
+            if found.is_empty() { c("headless (no browser opener found) — open vikas_gui.html manually", YELLOW) } else { c("ok ✓", GREEN) },
+            found.join(" -> "));
+    }
+    println!("  git       : {}", if which("git").is_some() { c("found — `vikas update` fully enabled ✓", GREEN) } else { c("missing — install git to enable `vikas update`", YELLOW) });
+    println!("  cargo     : {}", if which("cargo").is_some() { c("found — rebuilds possible ✓", GREEN) } else { c("missing — bash install_linux.sh will fetch rustup automatically", YELLOW) });
+    println!("  hint      : `vikas update` = git pull + rebuild + reinstall, one command (never a stale binary again)");
+
+    if files.is_empty() {
+        println!("  design    : (no design files given — environment report only. Run `vikas doctor <design.sv>` for root-cause analysis)");
+        return Ok(());
+    }
     let (mods, top_name, _, _) = crate::parse_project(&files, None)?;
-    let kdb = vikas_kdb::build(&mods, &top_name);
     println!("{} root-cause diagnostic for top `{}:`", c("[VIKAS DOCTOR]", CYAN), &top_name);
+    let kdb = vikas_kdb::build(&mods, &top_name);
     println!("  latches  : {}", if kdb.inferred_latches.is_empty() { c("none ✓", GREEN) } else { c(&kdb.inferred_latches.len().to_string(), RED) });
     for l in kdb.inferred_latches.iter().take(4) {
         println!("    {} {} @{}:{} — {}", c("LATCH", RED), l.signal, l.file, l.line, l.missing_branch_hint);
@@ -487,8 +739,8 @@ pub fn cmd_doctor(files: Vec<PathBuf>) -> Result<()> {
     });
     let d = out_dir();
     std::fs::write(d.join("doctor_report.md"), format!(
-        "# VIKAS doctor report\n\n- latches: {}\n- loops: {}\n- cdc: {}\n- peak FO4: {} ({})\n",
-        kdb.inferred_latches.len(), kdb.scc_loops.len(), kdb.cdc_paths.len(), max_fo4, deepest
+        "# VIKAS doctor report\n\n- binary: {} ({})\n- latches: {}\n- loops: {}\n- cdc: {}\n- peak FO4: {} ({})\n",
+        exe.display(), build_stamp(), kdb.inferred_latches.len(), kdb.scc_loops.len(), kdb.cdc_paths.len(), max_fo4, deepest
     ))?;
     Ok(())
 }
@@ -534,8 +786,9 @@ pub fn cmd_coverage(dump: PathBuf) -> Result<()> {
 
 pub fn cmd_gui(dump: PathBuf, out: PathBuf, open: bool) -> Result<()> {
     let d = load_dump(&dump)?;
-    vikas_wcp::html_gui::generate_html_gui(&d, "HTML5 Waveform GUI", &out)?;
+    vikas_wcp::html_gui::generate_html_gui(&d, "HTML5 Waveform GUI", &out, &build_stamp())?;
     println!("{} self-contained HTML5 GUI -> {} ({} signals, {} events, fully offline)", c("[VIKAS GUI]", CYAN), out.display(), d.signals.len(), d.changes.len());
+    println!("{} build {} — this is a FILE, not a localhost page: open it directly in any browser (double-click works too)", c("[VIKAS GUI]", DIM), build_stamp());
     if !open {
         println!("{} --no-open: file written only (drop the flag to auto-launch your browser)", c("[VIKAS GUI]", CYAN));
         return Ok(());
@@ -553,11 +806,19 @@ pub fn cmd_gui(dump: PathBuf, out: PathBuf, open: bool) -> Result<()> {
             how,
             out.display()
         ),
-        BrowserOpen::NoBridge => println!(
-            "{} no desktop browser bridge here — the file is fully self-contained: open {} in any browser, or copy it to any machine",
-            c("[VIKAS GUI]", YELLOW),
-            out.display()
-        ),
+        BrowserOpen::NoBridge => {
+            println!(
+                "{} no desktop browser bridge here — the file is fully self-contained: open {} in any browser, or copy it to any machine",
+                c("[VIKAS GUI]", YELLOW),
+                out.display()
+            );
+            // WSL friends get the exact copy-paste command that bridges to
+            // the Windows side — the #1 "gui didn't open" environment.
+            if let Some(win) = windows_path_if_wsl(&out) {
+                println!("{} WSL copy-paste  : explorer.exe \"{}\"", c("[VIKAS GUI]", CYAN), win);
+                println!("{} or double-click  : the file from Windows Explorer at that path", c("[VIKAS GUI]", DIM));
+            }
+        }
     }
     Ok(())
 }

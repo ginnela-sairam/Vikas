@@ -5,6 +5,7 @@
 # ---- VIKAS run-time state (regenerated per run; never commit) ----
 /.vikas/
 /.vikas_shm/
+/.vikas_matrix/
 vikas_gui.html
 vikas_export.svg
 vikas_export.wavedrom.json
