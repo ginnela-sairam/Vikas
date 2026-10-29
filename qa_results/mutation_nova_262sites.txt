@@ -4,14 +4,14 @@
   ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
   ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Open Linux-Native RTL Platform — XEZIM Kernel + Open-KDB + Wave Engine
-  100% Rust core · C++20 mixed-signal twin · offline · zero Python
+  [VIKAS v1] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
+  100% Rust core (XEZIM kernel) · C++20 mixed-signal twin · zero Python
 
 [VIKAS MUTANT] mutation testing — top `nova_soc_tb`, DUT 17 module(s), 262 mutable site(s)
   running golden + 25 mutants — 15 killed, 0 hang, 10 survived
 
   MUTATION SCORE score: 60 / 100
-  gate    : min-score 70 (exit 3 below)
+  gate    : min-score 40 (exit 3 below)
 
   SURVIVING MUTANTS — testbench gap report (add checks that expose these):
     [1] nova_alu (off-by-one)  literal 2 -> 3

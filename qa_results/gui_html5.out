@@ -1,1 +1,5 @@
-[VIKAS GUI] self-contained HTML5 GUI -> /tmp/vikas_gui_test.html (30 signals, 203 events, fully offline)
+[VIKAS GUI] VIKAS STUDIO (professional HTML5 workbench) -> /tmp/vikas_gui_test.html
+  signals      : 30 · events 203 · toggle-coverage 33.3%
+  analysis hub : coverage / power / X-scan / glitch report cards (always on)
+  design intel : Open-KDB embedded — drivers · latches · CDC · FSM tables
+  open it      : any browser · fully offline single file · Ctrl+K palette inside

@@ -1,6 +1,3 @@
-5 terminals launched in PARALLEL: A=5579 B=5580 C=5582 D=5583 E=5584
-
-======== PARALLEL 5-TERMINAL RESULTS ========
 A1 alu-rc:0
 A2 alu-golden:OK
 A3 latch-rc:2 (expect 2)
@@ -42,4 +39,3 @@ E5 mutant-json:OK
 E6 signoff-json:OK
 E7 topo:OK
 E8 fork:OK
--------- 41/41 checks OK --------

@@ -1,30 +1,23 @@
 #!/bin/bash
 # ============================================================================
-# VIKAS v1 — one-command Linux installer (sudo-less by design)
-# Installs to ~/.local/bin — no root, no system pollution.
-# Works as ./install_linux.sh after a fresh clone, or `bash install_linux.sh`
-# on any system, whatever the permission bits.
+# VIKAS v1 — one-command Linux installer
 # ============================================================================
 set -e
 V_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if ! command -v cargo >/dev/null 2>&1; then
-    echo "[install] cargo not found — installing rustup (minimal profile)"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-    # shellcheck disable=SC1091
-    source "$HOME/.cargo/env"
-fi
-# ALWAYS run cargo build — even when target/release/vikas already exists.
-# cargo is incremental: it is a fast no-op when the binary matches the tree,
-# and it re-stamps the build identity whenever the checkout moved on (the
-# "pre-built binary" shortcut silently shipped a STALE binary to a real
-# friend — pull without rebuild was invisible. Never again.)
 if [ -f "$V_DIR/target/release/vikas" ]; then
-    echo "[install] pre-built binary found — verifying it matches this checkout (incremental build)..."
+    BIN="$V_DIR/target/release/vikas"
+    echo "[install] using pre-built binary: $BIN"
+else
+    if ! command -v cargo >/dev/null 2>&1; then
+        echo "[install] cargo not found — installing rustup (minimal profile)"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+        source "$HOME/.cargo/env"
+    fi
+    echo "[install] building VIKAS v1 from source (release + LTO)..."
+    (cd "$V_DIR" && cargo build --release)
+    BIN="$V_DIR/target/release/vikas"
 fi
-echo "[install] building VIKAS v1 from source (release, locked deps)..."
-(cd "$V_DIR" && cargo build --release --locked)
-BIN="$V_DIR/target/release/vikas"
 
 DEST="$HOME/.local/bin"
 mkdir -p "$DEST"
@@ -47,33 +40,9 @@ RC
 fi
 
 echo ""
-echo "[install] DONE."
-# current-session usability check — the #1 fresh-install confusion:
-# the shell that ran the installer does not re-read .bashrc by itself.
-case ":$PATH:" in
-    *":$DEST:"*)
-        echo "[install] $DEST is on PATH in this shell — 'vikas' works right now."
-        ;;
-    *)
-        echo "[install] NOTE: '$DEST' is not on PATH in THIS shell yet."
-        echo "         run    : export PATH=\"\$HOME/.local/bin:\$PATH\""
-        echo "         or just: open a new terminal (already wired into .bashrc)"
-        ;;
-esac
-echo ""
-echo "[install] build stamp of the binary you NOW have (proof of freshness):"
-$DEST/vikas version | tail -1
-echo ""
-echo "Keep it fresh forever:"
-echo "  vikas update          # git pull + rebuild + reinstall — one command"
-echo "  vikas update --check  # dry-run: see what an update would do"
-echo "  vikas doctor          # environment report (binary freshness, PATH, WSL bridge)"
-echo "  (any command also warns you if the binary is older than the checkout)"
-echo ""
-echo "Try:"
+echo "[install] DONE. Try:"
 echo "  vikas help"
-echo "  vikas run  $V_DIR/examples/multifile_proj/project.f   # multi-file manifest"
-echo "  vikas latch $V_DIR/examples/demo_latch_trap.sv        # breakthrough 13"
-echo "  vikas run  $V_DIR/examples/demo_riscv_alu_hazard.sv    # golden demo"
-echo "  vikas gui                                            # browser window pops open (WSL-aware)"
+echo "  vikas run $V_DIR/examples/multifile_proj/project.f   # multi-file manifest"
+echo "  vikas latch $V_DIR/examples/demo_latch_trap.sv       # breakthrough 13"
 echo "  vikas tui .vikas/vikas_wave.vwf                       # terminal UI"
+echo "  vikas gui .vikas/vikas_wave.vwf                       # HTML5 GUI (offline)"

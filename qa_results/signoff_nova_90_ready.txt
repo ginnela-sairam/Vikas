@@ -4,8 +4,8 @@
   ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
   ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Open Linux-Native RTL Platform — XEZIM Kernel + Open-KDB + Wave Engine
-  100% Rust core · C++20 mixed-signal twin · offline · zero Python
+  [VIKAS v1] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
+  100% Rust core (XEZIM kernel) · C++20 mixed-signal twin · zero Python
 
 [VIKAS SIGNOFF] composite tapeout-risk scorecard — top `nova_soc_tb`
   OK   latch audit                0 inferred latch(es) (-5 each)

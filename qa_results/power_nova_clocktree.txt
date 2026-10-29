@@ -4,8 +4,8 @@
   ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
   ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Open Linux-Native RTL Platform — XEZIM Kernel + Open-KDB + Wave Engine
-  100% Rust core · C++20 mixed-signal twin · offline · zero Python
+  [VIKAS v1] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
+  100% Rust core (XEZIM kernel) · C++20 mixed-signal twin · zero Python
 
 [VIKAS POWER] switching-activity dynamic power (P = Σ ½·C·V²·f_tr)
   model      : Vdd 0.8 V · Cnode 1 fF · window 3000 ns (3.000 µs)

@@ -6,7 +6,7 @@
 //!  .vwi  VIKAS Indexed          — per-signal absolute offset for O(1) random seek
 //!  .vwm  VIKAS Memorymap        — fixed 32-byte aligned records for zero-copy mmap
 
-use crate::{Change, VVal, WaveDump};
+use crate::{Change, Signal, VVal, WaveDump};
 use anyhow::Result;
 
 fn crc32(data: &[u8]) -> u32 {
@@ -225,7 +225,7 @@ pub fn write_vwe(d: &WaveDump, path: &std::path::Path) -> Result<()> {
         put_u32(&mut out, s.name.len() as u32);
         out.extend_from_slice(s.name.as_bytes());
     }
-    let last_t = 0u64;
+    let mut last_t = 0u64;
     let mut n_enc = 0u64;
     // count first
     {

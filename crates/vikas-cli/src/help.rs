@@ -4,7 +4,7 @@ use crate::util::*;
 
 pub fn catalog() {
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
-    println!("{}", c("  VIKAS v1 — command catalog (59 commands, 17 breakthroughs)", CYAN));
+    println!("{}", c("  VIKAS v1.1 — command catalog (59 commands, 18 breakthroughs)", CYAN));
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
     let groups: &[(&str, &[(&str, &str)])] = &[
         ("SIMULATION (XEZIM kernel — multi-file, filelists, UVM-aware)", &[
@@ -12,12 +12,13 @@ pub fn catalog() {
             ("quickrun <files>", "auto-generate testbench stimulus then simulate (feature 2)"),
             ("watch <files>", "inotify live re-simulation on save (feature 3)"),
             ("autogen-tb <rtl.sv>", "write auto-TB to <rtl>_tb.sv without simulating"),
+            ("bench [--scale N]", "XEZIM kernel throughput suite: comb/NBA/FIFO/SoC stress → events/s (v1.1)"),
             ("edit [file]", "VIKAS built-in editor (vim-style keys: h j k l i :w :q)"),
         ]),
         ("BREAKTHROUGH 13 — LATCH DETECTION (3 layers)", &[
             ("latch <files> [--json]", "L1 static AST + L3 patch; exit 2 when inferred latches found"),
         ]),
-        ("OPEN-KDB DEBUG (design-graph intelligence, features 11-20)", &[
+        ("OPEN-KDB DEBUG (Verdi-class, features 11-20)", &[
             ("kdb <files> [--top]", "build Open-KDB CSR graph -> .vikas/open_kdb.vikas.json"),
             ("trace <sig> <files>", "active driver & fan-in cone tracer (13)"),
             ("xtrace <sig> <files>", "clickable vscode:// URI cross-probe links (12)"),
@@ -33,7 +34,7 @@ pub fn catalog() {
         ]),
         ("WAVE ANALYSIS (features 21-30, 44-46)", &[
             ("tui [dump]", "terminal UI — j/k select, /filter, q quit (43)"),
-            ("gui [dump] [-o out.html] [--no-open]", "self-contained HTML5 GUI, auto-opens your browser (new window); WSL-aware (42)"),
+            ("gui [dump] [-o out.html]", "offline single-file HTML5 GUI with hover tooltips (42)"),
             ("summary [dump]", "executive telemetry scorecard (36)"),
             ("annotate <file.sv> --time t", "inline live-value RTL source annotator (15)"),
             ("find \"cond\" [--dump d]", "bit-parallel temporal search (b11/32)"),
@@ -77,21 +78,16 @@ pub fn catalog() {
             ("ci <files>", "CI regression gatekeeper: latch=0, loops=0 report (48)"),
             ("gate-compare <rtl> <gate>", "RTL vs gate-level waveform co-verify (50)"),
         ]),
-        ("BREAKTHROUGH #14 — MUTATION TESTING (testbench quality, CLI-native)", &[
-            ("mutant <files> [--max-mutants N | --max N] [--min-score S]", "inject op-swaps/const mutations into the DUT, re-sim, score TB kills (b14)"),
+        ("BREAKTHROUGH #14 — MUTATION TESTING (industry-first CLI)", &[
+            ("mutant <files> [--max-mutants N] [--min-score S]", "inject op-swaps/const mutations into the DUT, re-sim, score TB kills (b14)"),
             ("mutant --json <files>", "machine-readable survivor report for CI quality gates"),
         ]),
         ("BREAKTHROUGH #15 — SWITCHING POWER (waveform-driven)", &[
-            ("power [dump|rtl] [--vdd V] [--cnode fF] [--freq-mhz F] [--max-ns N]", "P = Σ ½CV²·f_tr from REAL toggles; RTL input auto-simulates first (zero-touch) (b15)"),
+            ("power [dump] [--vdd V] [--cnode fF] [--freq-mhz F]", "P = Σ ½CV²·f_tr from REAL toggle counts, hotspot ranking (b15)"),
             ("power --json [dump]", "per-signal power/energy JSON for power-budget CI"),
         ]),
         ("BREAKTHROUGH #16 — ONE-COMMAND SIGNOFF", &[
             ("signoff <files> [--mutant] [--json]", "latch+loops+CDC+coverage+liveness+TB verdict (+mutation) → weighted tapeout-risk score; exit 0/1/2 (b16)"),
-        ]),
-        ("SELF-MAINTENANCE (breakthrough #25 — never a stale binary again)", &[
-            ("update [--check]", "git pull --ff-only + rebuild + reinstall, one command; refuses on a dirty tree — the pull-and-forget-rebuild failure is now impossible"),
-            ("doctor [files]", "environment report first (binary freshness, PATH, WSL browser bridge, git/cargo) then design root-cause — run with no files for a pure env check"),
-            ("version | -V", "build commit stamp + source path — proof at a glance that your binary is fresh"),
         ]),
     ];
     for (gname, cmds) in groups {
@@ -102,7 +98,6 @@ pub fn catalog() {
     }
     println!("\n{} supported source types: .sv .svh .v .vh .svi .svp .svt .sva .uvm .vhd .vhdl + filelists (.f .flist .args .scr .q) — `vikas run manifest.f`", c("multi-file:", CYAN));
     println!("{} F1=help(zoom GUI) · Esc close · +,- zoom · arrows pan · hover-hold=tooltip", c("keys:", CYAN));
-    println!("{} if anything ever looks off: `vikas doctor` diagnoses, `vikas update` heals (see TROUBLESHOOTING.md)", c("self-help:", CYAN));
 }
 
 pub fn formats() {

@@ -1,12 +1,12 @@
 //! VIKAS v1 — BREAKTHROUGH #14: RTL mutation testing engine.
 //!
-//! CLI-native for VIKAS: systematically injects single-point
+//! Industry-first for a CLI EDA tool: systematically injects single-point
 //! design mutations (operator swaps, constant zeroing, off-by-one) into the
 //! DUT (every module reachable from the top EXCEPT the testbench itself),
 //! re-simulates each mutant against the golden run, and scores how many the
 //! testbench KILLS. Surviving mutants are precise, actionable testbench-gap
 //! reports — the hardware analog of software mutation testing (mutmut /
-//! cosmic-ray), built right into the `vikas mutant` command.
+//! cosmic-ray), which no major commercial simulator offers CLI-native.
 
 use crate::parser::{Expr, ModuleDef, Stmt};
 use crate::vm::SimResult;
@@ -250,7 +250,7 @@ fn visit_stmt(s: &mut Stmt, m: &str, f: &mut dyn FnMut(&str, &mut Expr, MutKind)
 
 fn visit_expr(e: &mut Expr, m: &str, f: &mut dyn FnMut(&str, &mut Expr, MutKind)) {
     match e {
-        Expr::Bin(op, _l, _r) => {
+        Expr::Bin(op, l, r) => {
             let swappable = swap_op(op).is_some();
             if swappable {
                 f(m, e, MutKind::OpSwap);

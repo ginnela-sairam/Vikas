@@ -1,15 +1,12 @@
 #!/bin/bash
 # ============================================================================
 # VIKAS v1 — EXHAUSTIVE PER-FEATURE VERIFICATION MATRIX
-# Tests every command individually and captures PASS/FAIL feedback.
-# Evidence is written to ./.vikas_matrix/ — an IGNORED directory (see
-# .gitignore), so running the matrix never dirties the working tree and
-# never blocks a later `git pull` (a real friend hit that exact trap).
+# Tests every command individually and captures PASS/FAIL feedback
 # ============================================================================
 cd "$(dirname "$0")"
 VIKAS="$(pwd)/target/release/vikas"
 export VIKAS_NO_BANNER=1
-RESULTS=./.vikas_matrix
+RESULTS=./qa_results
 mkdir -p $RESULTS
 PASS=0; FAIL=0; FAILED_TESTS=""
 
@@ -19,15 +16,14 @@ check() {
   local out
   out=$(timeout 90 "$@" 2>&1)
   local rc=$?
-  local safe="${name//:/_}"   # ':' is illegal in git/Windows paths
   if [ "$rc" -eq "$expect" ]; then
     PASS=$((PASS+1))
     echo "PASS [$name]"
-    echo "$out" | head -6 > "$RESULTS/$safe.out"
+    echo "$out" | head -6 > "$RESULTS/$name.out"
   else
     FAIL=$((FAIL+1)); FAILED_TESTS="$FAILED_TESTS\n  - $name (rc=$rc, expected $expect)"
     echo "FAIL [$name] rc=$rc"
-    echo "$out" | head -12 > "$RESULTS/$safe.out"
+    echo "$out" | head -12 > "$RESULTS/$name.out"
     echo "$out" | head -6
   fi
 }
@@ -38,15 +34,14 @@ check_grep() {
   local name="$1"; local pattern="$2"; shift 2
   local out
   out=$(timeout 120 "$@" 2>&1)
-  local safe="${name//:/_}"   # ':' is illegal in git/Windows paths
   if echo "$out" | grep -q -- "$pattern"; then
     PASS=$((PASS+1))
     echo "PASS [$name]"
-    echo "$out" | head -6 > "$RESULTS/$safe.out"
+    echo "$out" | head -6 > "$RESULTS/$name.out"
   else
     FAIL=$((FAIL+1)); FAILED_TESTS="$FAILED_TESTS\n  - $name (pattern '$pattern' not found)"
     echo "FAIL [$name] pattern-not-found"
-    echo "$out" | head -12 > "$RESULTS/$safe.out"
+    echo "$out" | head -12 > "$RESULTS/$name.out"
     echo "$out" | head -6
   fi
 }
@@ -72,9 +67,6 @@ check "nova:power" 0 bash -c "$VIKAS run examples/nova_soc/nova.f --max-ns 8000 
 check "nova:power-json" 0 bash -c "$VIKAS power .vikas/vikas_wave.vwf --json"
 check "mutant:fast-target" 0 $VIKAS mutant examples/multifile_proj/project.f --max-mutants 12 --min-score 50 --max-ns 4000
 check "mutant:json" 0 $VIKAS mutant examples/multifile_proj/project.f --max-mutants 8 --min-score 0 --max-ns 4000 --json
-# zero-touch UX: `--max` alias + power on RTL source auto-simulates first
-check "mutant:max-alias" 0 $VIKAS mutant examples/multifile_proj/project.f --max 6 --min-score 0 --max-ns 4000
-check_grep "power:auto-run-rtl" "zero-touch power mode" $VIKAS power examples/demo_sar_adc.sv --max-ns 3000
 check_grep "signoff:latch-trap-risk" "AT RISK" $VIKAS signoff examples/demo_latch_trap.sv --max-ns 2000
 
 # ---- breakthrough 13: latch detection (L1+L2+L3) ----
@@ -103,16 +95,6 @@ check "coverage:toggle" 0 $VIKAS coverage .vikas/vikas_wave.vwf
 rm -rf .vikas
 $VIKAS run examples/demo_fifo_backpressure.sv >/dev/null 2>&1
 check "gui:html5" 0 $VIKAS gui .vikas/vikas_wave.vwf -o /tmp/vikas_gui_test.html
-check_grep "gui:no-open-flag" "--no-open: file written only" $VIKAS gui --no-open -o /tmp/vikas_gui_noopen.html
-check_grep "hint:did-you-mean" 'did you mean `vikas gui`' $VIKAS gu
-
-# ---- self-maintenance gates (breakthrough #25: never a stale binary) ----
-check_grep "version:build-stamp" "build: v1.0.0" $VIKAS version
-check_grep "gui:offline-note" "not a localhost page" $VIKAS gui --no-open -o /tmp/vikas_gui_noopen.html
-check_grep "doctor:env-report" "freshness" $VIKAS doctor
-check "update:check" 0 $VIKAS update --check
-check_grep "stale:foreign-note" "binary was built from" bash -c 'git clone -q . /tmp/vk_foreign >/dev/null 2>&1; cd /tmp/vk_foreign && git -c user.email=m@m -c user.name=m commit --allow-empty -qm future && VIKAS_FORCE_STALE_CHECK=1 '"$VIKAS"' version; rc=$?; cd /; rm -rf /tmp/vk_foreign; exit $rc'
-check "hint:parse-exit2" 2 $VIKAS zzzzzzzz
 check "summary:exec" 0 $VIKAS summary .vikas/vikas_wave.vwf
 check "find:temporal" 0 $VIKAS find valid_in --dump .vikas/vikas_wave.vwf
 check "expr:virtual" 0 $VIKAS expr valid_in --dump .vikas/vikas_wave.vwf
@@ -169,6 +151,13 @@ check "quickrun" 0 $VIKAS quickrun examples/demo_sar_adc.sv
 check "help:all" 0 $VIKAS help
 check "help:formats" 0 $VIKAS formats
 check "version" 0 $VIKAS version
+
+# ---- v1.1: VIKAS Studio GUI + kernel bench ----
+check "bench:suite" 0 $VIKAS bench --scale 1
+check_grep "gui:studio" "VIKAS STUDIO" $VIKAS gui .vikas/vikas_wave.vwf -o /dev/shm/studio_check.html
+check_grep "studio:app-complete" "openPalette" bash -c "cat /dev/shm/studio_check.html"
+check_grep "studio:kdb-embed" "Design Intel" bash -c "cat /dev/shm/studio_check.html"
+check_grep "studio:file-open" "loadVWF" bash -c "cat /dev/shm/studio_check.html"
 
 # ---- servers (start/kill) ----
 check "mcp:server" 0 bash -c "echo 'QUIT' | timeout 10 $VIKAS mcp . >/dev/null 2>&1; true" 

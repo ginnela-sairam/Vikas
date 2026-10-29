@@ -1,7 +1,7 @@
 //! VIKAS v1 — XEZIM elaborator: flattens module hierarchy into a flat
 //! signal namespace with port bindings. Supports multi-file projects.
 
-use super::parser::{ConnExpr, Expr, ModuleDef, Stmt};
+use super::parser::{ConnExpr, Expr, ModuleDef, Stmt, VarKind};
 use anyhow::Result;
 use std::collections::HashMap;
 
@@ -177,7 +177,7 @@ fn elab_module(
             let conn = conns.iter().find(|(n, _)| n == &p.name).map(|(_, c)| c.clone());
             // kernel #21: expression connections are INPUT-only (an output
             // bound to a non-lvalue is illegal RTL — skip the binding, keep
-            // the child signal floating X with a lint-style tolerance)
+            // the child signal floating X like commercial simulators' warns)
             if let Some(ConnExpr::Expr(_)) = &conn {
                 if p.dir & 2 != 0 {
                     continue;

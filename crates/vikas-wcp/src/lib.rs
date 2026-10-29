@@ -4,6 +4,8 @@
 //! server exposing kdb_query / wave_slice / counterfactual / rtl_annotate.
 
 pub mod html_gui;
+pub mod studio;
+pub mod studio_app;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;

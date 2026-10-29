@@ -219,7 +219,7 @@ impl Loader {
                         out.push_str(&rec);
                     }
                     None => {
-                        // UVM standard libs missing: strip gracefully with a note
+                        // UVM/VCS standard libs missing: strip gracefully with a note
                         out.push_str(&format!("// [VIKAS] include not found (tolerated): {}\n", fname));
                     }
                 }

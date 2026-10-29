@@ -1,4 +1,4 @@
-//! # vikas-kdb — "Open-KDB" CSR graph intelligence & design-graph debug.
+//! # vikas-kdb — "Open-KDB" CSR graph intelligence & Verdi-class debug.
 //! Driver/fan-in cones, Tarjan SCC loop detection, FO4 depth, CDC, FSM,
 //! counterfactual solver (breakthrough 1/39), SVA synthesis (feature 34),
 //! static latch L1 extraction (breakthrough 13).
@@ -101,7 +101,7 @@ pub fn expr_idents(e: &Expr, out: &mut Vec<String>) {
 
 pub fn expr_text(e: &Expr) -> String {
     match e {
-        Expr::Num(v, _w) => format!("{:w$}", v, w = 0),
+        Expr::Num(v, w) => format!("{:w$}", v, w = 0),
         Expr::Str(s) => s.clone(),
         Expr::Ident(n) => n.clone(),
         Expr::Bin(op, a, b) => format!("{} {} {}", expr_text(a), op, expr_text(b)),
@@ -593,7 +593,7 @@ pub fn extract_fsms(mods: &[ModuleDef]) -> Vec<FsmInfo> {
                             }
                             if let Some(to) = to {
                                 for l in labels {
-                                    if let Expr::Num(_v, _) = l {
+                                    if let Expr::Num(v, _) = l {
                                         trans.push((expr_text(l), to.clone()));
                                     }
                                 }

@@ -1,0 +1,4 @@
+T2-BENCH2 PASS
+T2-BENCH4 PASS
+T2 aggregate events/s (scale2, under 5-way CPU contention): 29291
+T2-THROUGHPUT PASS

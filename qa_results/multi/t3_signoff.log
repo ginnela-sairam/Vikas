@@ -1,0 +1,8 @@
+  SKIP  mutation score             (skipped — use --mutant to include)
+  INFO  design profile             0 FSM(s), 300 cycles, 3000 ns, 14696 glitches
+
+  SIGNOFF SCORE 90 / 100 — SIGNOFF READY
+T3-SIGNOFF PASS (rc=0)
+T3-LATCH-TRAP PASS
+T3-CDC PASS
+T3-FSM PASS

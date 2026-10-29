@@ -1,0 +1,6 @@
+T1-NOVA PASS
+    KILL nova_pc literal 1 -> 0  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> (missing)
+    KILL nova_pc literal 1 -> 2  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> (missing)
+    KILL nova_alu literal 1 -> 0  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> (missing)
+    KILL nova_alu literal 1 -> 2  → print[0]: `NOVA-OK   1 gpio_out  = 005a` -> (missing)
+T1-MUTANT PASS

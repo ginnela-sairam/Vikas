@@ -2,6 +2,7 @@
 //! Open-KDB debug, physics, waveform analysis, Linux-native machinery,
 //! AI/MCP servers, GUI/TUI, and project tooling. Zero Python.
 
+mod bench;
 mod cmds;
 mod help;
 mod tui;
@@ -20,8 +21,7 @@ enum Cmd {
     Help,
     Version,
     HelpFormats,
-    // self-maintenance (breakthrough #25)
-    Update { check: bool },
+    Bench { scale: u32, dir: Option<PathBuf> },
     // KDB / debug
     Kdb { files: Vec<PathBuf>, top: Option<String> },
     Trace { signal: String, files: Vec<PathBuf> },
@@ -37,7 +37,7 @@ enum Cmd {
     Coverage { dump: PathBuf },
     // wave analysis
     Tui { dump: PathBuf },
-    Gui { dump: PathBuf, out: PathBuf, open: bool },
+    Gui { dump: PathBuf, out: PathBuf },
     Summary { dump: PathBuf },
     Annotate { file: PathBuf, time: u64 },
     Find { cond: String, dump: PathBuf },
@@ -80,7 +80,7 @@ enum Cmd {
     Editor { file: Option<PathBuf> },
     // breakthroughs 14-16 (this build)
     Mutant { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, max_mutants: usize, min_score: f64, json: bool },
-    Power { dump: PathBuf, vdd: f64, cnode_ff: f64, freq_mhz: f64, max_ns: u64, json: bool },
+    Power { dump: PathBuf, vdd: f64, cnode_ff: f64, freq_mhz: f64, json: bool },
     Signoff { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, mutant: bool, json: bool },
 }
 
@@ -92,7 +92,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         const VALUED: &[&str] = &[
             "--top", "--max-ns", "-o", "--time", "--from", "--to", "--array",
             "--dump", "--addr", "--vdd", "--temp-k", "--bus",
-            "--max-mutants", "--max", "--min-score", "--cnode", "--freq-mhz",
+            "--max-mutants", "--min-score", "--cnode", "--freq-mhz",
         ];
         let mut out = Vec::new();
         let mut skip_next = false;
@@ -129,7 +129,6 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         "latch" => Ok(Cmd::Latch { files: files(&rest), json: rest.contains(&"--json".into()) }),
         "help" | "--help" | "-h" => Ok(Cmd::Help),
         "version" | "--version" | "-V" => Ok(Cmd::Version),
-        "update" | "self-update" => Ok(Cmd::Update { check: rest.contains(&"--check".into()) }),
         "help-formats" => Ok(Cmd::HelpFormats),
         "kdb" => Ok(Cmd::Kdb { files: files(&rest), top: flagv(&rest, "--top") }),
         "trace" => Ok(Cmd::Trace { signal: rest.first().cloned().unwrap_or_default(), files: files(&rest[1..]) }),
@@ -144,30 +143,10 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         "schematic" => Ok(Cmd::Schematic { signal: rest.first().cloned().unwrap_or_default(), files: files(&rest[1..]) }),
         "coverage" => Ok(Cmd::Coverage { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "tui" => Ok(Cmd::Tui { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
-        "gui" | "html-report" => {
-            // positional dump must not swallow flags: skip every `-`-token and
-            // the value that belongs to `-o`, so `vikas gui -o out.html`,
-            // `vikas gui --no-open`, and `vikas gui dump.vwf -o o.html` all
-            // resolve the dump correctly.
-            let mut dump = PathBuf::from(".vikas/vikas_wave.vwf");
-            let mut it = rest.iter().peekable();
-            while let Some(t) = it.next() {
-                if t == "-o" {
-                    it.next(); // -o's value is not a positional dump
-                    continue;
-                }
-                if t.starts_with('-') {
-                    continue;
-                }
-                dump = PathBuf::from(t);
-                break;
-            }
-            Ok(Cmd::Gui {
-                dump,
-                out: flagv(&rest, "-o").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("vikas_gui.html")),
-                open: !rest.contains(&"--no-open".into()),
-            })
-        }
+        "gui" | "html-report" => Ok(Cmd::Gui {
+            dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
+            out: flagv(&rest, "-o").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("vikas_gui.html")),
+        }),
         "summary" => Ok(Cmd::Summary { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "annotate" => Ok(Cmd::Annotate {
             file: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("top.sv")),
@@ -236,19 +215,20 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             files: files(&rest),
             top: flagv(&rest, "--top"),
             max_ns: numv(&rest, "--max-ns", 20_000),
-            max_mutants: flagv(&rest, "--max-mutants").or_else(|| flagv(&rest, "--max"))
-                .and_then(|v| v.parse().ok()).unwrap_or(200) as usize,
+            max_mutants: numv(&rest, "--max-mutants", 200) as usize,
             min_score: flagv(&rest, "--min-score").and_then(|v| v.parse().ok()).unwrap_or(70.0),
             json: rest.contains(&"--json".into()),
         }),
         "power" => Ok(Cmd::Power {
-            // positional RTL source or dump; flags must not be mistaken for a path
-            dump: files(&rest).first().cloned().unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
-            max_ns: numv(&rest, "--max-ns", 50_000),
+            dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
             vdd: flagv(&rest, "--vdd").and_then(|v| v.parse().ok()).unwrap_or(0.8),
             cnode_ff: flagv(&rest, "--cnode").and_then(|v| v.parse().ok()).unwrap_or(1.0),
             freq_mhz: flagv(&rest, "--freq-mhz").and_then(|v| v.parse().ok()).unwrap_or(100.0),
             json: rest.contains(&"--json".into()),
+        }),
+        "bench" => Ok(Cmd::Bench {
+            scale: numv(&rest, "--scale", 3) as u32,
+            dir: flagv(&rest, "--out").map(PathBuf::from),
         }),
         "signoff" => Ok(Cmd::Signoff {
             files: files(&rest),
@@ -258,44 +238,12 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             json: rest.contains(&"--json".into()),
         }),
         _ => {
-            // typo-help: point the user at the right door instead of a dead end
-            match util::suggest_command(&cmd) {
-                Some(k) => bail!(
-                    "unknown command `{}` — did you mean `vikas {}`? (full list: `vikas help`)",
-                    cmd,
-                    k
-                ),
-                None => bail!("unknown command `{}` — try `vikas help`", cmd),
-            }
+            bail!("unknown command `{}` — try `vikas help`", cmd);
         }
     }
 }
 
 fn main() {
-    // ------------------------------------------------------------------
-    // Pipe-friendly stdout (the "silent reader" contract).
-    // When the consumer of our output closes the pipe early -- e.g.
-    //   vikas run demo.sv | grep -q "alu_result=57005"
-    //   vikas run demo.sv | head -20
-    // -- `println!` would otherwise panic with
-    //   "failed printing to stdout: Broken pipe (os error 32)".
-    // Under `bash -o pipefail` (GitHub Actions' default shell) that
-    // panic aborts the whole pipeline even though grep SUCCEEDED.
-    // Treat EPIPE on stdout/stderr as success-by-design: exit 0,
-    // like every well-behaved Unix filter. All other panics keep the
-    // default hook (full message + RUST_BACKTRACE support).
-    // ------------------------------------------------------------------
-    let default_panic_hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        let msg = info.to_string();
-        if msg.contains("failed printing to stdout")
-            || msg.contains("failed printing to stderr")
-        {
-            std::process::exit(0);
-        }
-        default_panic_hook(info);
-    }));
-
     let args: Vec<String> = std::env::args().skip(1).collect();
     let cmd = match parse_args(&args) {
         Ok(c) => c,
@@ -309,11 +257,6 @@ fn main() {
     if !matches!(cmd, Cmd::Help) && !quiet_json {
         util::banner();
     }
-    // breakthrough #25: if this binary was built from an older commit than
-    // the checkout the user is working in, say so before anything else —
-    // the friend-failure this prevents is real and was observed in the wild
-    // (pulled code, ran the old binary, "gui didn't work").
-    util::warn_stale(&args);
     if let Err(e) = dispatch(cmd) {
         println!("{} {}", c("[VIKAS ERROR]", RED), e);
         std::process::exit(1);
@@ -371,13 +314,9 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Version => {
-            // line 1 is the golden contract (matrix + README depend on it);
-            // line 2 is the build identity — proof of freshness at a glance.
-            println!("vikas 1.0.0 — XEZIM kernel, Open-KDB, physics twin, 6 native wave formats");
-            println!("build: {} · from {}", build_stamp(), build_src());
+            println!("vikas 1.1.0 — XEZIM kernel v1.1 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
             Ok(())
         }
-        Cmd::Update { check } => cmds::cmd_update(check),
         Cmd::HelpFormats | Cmd::InfoFormats => {
             help::formats();
             Ok(())
@@ -399,7 +338,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::Schematic { signal, files } => cmds::cmd_schematic(signal, files),
         Cmd::Coverage { dump } => cmds::cmd_coverage(dump),
         Cmd::Tui { dump } => tui::run(dump),
-        Cmd::Gui { dump, out, open } => cmds::cmd_gui(dump, out, open),
+        Cmd::Gui { dump, out } => cmds::cmd_gui(dump, out),
         Cmd::Summary { dump } => cmds::cmd_summary(dump),
         Cmd::Annotate { file, time } => cmds::cmd_annotate(file, time),
         Cmd::Find { cond, dump } => cmds::cmd_find(cond, dump),
@@ -436,7 +375,8 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::AutogenTb { file } => cmds::cmd_autogen_tb(file),
         Cmd::Editor { file } => cmds::cmd_editor(file),
         Cmd::Mutant { files, top, max_ns, max_mutants, min_score, json } => cmds::cmd_mutant(files, top, max_ns, max_mutants, min_score, json),
-        Cmd::Power { dump, vdd, cnode_ff, freq_mhz, max_ns, json } => cmds::cmd_power(dump, vdd, cnode_ff, freq_mhz, max_ns, json),
+        Cmd::Power { dump, vdd, cnode_ff, freq_mhz, json } => cmds::cmd_power(dump, vdd, cnode_ff, freq_mhz, json),
+        Cmd::Bench { scale, dir } => bench::cmd_bench(scale, dir),
         Cmd::Signoff { files, top, max_ns, mutant, json } => cmds::cmd_signoff(files, top, max_ns, mutant, json),
     }
 }

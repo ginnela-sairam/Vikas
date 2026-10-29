@@ -2,6 +2,7 @@
 //! CMOS (b3), glitch hazards (b9), P-Bit stochastic (b5), HDC fingerprints,
 //! E-Graph micro-architecture repair (b7), C++20 RK4 mixed-signal twin (b6).
 
+use serde::{Deserialize, Serialize};
 
 pub mod energy {
     /// E_cycle = sum over toggled nets of 0.5*Ceff*Vdd^2*|ΔS| (fJ units).
@@ -104,7 +105,7 @@ pub mod glitch {
     pub fn hazards(bounces: &[(u64, String, u32)], threshold: u32) -> Vec<GlitchEvent> {
         bounces
             .iter()
-            .filter(|(_t, s, b)| *b >= threshold && !s.starts_with("VIKAS_"))
+            .filter(|(t, s, b)| *b >= threshold && !s.starts_with("VIKAS_"))
             .map(|(t, s, b)| GlitchEvent { time: *t, signal: s.clone(), bounces: *b })
             .collect()
     }
@@ -166,7 +167,7 @@ pub mod hdc {
         // deterministic hypervector from xorshift stream
         let mut s = seed | 1;
         let mut hv = vec![0u8; hv_dim()];
-        let state = s;
+        let mut state = s;
         s = state;
         let mut x = (s, n_transitions);
         for chunk in hv.chunks_mut(8) {
