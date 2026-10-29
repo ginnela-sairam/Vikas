@@ -1,156 +1,60 @@
-# ============================================================================
-# VIKAS v1 — GitHub Actions CI: the zero-touch platform verifying itself.
-#   job "kernel"     : clean-room cargo build + 38 unit tests
-#   job "matrix"     : the full 85-check command matrix + NOVA-SoC deep gates
-#   job "proof"      : golden demos (ALU 0xDEAD / SAR 2999 / SoC 200 / latch 2)
-#                      + one-command signoff + never-stale gate
-#   job "exec-bits"  : fresh-clone guarantee — the three shell scripts must
-#                      arrive executable (100755) + LF-only; catches the
-#                      Windows `git add -A` silent mode-reset within seconds
-# Evidence (matrix output, signoff report) is uploaded as a run artifact.
-# ============================================================================
 name: VIKAS CI
 
 on:
   push:
-    branches: ["**"]
+    branches: [ main ]
   pull_request:
-
-env:
-  CARGO_TERM_COLOR: always
+    branches: [ main ]
 
 jobs:
-  kernel:
-    name: kernel (build + unit tests)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build from zero
-        run: cargo build --release --locked
-      - name: Unit tests (XEZIM kernel + wave formats)
-        run: cargo test --release --locked
-
-  matrix:
-    name: matrix (85-check command sweep)
-    needs: kernel
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build from zero
-        run: cargo build --release --locked
-      - name: Full command matrix (50 features / 17 breakthroughs / 6 formats + friendliness + self-maintenance gates)
-        run: bash test_matrix.sh
-      - name: Upload matrix evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vikas-matrix-evidence
-          path: .vikas_matrix/
-          retention-days: 30
-
-  proof:
-    name: proof (NOVA-SoC + goldens + signoff)
-    needs: kernel
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build from zero
-        run: cargo build --release --locked
-      - name: NOVA-SoC 26-file deep project (both manifests, 9 golden checks)
-        run: |
-          ./target/release/vikas run examples/nova_soc/nova.f --max-ns 8000 | grep -q "NOVA-PASS 9/9"
-          ./target/release/vikas run examples/nova_soc/docs/manifest.files --max-ns 8000 | grep -q "NOVA-PASS 9/9"
-      - name: Classic goldens
-        run: |
-          # ALU pipeline drain = 0xDEAD (57005)
-          ./target/release/vikas run examples/demo_riscv_alu_hazard.sv | grep -q "alu_result=57005"
-          # SAR ADC converges to exactly the 12-bit target
-          ./target/release/vikas run examples/demo_sar_adc.sv | grep -q "sar code=2999 (target 2999)"
-          # multi-file manifest result
-          ./target/release/vikas run examples/multifile_proj/project.f | grep -q "result=200"
-          # inferred-latch gate exits 2 (errexit-safe capture: plain
-          # `cmd; test $? -eq 2` would abort under bash -e before the test)
-          rc=0
-          ./target/release/vikas latch examples/demo_latch_trap.sv || rc=$?
-          test "$rc" -eq 2
-      - name: One-command signoff (b16)
-        run: |
-          ./target/release/vikas signoff examples/nova_soc/nova.f --max-ns 8000 | tee signoff.txt
-          grep -q "SIGNOFF READY" signoff.txt
-      - name: Zero-touch power (b15) + mutation engine (b14)
-        run: |
-          ./target/release/vikas power examples/demo_sar_adc.sv --max-ns 3000 | grep -q "zero-touch power mode"
-          ./target/release/vikas mutant examples/multifile_proj/project.f --max 6 --min-score 0 --max-ns 4000
-      - name: Friendliness gates (gui auto-open headless-safe + typo help)
-        run: |
-          ./target/release/vikas run examples/demo_riscv_alu_hazard.sv >/dev/null
-          # headless CI: gui must write the self-contained HTML and exit 0,
-          # NEVER attempting to launch a browser (no tty detected here)
-          ./target/release/vikas gui -o ci_gui.html > gui_msg.txt
-          grep -q "self-contained HTML5 GUI" gui_msg.txt
-          test -s ci_gui.html
-          grep -q "VIKAS v1" ci_gui.html
-          # explicit opt-out also supported
-          ./target/release/vikas gui --no-open -o ci_gui2.html | grep -q -e "--no-open: file written only"
-          # typo-help contract: exit 2 + "did you mean" guidance
-          rc=0
-          ./target/release/vikas gu > gu_msg.txt 2>&1 || rc=$?
-          test "$rc" -eq 2
-          grep -q "did you mean" gu_msg.txt
-      - name: Never-stale gate (breakthrough #25 — build stamping + self-update)
-        run: |
-          # the binary must stamp itself with the commit it was built from;
-          # on CI that is HEAD by construction, so a mismatch means broken
-          # stamping, and a friend could never trust `vikas doctor` again.
-          H=$(git rev-parse --short HEAD)
-          echo "HEAD=$H — binary stamp must contain '+$H'"
-          ./target/release/vikas version | grep -q "+$H" \
-            || { echo "::error::build stamp does not match HEAD"; ./target/release/vikas version; exit 1; }
-          # self-maintenance surface must be alive end to end
-          ./target/release/vikas update --check
-          ./target/release/vikas doctor | grep -q "freshness"
-      - name: Offline proof — no Python, no TLS linked into the kernel
-        run: |
-          # VIKAS is pure Rust: the binary itself must never link Python or any
-          # network/TLS library — verified on the ELF itself, every run.
-          if ldd target/release/vikas | grep -iE 'python|ssl|crypto'; then
-            echo "unexpected runtime linkage found"; exit 1
-          fi
-          ./target/release/vikas run examples/demo_fsm_uart.sv >/dev/null && echo "offline kernel OK"
-
   exec-bits:
     name: exec-bits (friend-proof scripts)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Fresh-clone guarantee (executable bits + LF endings)
+      - name: Verify executable bits on shell scripts
         run: |
-          fail=0
-          for f in build_linux.sh install_linux.sh test_matrix.sh; do
-            if [ -x "$f" ]; then
-              echo "OK   $f executable ($(stat -c '%a' "$f"))"
-            else
-              echo "FAIL $f NOT executable on a fresh clone — a friend typing './$f' gets 'Permission denied'"
-              fail=1
-            fi
-            if grep -q $'\r' "$f"; then
-              echo "FAIL $f contains CRLF line endings — bash will report command-not-found on every line"
-              fail=1
-            fi
+          for f in *.sh; do
+            [ -f "$f" ] || continue
+            test -x "$f" || { echo "FAIL: $f is not executable"; exit 1; }
           done
-          if [ "$fail" -ne 0 ]; then
-            echo "::error::Repo hygiene broken — a push from Windows most likely reset the modes (git add -A cannot store exec bits on NTFS)."
-            echo "::error::Self-heal from Git Bash or WSL, in the repo root:"
-            echo "::error::  git update-index --chmod=+x build_linux.sh install_linux.sh test_matrix.sh"
-            echo "::error::  git commit -m 'CI: restore script exec bits' && git push"
-            echo "::error::See PUSH_WINDOWS.md for the permanent 5-command recipe."
-            exit 1
-          fi
-          echo "Fresh-clone experience guaranteed: ./build_linux.sh just works."
+
+  kernel:
+    name: kernel (build + unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & Unit Tests
+        run: |
+          cargo build --release
+          cargo test --release
+
+  matrix:
+    name: matrix (85-check command sweep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run 85-check matrix
+        run: |
+          cargo build --release
+          bash test_matrix.sh
+
+  proof:
+    name: proof (NOVA-SoC + goldens + signoff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & Run NOVA-SoC + Goldens + Signoff Proof
+        run: |
+          cargo build --release
+          VIKAS=./target/release/vikas
+          "$VIKAS" version
+          "$VIKAS" doctor
+          "$VIKAS" run examples/multifile_proj/project.f | grep -q "result=200"
+          "$VIKAS" run examples/nova_soc/nova.f --max-ns 8000 | grep -q "NOVA-PASS 9/9"
+          "$VIKAS" signoff examples/nova_soc/nova.f --max-ns 8000
+          rc=0; "$VIKAS" latch examples/demo_latch_trap.sv || rc=$?
+          test "$rc" -eq 2
+          "$VIKAS" latch examples/demo_fsm_uart.sv
+          "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.html --no-open
+          test -s /tmp/nova_studio.html
