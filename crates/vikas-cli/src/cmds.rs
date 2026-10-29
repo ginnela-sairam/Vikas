@@ -479,7 +479,145 @@ pub fn cmd_why(signal: String, files: Vec<PathBuf>) -> Result<()> {
     Ok(())
 }
 
+/// Environment doctor (breakthrough #25, restored for v1.1.0):
+/// run with no files → self-check the host toolchain & engine instead of
+/// bailing out. CI and first-time users get a green self-test; the RTL
+/// root-cause diagnostic keeps working when files are given.
+fn doctor_env() -> Result<()> {
+    println!("{} environment self-check (no files given — RTL diagnostic mode: `vikas doctor <files...>`)", c("[VIKAS DOCTOR]", CYAN));
+    let mut checks = 0usize;
+    let ok = |label: &str, detail: String| {
+        println!("  {} {:<22} {}", c("OK  ", GREEN), label, c(&detail, DIM));
+    };
+    // 1. kernel identity
+    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("1.1.1");
+    ok("binary", format!("vikas {ver} — XEZIM kernel v1.1 (topo-scheduled)"));
+    checks += 1;
+    // 2. host
+    let os = std::env::var("OSTYPE").unwrap_or_else(|_| "linux".into());
+    let arch = std::env::consts::ARCH;
+    let ncpu = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+    ok("host", format!("{os}/{arch} · {ncpu} logical core(s)"));
+    checks += 1;
+    // 3. workspace dir writable
+    let d = out_dir();
+    let probe = d.join("doctor_probe.tmp");
+    std::fs::write(&probe, b"probe")?;
+    let roundtrip = std::fs::read_to_string(&probe)? == "probe";
+    let _ = std::fs::remove_file(&probe);
+    if !roundtrip {
+        bail!("workspace dir `.vikas/` is not writable");
+    }
+    ok("workspace", format!(".vikas/ writable · artifacts land in {}", d.display()));
+    checks += 1;
+    // 4. wave engine round-trip (save + reload native .vwf)
+    let mut dump = vikas_wave::WaveDump::default();
+    let clk = dump.add_signal("doctor.clk", 1);
+    for t in (0..20).step_by(2) {
+        dump.push(t, clk, VVal::from_u64((t / 2) % 2, 1));
+    }
+    let tmp_vwf = d.join("doctor_wave.vwf");
+    dump.save(&tmp_vwf)?;
+    let re = vikas_wave::WaveDump::load(&tmp_vwf)?;
+    let _ = std::fs::remove_file(&tmp_vwf);
+    if re.signals.len() != 1 || re.changes.is_empty() {
+        bail!("wave engine round-trip failed (.vwf save/load mismatch)");
+    }
+    ok("wave engine", format!(".vwf round-trip: {} signal(s), {} change(s) verified", re.signals.len(), re.changes.len()));
+    checks += 1;
+    // 5. parser sanity — lex+parse a tiny module end-to-end
+    let src = "module doctor_sanity(input a, input b, output y); assign y = a & b; endmodule\n";
+    let lx = vikas_sim::lexer::Lexer::lex(src, "doctor_sanity");
+    let mut p = vikas_sim::parser::Parser::new(&lx.toks, &lx.lines);
+    let mods = p.parse_program();
+    if mods.len() != 1 || mods[0].name != "doctor_sanity" {
+        bail!("parser sanity check failed (could not elaborate a 1-gate module)");
+    }
+    ok("parser/elab", format!("1-gate module elaborated: `doctor_sanity` ({} port(s))", mods[0].ports.len()));
+    checks += 1;
+    // 6. WCP/Studio HTML generator reachable
+    let mut ctx = vikas_wcp::studio::StudioCtx::default();
+    ctx.verdict = "PASS".into();
+    ctx.verdict_kind = "ok".into();
+    let studio_probe = d.join("doctor_studio.html");
+    vikas_wcp::studio::generate_studio(&dump, &ctx, "doctor self-test", &studio_probe)?;
+    let html_len = std::fs::metadata(&studio_probe).map(|m| m.len()).unwrap_or(0);
+    let _ = std::fs::remove_file(&studio_probe);
+    if html_len < 1024 {
+        bail!("VIKAS Studio HTML generator produced an empty page");
+    }
+    ok("studio", format!("HTML workbench generator verified ({html_len} bytes)"));
+    checks += 1;
+    println!("  {} {checks} environment check(s) passed — VIKAS is fully operational on this host.", c("PASS", GREEN));
+    println!("        next: `vikas run <files|manifest.f>` · `vikas signoff <files>` · `vikas studio <files>`");
+    Ok(())
+}
+
+/// `vikas studio <files> [-o out.html] [--no-open] [--top m] [--max-ns N]`
+/// One-shot VIKAS Studio generation: simulate → Open-KDB → latch audit →
+/// physics → professional HTML5 workbench. Headless-safe with --no-open.
+pub fn cmd_studio(files: Vec<PathBuf>, top: Option<String>, max_ns: u64, out: Option<PathBuf>, open: bool) -> Result<()> {
+    if files.is_empty() {
+        bail!("no input files given — usage: vikas studio <files... or manifest.f> [-o out.html] [--no-open]");
+    }
+    let (res, per_file) = crate::sim_and_dump(&files, top.as_deref(), max_ns)?;
+    let (mods, top_name, _, _) = crate::parse_project(&files, Some(&res.top))?;
+    let kdb = vikas_kdb::build(&mods, &top_name);
+    // persist side artifacts so the workbench links stay reproducible
+    let d = out_dir();
+    res.dump.save(&d.join("vikas_wave.vwf"))?;
+    let kdb_path = d.join("open_kdb.vikas.json");
+    std::fs::write(&kdb_path, serde_json::to_string_pretty(&kdb)?)?;
+    let n_latch = kdb.inferred_latches.len();
+    let mut ctx = vikas_wcp::studio::StudioCtx::default();
+    ctx.subtitle = format!("top `{}` · {} cycles · {} ns · {} files", res.top, res.cycles, res.dump.end_time(), per_file.len());
+    ctx.verdict = if n_latch > 0 { "LATCH RISK".into() } else { "PASS".into() };
+    ctx.verdict_kind = if n_latch > 0 { "bad".into() } else { "ok".into() };
+    ctx.chips = vec![
+        ("clock", format!("{} cycles", res.cycles)),
+        ("activity", format!("{} events", res.dump.changes.len())),
+        ("zap", format!("E ≈ {:.1} fJ", res.energy_fj_total)),
+        ("cpu", format!("{} files", per_file.len())),
+        ("flag", format!("{} golden checks", res.dump.changes.iter().filter(|ch| res.dump.signals.get(ch.sig).map(|sg| sg.name.contains("chk") || sg.name.contains("pass")).unwrap_or(false)).count())),
+    ];
+    ctx.kdb = serde_json::to_value(&kdb).ok();
+    ctx.notes.push(format!("run wall-time {} ms · glitches {} · latch findings {}", res.wall_ms, res.glitches, res.latch_finds.len()));
+    ctx.notes.push("Generated by `vikas studio` — KDB, latch audit, physics and coverage context embedded.".into());
+    let html = out.unwrap_or_else(|| d.join(format!("vikas_studio_{}.html", res.top.to_lowercase())));
+    vikas_wcp::studio::generate_studio(&res.dump, &ctx, &format!("{} — VIKAS Studio", res.top), &html)?;
+    println!("{} top `{}`: {} cycles · {} ns · {} latch finding(s) · {} KDB signal(s)", c("[VIKAS STUDIO]", GREEN), res.top, res.cycles, res.dump.end_time(), n_latch, kdb.signals.len());
+    println!("  workbench    : {} ({} bytes — Analysis Hub + Design Intel embedded)", html.display(), std::fs::metadata(&html).map(|m| m.len()).unwrap_or(0));
+    println!("  side artifacts: {} · {}", d.join("vikas_wave.vwf").display(), kdb_path.display());
+    if open {
+        open_in_browser(&html);
+    } else {
+        println!("  browser      : skipped (--no-open)");
+    }
+    Ok(())
+}
+
+/// Best-effort cross-platform "open this file in a browser" — never fatal.
+fn open_in_browser(path: &Path) {
+    let candidates: Vec<&str> = if cfg!(target_os = "macos") {
+        vec!["open"]
+    } else if cfg!(target_os = "windows") {
+        vec!["explorer", "start"]
+    } else {
+        vec!["xdg-open", "gio", "wslview"]
+    };
+    for bin in candidates {
+        if std::process::Command::new(bin).arg(path).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).spawn().is_ok() {
+            println!("  browser      : opened {}", path.display());
+            return;
+        }
+    }
+    println!("  browser      : no opener found — open {} manually", path.display());
+}
+
 pub fn cmd_doctor(files: Vec<PathBuf>) -> Result<()> {
+    if files.is_empty() {
+        return doctor_env();
+    }
     let (mods, top_name, _, _) = crate::parse_project(&files, None)?;
     let kdb = vikas_kdb::build(&mods, &top_name);
     println!("{} root-cause diagnostic for top `{}:`", c("[VIKAS DOCTOR]", CYAN), &top_name);

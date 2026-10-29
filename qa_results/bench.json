@@ -1,40 +1,40 @@
 {
-  "aggregate_events_per_s": 20510,
+  "aggregate_events_per_s": 319975,
   "rows": [
     {
       "cycles": 0,
-      "events": 9621,
-      "events_per_s": 126661.0,
+      "events": 2421,
+      "events_per_s": 654848.0,
       "name": "comb_chain",
-      "signals": 1206,
-      "wall_ms": 75.95886300000001
+      "signals": 306,
+      "wall_ms": 3.697041
     },
     {
       "cycles": 250,
-      "events": 50005,
-      "events_per_s": 162849.0,
+      "events": 14005,
+      "events_per_s": 607823.0,
       "name": "pipe_nba",
-      "signals": 199,
-      "wall_ms": 307.063294
+      "signals": 55,
+      "wall_ms": 23.041261
     },
     {
       "cycles": 60,
-      "events": 918,
-      "events_per_s": 44197.0,
+      "events": 589,
+      "events_per_s": 214081.0,
       "name": "fifo_storm",
       "signals": 34,
-      "wall_ms": 20.770568
+      "wall_ms": 2.7512980000000002
     },
     {
       "cycles": 60,
-      "events": 52371,
-      "events_per_s": 10266.0,
+      "events": 19084,
+      "events_per_s": 229021.0,
       "name": "soc_grid",
-      "signals": 1064,
-      "wall_ms": 5101.475729
+      "signals": 344,
+      "wall_ms": 83.32844300000001
     }
   ],
-  "scale": 4,
+  "scale": 1,
   "tool": "VIKAS v1 bench",
   "vcpu": 2
 }

@@ -4,11 +4,12 @@ use crate::util::*;
 
 pub fn catalog() {
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
-    println!("{}", c("  VIKAS v1.1 — command catalog (59 commands, 18 breakthroughs)", CYAN));
+    println!("{}", c("  VIKAS v1.1 — command catalog (60 commands, 18 breakthroughs)", CYAN));
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
     let groups: &[(&str, &[(&str, &str)])] = &[
         ("SIMULATION (XEZIM kernel — multi-file, filelists, UVM-aware)", &[
             ("run <files|manifest.f> [--top m] [--max-ns N] [--gui]", "simulate + auto-dump + Open-KDB + telemetry + latch alert"),
+            ("studio <files> [-o out.html] [--no-open]", "one-shot VIKAS Studio: simulate + KDB + latch audit → HTML5 workbench"),
             ("quickrun <files>", "auto-generate testbench stimulus then simulate (feature 2)"),
             ("watch <files>", "inotify live re-simulation on save (feature 3)"),
             ("autogen-tb <rtl.sv>", "write auto-TB to <rtl>_tb.sv without simulating"),
@@ -28,7 +29,7 @@ pub fn catalog() {
             ("loops <files>", "Tarjan SCC combinational-loop detector (18)"),
             ("recommend <sig> <files>", "Jaccard smart-signal recommender (37)"),
             ("why <sig> <files>", "counterfactual blocking-input solver (b1/f39)"),
-            ("doctor <files>", "AI root-cause diagnostic bundle (33)"),
+            ("doctor [files]", "no files → environment self-check · with files → AI root-cause diagnostic bundle (33/b25)"),
             ("schematic <sig> <files>", "Graphviz DOT + Mermaid cone export (16)"),
             ("coverage [dump]", "toggle coverage + dead-silicon list (19)"),
         ]),

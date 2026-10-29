@@ -47,6 +47,14 @@ vikas run examples/nova_soc/docs/manifest.files   # alternate .files manifest: s
 # VIKAS STUDIO — the professional single-file HTML5 workbench
 vikas run examples/nova_soc/nova.f --gui       # run + embed KDB/physics/verdict
 vikas gui .vikas/vikas_wave.vwf                # from any dump (auto-detects KDB)
+vikas studio examples/nova_soc/nova.f -o nova.html --no-open
+#    -> one-shot studio: simulate + KDB + latch audit -> HTML workbench
+#       (headless-safe: --no-open is the CI/pipeline mode)
+
+# environment doctor (breakthrough 25): zero-arg self-check of the host
+vikas doctor          # toolchain + wave-engine round-trip + parser sanity -> exit 0
+vikas doctor examples/demo_latch_trap.sv       # with files: RTL root-cause bundle
+
 #     -> File > Open also loads ANY .vcd (VCS/Icarus/Verilator dumps) and
 #        native .vwf — parsed entirely in your browser, zero server, zero net
 

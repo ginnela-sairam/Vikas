@@ -15,6 +15,7 @@ use util::*;
 #[derive(Debug)]
 enum Cmd {
     Run { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, gui: bool },
+    Studio { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, out: Option<PathBuf>, open: bool },
     Quickrun { files: Vec<PathBuf> },
     Watch { files: Vec<PathBuf> },
     Latch { files: Vec<PathBuf>, json: bool },
@@ -123,6 +124,13 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             top: flagv(&rest, "--top"),
             max_ns: numv(&rest, "--max-ns", 100_000),
             gui: rest.contains(&"--gui".into()),
+        }),
+        "studio" => Ok(Cmd::Studio {
+            files: files(&rest),
+            top: flagv(&rest, "--top"),
+            max_ns: numv(&rest, "--max-ns", 100_000),
+            out: flagv(&rest, "-o").map(PathBuf::from),
+            open: !rest.contains(&"--no-open".into()),
         }),
         "quickrun" => Ok(Cmd::Quickrun { files: files(&rest) }),
         "watch" => Ok(Cmd::Watch { files: files(&rest) }),
@@ -314,7 +322,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Version => {
-            println!("vikas 1.1.0 — XEZIM kernel v1.1 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
+            println!("vikas 1.1.1 — XEZIM kernel v1.1 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
             Ok(())
         }
         Cmd::HelpFormats | Cmd::InfoFormats => {
@@ -322,6 +330,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Run { files, top, max_ns, gui } => cmds::cmd_run(files, top, max_ns, gui),
+        Cmd::Studio { files, top, max_ns, out, open } => cmds::cmd_studio(files, top, max_ns, out, open),
         Cmd::Quickrun { files } => cmds::cmd_quickrun(files),
         Cmd::Watch { files } => cmds::cmd_watch(files),
         Cmd::Latch { files, json } => cmds::cmd_latch(files, json),
