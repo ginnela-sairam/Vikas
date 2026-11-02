@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local CI simulation — mirrors .github/workflows/ci.yml exactly.
+# Local CI simulation — mirrors .github/workflows/ci.yml exactly (6 jobs).
 # Usage: bash ci_local_sim.sh  (run from repo root)
 set -u
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -47,6 +47,27 @@ step "proof:latch-trap-rc2" 2 "$VIKAS" latch examples/demo_latch_trap.sv
 step "proof:latch-uart-rc0" 0 "$VIKAS" latch examples/demo_fsm_uart.sv
 step "proof:studio"  0 "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.html --no-open
 step "proof:studio-html-nonempty" 0 test -s /tmp/nova_studio.html
+
+echo "══ JOB 5: airgap (offline build — fresh cargo home, zero network) ══"
+export CARGO_HOME="$(mktemp -d /tmp/airgap_home.XXXXXX)"
+step "airgap:offline-build" 0 cargo build --release --locked --offline
+step "airgap:version"   0 "$VIKAS" version
+step "airgap:doctor"    0 "$VIKAS" doctor
+step_grep "airgap:multifile" "result=200" "$VIKAS" run examples/multifile_proj/project.f
+step_grep "airgap:nova" "NOVA-PASS 9/9" "$VIKAS" run examples/nova_soc/nova.f --max-ns 8000
+unset CARGO_HOME
+
+echo "══ JOB 6: msrv (Rust 1.70 — oldest supported toolchain) ══"
+if rustup toolchain list | grep -q "1.70.0"; then
+  export CARGO_HOME="$(mktemp -d /tmp/msrv_home.XXXXXX)"
+  step "msrv:build-1.70-offline" 0 cargo +1.70.0 build --release --locked --offline
+  step "msrv:version" 0 "$VIKAS" version
+  step "msrv:doctor"  0 "$VIKAS" doctor
+  step_grep "msrv:multifile" "result=200" "$VIKAS" run examples/multifile_proj/project.f
+  unset CARGO_HOME
+else
+  echo "SKIP  msrv (rustup toolchain 1.70.0 not installed locally)"
+fi
 
 echo
 echo "══════════ LOCAL CI SIMULATION: $PASS passed, $FAIL failed ══════════"

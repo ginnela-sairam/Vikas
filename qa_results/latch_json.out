@@ -1,6 +1,0 @@
-[
-  {
-    "signal": "partial_sum",
-    "file": "",
-    "line": 13,
-    "always_block_type": "always_comb",

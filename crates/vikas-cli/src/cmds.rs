@@ -490,7 +490,7 @@ fn doctor_env() -> Result<()> {
         println!("  {} {:<22} {}", c("OK  ", GREEN), label, c(&detail, DIM));
     };
     // 1. kernel identity
-    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("1.1.1");
+    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("1.1.2");
     ok("binary", format!("vikas {ver} — XEZIM kernel v1.1 (topo-scheduled)"));
     checks += 1;
     // 2. host

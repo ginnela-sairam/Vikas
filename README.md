@@ -13,6 +13,25 @@ leapfrog the Synopsys/Cadence duopoly as open source.
 ./install_linux.sh          # installs to ~/.local/bin + /dev/shm arena
 ```
 
+## Offline / air-gapped server install (v1.1.2)
+
+All 29 dependencies are **vendored in `./vendor/`** (with
+`.cargo/config.toml` redirecting crates-io to them) — the build needs
+**ZERO network access** and produces identical binaries on every machine:
+
+```bash
+git clone https://github.com/ginnela-sairam/Vikas.git && cd Vikas
+# on the air-gapped server (no DNS, no proxy, no crates.io):
+cargo build --release --locked --offline
+./target/release/vikas doctor     # 6-check environment self-test -> exit 0
+```
+
+Requirements: **Rust/cargo ≥ 1.70** (older cargo can't read the v4
+lockfile we replaced with v3 — Ubuntu 24.04 / RHEL 9 / conda-forge / rustup
+all qualify). `cargo build --release --locked --offline` is the exact
+command proven by the CI `airgap` job on a fresh runner with an empty
+cargo cache. CI also guards the MSRV (`msrv` job builds on Rust 1.70).
+
 ## Quick start
 
 ```bash

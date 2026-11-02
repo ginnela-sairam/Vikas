@@ -204,8 +204,9 @@ fn soc_grid(scale: u32) -> String {
     s.push_str("module row(input logic clk, rst_n, input logic [7:0] x, output logic [7:0] y);\n");
     s.push_str("    logic [7:0] wire_0, wire_1, wire_2, wire_3, wire_4, wire_5, wire_6;\n");
     for i in 0..m {
-        let prev = if i == 0 { "x" } else { &format!("wire_{}", i - 1) };
-        let next = if i == m - 1 { "y" } else { &format!("wire_{}", i) };
+        // MSRV-safe: own the Strings (borrowing a format! temp fails NLL on rustc < 1.79)
+        let prev = if i == 0 { "x".to_string() } else { format!("wire_{}", i - 1) };
+        let next = if i == m - 1 { "y".to_string() } else { format!("wire_{}", i) };
         s.push_str(&format!("    cell u{}(.clk(clk), .rst_n(rst_n), .x({}), .y({}));\n", i, prev, next));
     }
     s.push_str("endmodule\n");

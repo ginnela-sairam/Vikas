@@ -58,3 +58,32 @@ jobs:
           "$VIKAS" latch examples/demo_fsm_uart.sv
           "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.html --no-open
           test -s /tmp/nova_studio.html
+
+  airgap:
+    name: airgap (offline build — zero network, vendored deps)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove the build needs ZERO network (fresh cargo home)
+        run: |
+          export CARGO_HOME="$RUNNER_TEMP/fresh_cargo_home"
+          cargo build --release --locked --offline
+          VIKAS=./target/release/vikas
+          "$VIKAS" version
+          "$VIKAS" doctor
+          "$VIKAS" run examples/multifile_proj/project.f | grep -q "result=200"
+          "$VIKAS" run examples/nova_soc/nova.f --max-ns 8000 | grep -q "NOVA-PASS 9/9"
+
+  msrv:
+    name: msrv (Rust 1.70 — oldest supported toolchain, offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build + smoke on Rust 1.70 with vendored deps
+        run: |
+          rustup toolchain install 1.70.0 --profile minimal --no-self-update
+          export CARGO_HOME="$RUNNER_TEMP/fresh_cargo_home"
+          cargo +1.70.0 build --release --locked --offline
+          ./target/release/vikas version
+          ./target/release/vikas doctor
+          ./target/release/vikas run examples/multifile_proj/project.f | grep -q "result=200"

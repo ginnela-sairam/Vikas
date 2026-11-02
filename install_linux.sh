@@ -1,6 +1,8 @@
 #!/bin/bash
 # ============================================================================
-# VIKAS v1 — one-command Linux installer
+# VIKAS v1.1.2 — one-command Linux installer (works fully OFFLINE / air-gapped:
+# all dependencies are vendored in ./vendor — cargo never touches the network)
+# Requires: Rust/cargo >= 1.70 (rustup install: https://rustup.rs)
 # ============================================================================
 set -e
 V_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -10,14 +12,25 @@ if [ -f "$V_DIR/target/release/vikas" ]; then
     echo "[install] using pre-built binary: $BIN"
 else
     if ! command -v cargo >/dev/null 2>&1; then
-        echo "[install] cargo not found — installing rustup (minimal profile)"
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-        source "$HOME/.cargo/env"
+        cat << 'NOV'
+[install] cargo NOT FOUND.
+
+  VIKAS needs Rust >= 1.70. On a networked machine:
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+
+  On an AIR-GAPPED server: install rustup/cargo >= 1.70 from your internal
+  mirror (e.g. conda: `conda install -c conda-forge rust=1.70`), then re-run
+  this script — the build itself needs ZERO network (deps are vendored).
+NOV
+        exit 1
     fi
-    echo "[install] building VIKAS v1 from source (release + LTO)..."
-    (cd "$V_DIR" && cargo build --release)
+    echo "[install] building VIKAS v1.1.2 from source (release + LTO, offline, vendored deps)..."
+    (cd "$V_DIR" && cargo build --release --offline)
     BIN="$V_DIR/target/release/vikas"
 fi
+
+# quick self-test of the installed tool (6-check env doctor)
+"$BIN" doctor
 
 DEST="$HOME/.local/bin"
 mkdir -p "$DEST"
