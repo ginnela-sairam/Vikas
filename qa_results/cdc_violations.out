@@ -1,0 +1,2 @@
+[VIKAS CDC] potential CDC hazards:
+  CROSS r_a(clk_a) -> r_b(clk_b) · sync depth 0

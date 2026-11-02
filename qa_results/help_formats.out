@@ -1,0 +1,6 @@
+VIKAS v1 native innovative waveform formats (6)
+  .vwf  VIKAS Waveform File — binary indexed change table + CRC32 integrity checksum
+  .vwt  VIKAS Temporal Track — time-sectioned regions with start-time index for partial reads
+  .vwe  VIKAS Encoded — delta-time + value-RLE compression (removes redundant changes)
+  .vwp  VIKAS Physics — carries analog f64 lanes for physics/stochastic/taint tracks
+  .vwi  VIKAS Indexed — per-signal absolute seek index: O(1) random access per signal

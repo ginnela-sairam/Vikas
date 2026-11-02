@@ -1,0 +1,6 @@
+result=200 (expect 200: 300-100)
+[VIKAS RUN] simulated top `soc_tb`: 5 cycles, 45 ns, wall 0 ms
+  project      : 1 file(s) [4]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (17 signals · 8 driver sites)

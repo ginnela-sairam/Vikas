@@ -1,0 +1,2 @@
+[VIKAS XTRACE] IDE cross-probe links for `alu_result`:
+  :53  [always_ff] alu_result <= ex_result

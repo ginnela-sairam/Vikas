@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VIKAS OFFLINE / AIR-GAP BUILD CONFIGURATION (v1.1.2)
+#
+# All dependencies are vendored into ./vendor — this repo builds with ZERO
+# network access. Verified on air-gapped servers (no DNS, no proxy):
+#
+#     cargo build --release --locked --offline
+#
+# This also guarantees reproducible builds: every machine (laptop, CI runner,
+# air-gapped server) compiles the exact same dependency versions.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+
+# Never touch the network even for optional registry metadata lookups.
+[net]
+offline = true

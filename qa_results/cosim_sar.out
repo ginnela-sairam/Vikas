@@ -1,0 +1,5 @@
+[VIKAS COSIM] C++20 RK4 closed-loop SAR ADC twin (12 bits):
+  Vin=0.10 → code 0 (0.0% full-scale)
+  Vin=0.50 → code 2 (0.0%)
+  Vin=0.90 → code 3 (0.1%)
+  monotonicity     : PASS ✓

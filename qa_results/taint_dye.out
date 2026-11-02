@@ -1,0 +1,3 @@
+[VIKAS TAINT] causality dye: `vin` -> `code`
+  cone size walked: 1
+  information flow: no direct fan-in path found

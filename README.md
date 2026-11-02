@@ -13,7 +13,7 @@ leapfrog the Synopsys/Cadence duopoly as open source.
 ./install_linux.sh          # installs to ~/.local/bin + /dev/shm arena
 ```
 
-## Offline / air-gapped server install (v1.1.2)
+## Offline / air-gapped server install (v1.1.3)
 
 All 29 dependencies are **vendored in `./vendor/`** (with
 `.cargo/config.toml` redirecting crates-io to them) — the build needs

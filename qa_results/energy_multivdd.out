@@ -1,0 +1,6 @@
+sar code=2999 (target 2999) conv_done=0
+[VIKAS ENERGY] dynamic energy E=½CV² analysis
+  Vdd=0.12V → E ≈ 0.0 fJ over 342 transitions
+  Vdd=0.4V → E ≈ 0.1 fJ over 342 transitions
+  Vdd=0.8V → E ≈ 0.4 fJ over 342 transitions
+  live telemetry : Σ instant energy = 433.9 fJ (from VIKAS_PHYSICS track)

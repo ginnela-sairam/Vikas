@@ -1,0 +1,6 @@
+[VIKAS SIGNOFF] composite tapeout-risk scorecard — top `latch_tb`
+  RISK latch audit                2 inferred latch(es) (-5 each)
+  OK   combinational loops        0 SCC loop(s) (-10 each)
+  OK   CDC synchronizers          0 unsynchronized crossing(s) (-3 each)
+  OK   toggle coverage            0 silent signal(s) (-1 each)
+  RISK liveness                   4 signal(s) froze before 25% of window (-2 each)

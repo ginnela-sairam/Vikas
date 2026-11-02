@@ -1,0 +1,4 @@
+[VIKAS PERF] fifo_tb.valid_in / fifo_tb.ready_out: bus utilization 1% · stall 0 ns
+[VIKAS PERF] fifo_tb.valid_out_consumed / fifo_tb.ready_out: bus utilization 1% · stall 0 ns
+[VIKAS PERF] fifo_tb.dut.valid_in / fifo_tb.ready_out: bus utilization 1% · stall 0 ns
+[VIKAS PERF] fifo_tb.dut.valid_out_consumed / fifo_tb.ready_out: bus utilization 1% · stall 0 ns

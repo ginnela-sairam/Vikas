@@ -1,0 +1,5 @@
+[VIKAS SWEEP] multi-corner sweep @ 300K:
+  Vdd      delay-mult     Ion/Ioff     verdict
+      0.12     1419450.00         69.4 SUB-THRESHOLD: timing closure risk — check FO4 retention
+       0.4          14.82    1437276.9 NEAR-THRESHOLD: energy-optimal, watch variation
+       0.8           1.32 2076201142372.4 NOMINAL

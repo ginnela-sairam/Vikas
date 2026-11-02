@@ -1,0 +1,5 @@
+[VIKAS TOPO] Linux topology:
+  cores            : 2
+  model            : Intel(R) Xeon(R) Processor
+  build parallelism: 2 jobs (auto-tuned)
+  arena: /dev/shm/vikas_arena_1001 (tmpfs RAM — zero disk wear, >20 GB/s)

@@ -1,0 +1,248 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='920' height='900' font-family='monospace'>
+<rect width='920' height='60' fill='#0b1220'/>
+<text x='12' y='24' fill='#7dd3fc' font-size='15' font-weight='bold'>VIKAS v1 — WaveDrom timing export</text>
+<text x='12' y='66' fill='#dbe6f5' font-size='12'>clk</text>
+<rect x='220.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='298.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='324.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='350.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='376.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='402.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='428.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='454.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='480.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='506.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='532.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='558.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='584.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='610.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='636.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='662.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='688.0' y='50' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='714.0' y='62' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='94' fill='#dbe6f5' font-size='12'>rst_n</text>
+<rect x='220.0' y='90' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='78' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<text x='12' y='122' fill='#dbe6f5' font-size='12'>valid_in</text>
+<rect x='220.0' y='118' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='106' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='298.0' y='118' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='150' fill='#dbe6f5' font-size='12'>ready_out</text>
+<rect x='220.0' y='146' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='246.0' y='134' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<text x='12' y='178' fill='#dbe6f5' font-size='12'>valid_out_consumed</text>
+<rect x='220.0' y='174' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='162' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='298.0' y='174' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='206' fill='#dbe6f5' font-size='12'>data_in</text>
+<rect x='220.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='350.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='376.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='402.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='428.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='454.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='480.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='506.0' y='202' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='206' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x00  0x01  0x02  0x03  0x04  0x05  0x06  0x07  0x08  0x09  0x0a</text>
+<text x='12' y='234' fill='#dbe6f5' font-size='12'>data_out</text>
+<rect x='220.0' y='230' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='230' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='230' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='230' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='234' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x01  0x04  0x07</text>
+<text x='12' y='262' fill='#dbe6f5' font-size='12'>clk</text>
+<rect x='220.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='298.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='324.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='350.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='376.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='402.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='428.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='454.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='480.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='506.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='532.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='558.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='584.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='610.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='636.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='662.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='688.0' y='246' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='714.0' y='258' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='290' fill='#dbe6f5' font-size='12'>rst_n</text>
+<rect x='220.0' y='286' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='274' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<text x='12' y='318' fill='#dbe6f5' font-size='12'>valid_in</text>
+<rect x='220.0' y='314' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='302' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='298.0' y='314' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='346' fill='#dbe6f5' font-size='12'>data_in</text>
+<rect x='220.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='350.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='376.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='402.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='428.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='454.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='480.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='506.0' y='342' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='346' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x00  0x01  0x02  0x03  0x04  0x05  0x06  0x07  0x08  0x09  0x0a</text>
+<text x='12' y='374' fill='#dbe6f5' font-size='12'>ready_out</text>
+<rect x='220.0' y='370' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='246.0' y='358' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<text x='12' y='402' fill='#dbe6f5' font-size='12'>valid_out_consumed</text>
+<rect x='220.0' y='398' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<rect x='272.0' y='386' width='24.0' height='12' fill='none' stroke='#38bdf8' stroke-width='1.5'/>
+<rect x='298.0' y='398' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='430' fill='#dbe6f5' font-size='12'>data_out</text>
+<rect x='220.0' y='426' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='426' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='426' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='426' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='430' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x01  0x04  0x07</text>
+<text x='12' y='458' fill='#dbe6f5' font-size='12'>count</text>
+<rect x='220.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='350.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='376.0' y='454' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='458' fill='#f7b955' font-size='11'>0xxxxx  0x0  0x1  0x2  0x3  0x2  0x1</text>
+<text x='12' y='486' fill='#dbe6f5' font-size='12'>mem__0</text>
+<rect x='220.0' y='482' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='482' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='486' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x01</text>
+<text x='12' y='514' fill='#dbe6f5' font-size='12'>mem__1</text>
+<rect x='220.0' y='510' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='510' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='514' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x04</text>
+<text x='12' y='542' fill='#dbe6f5' font-size='12'>mem__2</text>
+<rect x='220.0' y='538' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='538' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='542' fill='#f7b955' font-size='11'>0xxxxxxxxx  0x07</text>
+<text x='12' y='570' fill='#dbe6f5' font-size='12'>mem__3</text>
+<rect x='220.0' y='566' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='570' fill='#f7b955' font-size='11'>0xxxxxxxxx</text>
+<text x='12' y='598' fill='#dbe6f5' font-size='12'>mem__4</text>
+<rect x='220.0' y='594' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='598' fill='#f7b955' font-size='11'>0xxxxxxxxx</text>
+<text x='12' y='626' fill='#dbe6f5' font-size='12'>mem__5</text>
+<rect x='220.0' y='622' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='626' fill='#f7b955' font-size='11'>0xxxxxxxxx</text>
+<text x='12' y='654' fill='#dbe6f5' font-size='12'>mem__6</text>
+<rect x='220.0' y='650' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='654' fill='#f7b955' font-size='11'>0xxxxxxxxx</text>
+<text x='12' y='682' fill='#dbe6f5' font-size='12'>mem__7</text>
+<rect x='220.0' y='678' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='682' fill='#f7b955' font-size='11'>0xxxxxxxxx</text>
+<text x='12' y='710' fill='#dbe6f5' font-size='12'>wp</text>
+<rect x='220.0' y='706' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='706' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='706' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='706' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='706' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='710' fill='#f7b955' font-size='11'>0xxxx  0x0  0x1  0x2  0x3</text>
+<text x='12' y='738' fill='#dbe6f5' font-size='12'>rp</text>
+<rect x='220.0' y='734' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='734' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='734' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='734' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='738' fill='#f7b955' font-size='11'>0xxxx  0x0  0x1  0x2</text>
+<text x='12' y='766' fill='#dbe6f5' font-size='12'>VIKAS_PHYSICS_instant_energy_fJ</text>
+<rect x='220.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='350.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='376.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='402.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='428.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='454.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='480.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='506.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='532.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='558.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='584.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='610.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='636.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='662.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='688.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='714.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='740.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='766.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='792.0' y='762' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='766' fill='#f7b955' font-size='11'>0x00000000  0x00000002  0x0000000a  0x00000005  0x00000002  0x00000007  0x00000002  0x00000007  0x00000002  0x00000005  0x0000000a  0x00000002  0x00000005  0x00000002  0x00000000  0x0000000a  0x00000000  0x00000002  0x00000000  0x0000000c  0x00000000  0x00000002  0x00000000</text>
+<text x='12' y='794' fill='#dbe6f5' font-size='12'>VIKAS_PHYSICS_cumulative_energy_fJ</text>
+<rect x='220.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='350.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='376.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='402.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='428.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='454.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='480.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='506.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='532.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='558.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='584.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='610.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='636.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='662.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='688.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='714.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='740.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='766.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='792.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='818.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='844.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='870.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='896.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='922.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='948.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='974.0' y='790' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='794' fill='#f7b955' font-size='11'>0x00000000  0x00000002  0x00000005  0x00000007  0x00000011  0x00000017  0x00000019  0x0000001c  0x00000023  0x0000002b  0x0000002e  0x00000035  0x00000038  0x0000003d  0x00000047  0x0000004a  0x0000004c  0x00000051  0x00000057  0x00000059  0x0000005c  0x00000066  0x00000068  0x00000075  0x00000078  0x0000007a  0x0000007d  0x00000080  0x00000082  0x00000085</text>
+<text x='12' y='822' fill='#dbe6f5' font-size='12'>VIKAS_CAUSALITY_transitions_this_cycle</text>
+<rect x='220.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='246.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='272.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='298.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='324.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='350.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='376.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='402.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='428.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='454.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='480.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='506.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='532.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='558.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='584.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='610.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='636.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='662.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='688.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='714.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='740.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='766.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<rect x='792.0' y='818' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='822' fill='#f7b955' font-size='11'>0x00000000  0x00000002  0x00000008  0x00000004  0x00000002  0x00000006  0x00000002  0x00000006  0x00000002  0x00000004  0x00000008  0x00000002  0x00000004  0x00000002  0x00000000  0x00000008  0x00000000  0x00000002  0x00000000  0x0000000a  0x00000000  0x00000002  0x00000000</text>
+<text x='12' y='850' fill='#dbe6f5' font-size='12'>VIKAS_CAUSALITY_subcycle_glitch_hazards</text>
+<rect x='220.0' y='846' width='24.0' height='12' fill='none' stroke='#7a8bb0' stroke-width='1.5'/>
+<text x='12' y='878' fill='#dbe6f5' font-size='12'>VIKAS_TAINT_active_dye</text>
+<rect x='220.0' y='874' width='24.0' height='12' fill='none' stroke='#94e2a1' stroke-width='1.5'/>
+<text x='226' y='878' fill='#f7b955' font-size='11'>0x0000000000000000</text>
+</svg>

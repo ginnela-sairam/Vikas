@@ -1,0 +1,6 @@
+alu_result=57005 valid_ex=0 partial_sum=0
+[VIKAS RUN] simulated top `alu_tb`: 7 cycles, 65 ns, wall 0 ms
+  project      : 1 file(s) [1]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (20 signals · 19 driver sites)

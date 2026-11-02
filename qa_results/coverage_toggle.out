@@ -1,0 +1,6 @@
+[VIKAS COVERAGE] toggle coverage (37 signals):
+  alu_tb.clk                                   100% 7↑ 6↓
+  alu_tb.rst_n                                 100% 1↑ 0↓
+  alu_tb.valid_in                              100% 1↑ 1↓
+  alu_tb.valid_ex                              100% 1↑ 1↓
+  alu_tb.op                                     0% DEAD

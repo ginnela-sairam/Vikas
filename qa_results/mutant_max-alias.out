@@ -1,0 +1,6 @@
+[VIKAS MUTANT] mutation testing — top `soc_tb`, DUT 3 module(s), 10 mutable site(s)
+  running golden + 6 mutants — 6 killed, 0 hang, 0 survived
+
+  MUTATION SCORE score: 100 / 100
+  gate    : min-score 0 (exit 3 below)
+

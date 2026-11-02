@@ -1,0 +1,6 @@
+[VIKAS DOCTOR] root-cause diagnostic for top `latch_tb:`
+  latches  : 2
+    LATCH partial_sum @:13 — add `else partial_sum = <default>;` (or assign at block top)
+    LATCH muxed_out @:17 — add `default: muxed_out = <default>;`
+  loops    : none ✓
+  cdc      : none ✓

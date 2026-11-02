@@ -1,0 +1,40 @@
+{
+  "aggregate_events_per_s": 299978,
+  "rows": [
+    {
+      "cycles": 0,
+      "events": 2421,
+      "events_per_s": 642050.0,
+      "name": "comb_chain",
+      "signals": 306,
+      "wall_ms": 3.770737
+    },
+    {
+      "cycles": 250,
+      "events": 14005,
+      "events_per_s": 593973.0,
+      "name": "pipe_nba",
+      "signals": 55,
+      "wall_ms": 23.578509
+    },
+    {
+      "cycles": 60,
+      "events": 589,
+      "events_per_s": 209866.0,
+      "name": "fifo_storm",
+      "signals": 34,
+      "wall_ms": 2.8065569999999997
+    },
+    {
+      "cycles": 60,
+      "events": 19084,
+      "events_per_s": 211614.0,
+      "name": "soc_grid",
+      "signals": 344,
+      "wall_ms": 90.182981
+    }
+  ],
+  "scale": 1,
+  "tool": "VIKAS v1 bench",
+  "vcpu": 2
+}

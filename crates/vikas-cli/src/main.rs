@@ -322,7 +322,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Version => {
-            println!("vikas 1.1.2 — XEZIM kernel v1.1 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
+            println!("vikas 1.1.3 — XEZIM kernel v1.1 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
             Ok(())
         }
         Cmd::HelpFormats | Cmd::InfoFormats => {

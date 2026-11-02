@@ -1,0 +1,6 @@
+[VIKAS DISASM] RV32I disassembly of `sar_tb.VIKAS_PHYSICS_instant_energy_fJ`:
+  t=     0 0x00000000  .word 0x00000000
+  t=     5 0x00000003  lw x0, 0(x0)
+  t=    15 0x00000011  .word 0x00000011
+  t=    20 0x00000003  lw x0, 0(x0)
+  t=    25 0x0000000F  .word 0x0000000F

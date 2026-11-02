@@ -1,0 +1,6 @@
+partial_sum=36 muxed_out=153
+[VIKAS RUN] simulated top `latch_tb`: 0 cycles, 50 ns, wall 0 ms
+  project      : 1 file(s) [1]
+  dump         : .vikas/vikas_wave.vwf (native .vwf) + .vikas/vikas_wave.vcd (VCD interop)
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)
+  open-KDB     : .vikas/open_kdb.vikas.json (6 signals · 6 driver sites)
