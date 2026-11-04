@@ -13,6 +13,7 @@ import {
   compute3dTimeBitPowerSurface,
   computeEyeDiagram,
   computeGlitchXzHeatRibbon,
+  computeLocalAiRtlCompletions,
   computeMipmapEnvelopes,
   computeSignoffScore,
   computeSwitchingPower,
@@ -23,6 +24,8 @@ import {
   egraphOptimize,
   elaborateSystemVerilog2023Constructs,
   evaluateBitPlane4StateWord,
+  lintRtlSource,
+  SUPPORTED_EDA_LANGUAGES_CATALOG_33,
   evaluateSeuCosmicRaySoftErrorAndLandauer,
   evaluateSiliconAgingAndEm,
   evaluateTemporalSvaSequence,
@@ -49,6 +52,7 @@ import {
   runRtlToGateSynthesisAndLec,
   runSarAdcRk4Cosim,
   scheduleIncrementalRegressionShards,
+  SignalMeta,
   simulateUpfPowerDomains,
   simulateVerilogSource,
   simulateWhatIfWaveformPatch,
@@ -725,6 +729,124 @@ endmodule
   assert.equal(iter9.beyondPeakBreakthroughs[0].code, 'BP-01');
   assert.equal(iter9.beyondPeakBreakthroughs[29].code, 'BP-30');
   assert.ok(iter9.beyondPeakBreakthroughs.every((b) => b.status === 'VERIFIED_ACTIVE'));
+});
+
+test('Iteration 10: Real-Time RTL Linting Service & Local In-Browser AI RTL Code Completion Engine', () => {
+  // 1. Real-Time RTL Linting Service: verify identification of industry violations
+  const buggyRtl = `
+module test_lint_violations(
+    input logic clk,
+    input logic rst_n,
+    input logic [3:0] sel,
+    input logic [7:0] a,
+    output logic [7:0] y_comb,
+    output logic [7:0] q_seq
+);
+
+    // SEC-01: Non-blocking in combinational
+    always_comb begin
+        y_comb <= a;
+    end
+
+    // SEC-02: Blocking in sequential + SEC-03: Missing reset check in async sensitivity
+    always_ff @(posedge clk or negedge rst_n) begin
+        q_seq = a;
+    end
+
+    // SEC-04: Missing default in case + SEC-05: Inferred latch conditional
+    always_comb begin
+        if (sel[0]) y_comb = a;
+        case (sel)
+            4'd0: y_comb = 8'h00;
+            4'd1: y_comb = 8'hFF;
+        endcase
+    end
+
+    // SEC-06: Multiple clock edges in single process
+    always @(posedge clk or posedge clk) begin
+        q_seq <= a;
+    end
+endmodule
+`;
+
+  const diags = lintRtlSource(buggyRtl, 'test_lint_violations.sv');
+  assert.ok(diags.length >= 4, `Must find multiple lint diagnostics, found ${diags.length}`);
+
+  // Verify SEC-01 detected
+  const sec01 = diags.find((d) => d.rule === 'SEC-01');
+  assert.ok(sec01, 'Must detect SEC-01 non-blocking in combinational');
+  assert.equal(sec01.severity, 'warning');
+  assert.ok(sec01.quickFix?.replacement.includes('='), 'Quick fix must propose blocking assignment');
+
+  // Verify SEC-02 detected
+  const sec02 = diags.find((d) => d.rule === 'SEC-02');
+  assert.ok(sec02, 'Must detect SEC-02 blocking in sequential');
+  assert.equal(sec02.severity, 'error');
+  assert.ok(sec02.quickFix?.replacement.includes('<='), 'Quick fix must propose non-blocking assignment');
+
+  // Verify SEC-03 detected
+  const sec03 = diags.find((d) => d.rule === 'SEC-03');
+  assert.ok(sec03, 'Must detect SEC-03 missing reset branch');
+  assert.equal(sec03.severity, 'error');
+  assert.ok(sec03.message.includes('rst_n'), 'Must mention the declared reset identifier');
+
+  // Verify SEC-04 detected
+  const sec04 = diags.find((d) => d.rule === 'SEC-04');
+  assert.ok(sec04, 'Must detect SEC-04 missing default in case statement');
+  assert.equal(sec04.severity, 'warning');
+
+  // Verify SEC-06 detected
+  const sec06 = diags.find((d) => d.rule === 'SEC-06');
+  assert.ok(sec06, 'Must detect SEC-06 multiple clock edges in single sensitivity list');
+
+  // Clean code linting test
+  const cleanRtl = `
+module clean_module(input logic clk, input logic rst_n, input logic [7:0] d, output logic [7:0] q);
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            q <= 8'd0;
+        end else begin
+            q <= d;
+        end
+    end
+endmodule
+`;
+  const cleanDiags = lintRtlSource(cleanRtl, 'clean_module.sv');
+  assert.equal(cleanDiags.length, 0, 'Clean RTL module should have zero lint violations');
+
+  // 2. Local In-Browser AI RTL Code Completion Engine
+  assert.equal(SUPPORTED_EDA_LANGUAGES_CATALOG_33.length, 33, 'Must support 33 EDA languages and DSLs');
+
+  const dummySignals: SignalMeta[] = [
+    { n: 'u_core.clk', w: 1, k: 'clock' },
+    { n: 'u_core.rst_n', w: 1, k: 'reset' },
+    { n: 'u_core.alu_a', w: 32, k: 'rtl' },
+    { n: 'u_core.alu_b', w: 32, k: 'rtl' },
+    { n: 'u_core.alu_result', w: 32, k: 'rtl' },
+  ];
+
+  // Keyword completions
+  const kwCompletions = computeLocalAiRtlCompletions('always', cleanRtl, 10, dummySignals);
+  assert.ok(kwCompletions.some((c) => c.label === 'always_ff'));
+  assert.ok(kwCompletions.some((c) => c.label === 'always_comb'));
+
+  // Signal completions matching workspace
+  const sigCompletions = computeLocalAiRtlCompletions('alu', cleanRtl, 10, dummySignals);
+  assert.ok(sigCompletions.some((c) => c.kind === 'signal' && c.label === 'alu_result'));
+
+  // Module auto-instantiation with smart port wiring
+  const modCompletions = computeLocalAiRtlCompletions('nova_alu', cleanRtl, 10, dummySignals);
+  const aluInst = modCompletions.find((c) => c.kind === 'module' && c.label.includes('nova_alu'));
+  assert.ok(aluInst, 'Must generate nova_alu auto-instantiation suggestion');
+  assert.ok(aluInst.insertText.includes('nova_alu u_nova_alu'), 'Must generate module instance name');
+  assert.ok(aluInst.insertText.includes('.alu_a'), 'Must contain auto-wired ports');
+
+  // Cross-language completions
+  const vhdlCompletions = computeLocalAiRtlCompletions('entity', cleanRtl, 10, dummySignals, undefined, 'VHDL');
+  assert.ok(vhdlCompletions.some((c) => c.label === 'entity' && c.language === 'VHDL'));
+
+  const svaCompletions = computeLocalAiRtlCompletions('property', cleanRtl, 10, dummySignals, undefined, 'SVA');
+  assert.ok(svaCompletions.some((c) => c.label === 'property' && c.language === 'SVA'));
 });
 
 
