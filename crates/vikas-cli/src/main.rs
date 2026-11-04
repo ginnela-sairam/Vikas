@@ -83,6 +83,9 @@ enum Cmd {
     Mutant { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, max_mutants: usize, min_score: f64, json: bool },
     Power { dump: PathBuf, vdd: f64, cnode_ff: f64, freq_mhz: f64, json: bool },
     Signoff { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, mutant: bool, json: bool },
+    Multicore { threads: u32, profile: String },
+    Uvm { files: Vec<PathBuf>, threads: u32 },
+    CompileAll,
 }
 
 fn parse_args(args: &[String]) -> Result<Cmd> {
@@ -113,6 +116,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             "--top", "-top", "-s", "--max-ns", "-o", "--time", "--from", "--to", "--array",
             "--dump", "--addr", "--vdd", "--temp-k", "--bus",
             "--max-mutants", "--min-score", "--cnode", "--freq-mhz",
+            "--threads", "--profile",
             "-y", "-l", "-do",
         ];
         let mut out = Vec::new();
@@ -278,6 +282,15 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             mutant: rest.contains(&"--mutant".into()),
             json: rest.contains(&"--json".into()),
         }),
+        "multicore" | "kronos-mc" => Ok(Cmd::Multicore {
+            threads: numv(&rest, "--threads", 16) as u32,
+            profile: flagv(&rest, "--profile").unwrap_or_else(|| "dual_dut_1.45m".into()),
+        }),
+        "uvm" => Ok(Cmd::Uvm {
+            files: files(&rest),
+            threads: numv(&rest, "--threads", 16) as u32,
+        }),
+        "compile-all" | "polyglot" => Ok(Cmd::CompileAll),
         _ => {
             bail!("unknown command `{}` — try `vikas help`", cmd);
         }
@@ -420,6 +433,9 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::Power { dump, vdd, cnode_ff, freq_mhz, json } => cmds::cmd_power(dump, vdd, cnode_ff, freq_mhz, json),
         Cmd::Bench { scale, dir } => bench::cmd_bench(scale, dir),
         Cmd::Signoff { files, top, max_ns, mutant, json } => cmds::cmd_signoff(files, top, max_ns, mutant, json),
+        Cmd::Multicore { threads, profile } => cmds::cmd_multicore(threads, profile),
+        Cmd::Uvm { files, threads } => cmds::cmd_uvm(files, threads),
+        Cmd::CompileAll => cmds::cmd_compile_all(),
     }
 }
 

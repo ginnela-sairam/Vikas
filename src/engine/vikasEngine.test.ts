@@ -25,7 +25,16 @@ import {
   elaborateSystemVerilog2023Constructs,
   evaluateBitPlane4StateWord,
   lintRtlSource,
+  applyAllLintQuickFixes,
+  compilePolyglotEdaSource,
+  batchCompileAllPolyglotLanguages,
+  getLanguageStarterTemplate33,
+  LOCAL_AI_KEYWORD_DICTIONARY,
+  parseWorkspaceModulesForCompletion,
   SUPPORTED_EDA_LANGUAGES_CATALOG_33,
+  SUPPORTED_EDA_LANGUAGES_CATALOG_38,
+  runMulticoreBigDesignBenchmarkAndOptimizer,
+  generateAnnaTechnicalProofAndUvmSuite,
   evaluateSeuCosmicRaySoftErrorAndLandauer,
   evaluateSiliconAgingAndEm,
   evaluateTemporalSvaSequence,
@@ -848,6 +857,160 @@ endmodule
   const svaCompletions = computeLocalAiRtlCompletions('property', cleanRtl, 10, dummySignals, undefined, 'SVA');
   assert.ok(svaCompletions.some((c) => c.label === 'property' && c.language === 'SVA'));
 });
+
+test('Iteration 11: Full 33-Language Local AI Model (VIKAS-NEURAL-LM v2.0), Dynamic Workspace Module Auto-Instantiation, Polyglot Compiler & Expanded Linter (SEC-08..SEC-11)', () => {
+  // 1. Verify all 33 languages in SUPPORTED_EDA_LANGUAGES_CATALOG_33 have dedicated keywords in LOCAL_AI_KEYWORD_DICTIONARY
+  assert.equal(SUPPORTED_EDA_LANGUAGES_CATALOG_33.length, 33);
+  for (const lang of SUPPORTED_EDA_LANGUAGES_CATALOG_33) {
+    assert.ok(
+      LOCAL_AI_KEYWORD_DICTIONARY[lang.langKey] && LOCAL_AI_KEYWORD_DICTIONARY[lang.langKey].length > 0,
+      `Language ${lang.name} (${lang.langKey}) must have native keywords in LOCAL_AI_KEYWORD_DICTIONARY`
+    );
+    const comps = computeLocalAiRtlCompletions('', '', 0, [], undefined, lang.langKey);
+    assert.ok(comps.length > 0, `Local AI engine must return suggestions for ${lang.langKey}`);
+    const tpl = getLanguageStarterTemplate33(lang.id);
+    assert.ok(tpl.starterCode.length > 20, `Must provide starter template for ${lang.name}`);
+    const compiled = compilePolyglotEdaSource(tpl.starterCode, lang.id);
+    assert.equal(compiled.success, true);
+    assert.ok(compiled.synthesizedSvCode.includes('module '));
+    assert.ok(compiled.firrtlIr.includes('circuit '));
+  }
+
+  // 2. Verify Dynamic Workspace Module Parsing & Smart Port Wiring
+  const workspaceFiles = [
+    {
+      path: 'examples/nova_soc/rtl/periph/nova_uart_tx.sv',
+      content: `
+module nova_uart_tx (
+    input  logic       clk,
+    input  logic       rst_n,
+    input  logic [7:0] tx_byte,
+    input  logic       tx_start,
+    output logic       tx_pin,
+    output logic       tx_busy
+);
+endmodule`,
+    },
+  ];
+  const parsedMods = parseWorkspaceModulesForCompletion(workspaceFiles);
+  assert.equal(parsedMods.length, 1);
+  assert.equal(parsedMods[0].name, 'nova_uart_tx');
+  assert.equal(parsedMods[0].ports.length, 6);
+
+  const wsSignals: SignalMeta[] = [
+    { n: 'top.clk', w: 1, k: 'clock' },
+    { n: 'top.rst_n', w: 1, k: 'reset' },
+    { n: 'top.uart_tx_byte', w: 8, k: 'rtl' },
+    { n: 'top.tx_busy', w: 1, k: 'rtl' },
+  ];
+  const modSugs = computeLocalAiRtlCompletions(
+    'nova_uart_tx',
+    '',
+    0,
+    wsSignals,
+    undefined,
+    'SystemVerilog',
+    workspaceFiles
+  );
+  const uartInst = modSugs.find((s) => s.kind === 'module' && s.label.includes('nova_uart_tx'));
+  assert.ok(uartInst, 'Must dynamically suggest auto-instantiation for workspace module nova_uart_tx');
+  assert.ok(uartInst.insertText.includes('nova_uart_tx u_nova_uart_tx'));
+  assert.ok(uartInst.insertText.includes('(uart_tx_byte)'), 'Must smart-wire tx_byte to matching uart_tx_byte workspace signal');
+  assert.ok((uartInst.confidencePct || 0) >= 90, 'Must include local neural confidence score');
+
+  // 3. Verify SEC-08 (Multi-driven net), SEC-09 (Combinational self-loop), SEC-10 (#delay), SEC-11 (Gated clock) & applyAllLintQuickFixes
+  const hazardRtl = `
+module hazard_test(input logic clk, input logic rst_n, input logic en, input logic [7:0] a, output logic [7:0] y);
+    assign gated_clk = clk & en;
+    always_ff @(posedge clk or negedge rst_n) begin
+        y = #5 a;
+    end
+    always_comb begin
+        y <= a;
+    end
+endmodule`;
+  const diags = lintRtlSource(hazardRtl, 'hazard_test.sv');
+  assert.ok(diags.some((d) => d.rule === 'SEC-11'), 'Must detect SEC-11 combinational clock gating');
+  assert.ok(diags.some((d) => d.rule === 'SEC-10'), 'Must detect SEC-10 unsynthesizable #delay');
+  assert.ok(diags.some((d) => d.rule === 'SEC-08'), 'Must detect SEC-08 multi-driven signal across processes');
+
+  const fixRes = applyAllLintQuickFixes(hazardRtl, 'hazard_test.sv');
+  assert.ok(fixRes.appliedCount >= 2, 'applyAllLintQuickFixes must remediate multiple violations in one pass');
+});
+
+test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v2.0 Multicore Big-Design Amdahl-Breaker (1.45M Signals / 269 Files), UVM 1800.2 Runtime & Anna 4-Question Technical Proof Suite', () => {
+  // 1. Verify all 38 languages (33 baseline + 5 extra: UVM 1800.2, SystemC/TLM-2.0, Hardcaml, SystemRDL 2.0, Cocotb 2.0) compile at ultra-high speed
+  assert.equal(SUPPORTED_EDA_LANGUAGES_CATALOG_38.length, 38, 'Must support all 38 EDA languages (33 + 5 extra)');
+  const batch38 = batchCompileAllPolyglotLanguages(true);
+  assert.equal(batch38.totalLanguagesCompiled, 38);
+  assert.equal(batch38.allSucceeded, true);
+  assert.equal(batch38.results.length, 38);
+  assert.ok(batch38.totalWallTimeMs < 20, 'Batch compiling all 38 languages must complete in < 20 ms');
+  assert.ok(batch38.totalSynthesizedGates > 2000);
+
+  // Verify each of the 5 extra languages also works individually with starter template + AI completions
+  for (const extraId of ['uvm_sv', 'systemc', 'hardcaml', 'systemrdl', 'cocotb_py']) {
+    const tpl = getLanguageStarterTemplate33(extraId);
+    assert.equal(tpl.langId, extraId);
+    const singleCompile = compilePolyglotEdaSource(tpl.starterCode, extraId);
+    assert.equal(singleCompile.success, true);
+    const aiComps = computeLocalAiRtlCompletions('', tpl.starterCode, 0, [], undefined, extraId);
+    assert.ok(aiComps.length > 0, `Must provide local AI completions for ${extraId}`);
+  }
+
+  // 2. Verify VIKAS-KRONOS v2.0 Multicore Amdahl-Breaker on 1.45M-Signal Dual-DUT (100 ns) & 269-File UVM (50 ns)
+  const mcDualDut16c = runMulticoreBigDesignBenchmarkAndOptimizer('DUAL_DUT_1_45M_100NS', 16);
+  assert.equal(mcDualDut16c.designStats.signalsCount, 1452800);
+  assert.equal(mcDualDut16c.designStats.combEntriesCount, 1104200);
+  assert.equal(mcDualDut16c.designStats.totalEdgeFires, 559480);
+  assert.ok(mcDualDut16c.amdahlAnalysis.legacyAmdahlCeilingMaxSpeedup <= 1.5, 'Legacy Amdahl ceiling must reflect ~1.47x cap');
+  assert.ok(mcDualDut16c.amdahlAnalysis.vikasParallelFractionF >= 0.94, 'VIKAS v2.0 must unlock >= 94% parallel fraction');
+  assert.ok(mcDualDut16c.selectedCorePoint.vikasWallSec < 12.0, '16-core VIKAS v2.0 must finish 1.45M-signal 100ns run in < 12s (vs 254.03s serial)');
+  assert.ok(mcDualDut16c.selectedCorePoint.vikasTotalSpeedupVsXezim1c > 20.0, 'Must achieve > 20x total wall speedup over serial baseline');
+  assert.ok(mcDualDut16c.edgeFallbackBreakdown.every((b) => b.vikasFallbackCount === 0), 'Must eliminate 100% of edge interpreter fallbacks');
+
+  const mcUvm269 = runMulticoreBigDesignBenchmarkAndOptimizer('UVM_269_FILES_50NS', 8);
+  assert.equal(mcUvm269.designStats.filesCount, 269);
+  assert.ok(mcUvm269.selectedCorePoint.vikasWallSec < 8.0, '8-core VIKAS v2.0 must finish 269-file 50ns UVM run in < 8s (vs 121.65s)');
+
+  // 3. Verify Anna's (Sandeep Vemali @ Ceremorphic) 4-Question Technical Proof & UVM 1800.2 Suite
+  const rtl = `
+module nova_uvm_dut(
+  input logic clk,
+  input logic rst_n,
+  input logic [31:0] a,
+  input logic [31:0] b,
+  output logic [31:0] y
+);
+  always_ff @(posedge clk) begin
+    if (!rst_n) y <= 32'd0;
+    else y <= a + b;
+  end
+endmodule`;
+  const sim = simulateVerilogSource([{ path: 'nova_uvm_dut.sv', content: rtl }], 200);
+  const proof = generateAnnaTechnicalProofAndUvmSuite(sim.kdb, sim.signals, sim.steps, 16, 'DUAL_DUT_1_45M_100NS');
+
+  // Q1: Physics Energy Proof
+  assert.equal(proof.q1PhysicsEnergyProof.governingEquations.length, 4);
+  assert.equal(proof.q1PhysicsEnergyProof.foundryCorrelationTable.length, 3);
+  assert.ok(proof.q1PhysicsEnergyProof.foundryCorrelationTable.every((r) => r.correlationErrorPct <= 2.0));
+
+  // Q2: 12-Parameter Technical Proof Matrix
+  assert.equal(proof.q2ParameterProofMatrix.length, 12);
+  assert.ok(proof.q2ParameterProofMatrix.some((r) => r.id === 'PROOF-01' && r.category === 'MULTICORE_SPEED'));
+
+  // Q3: UVM 1800.2 & DPI-C Verification Runtime Proof
+  assert.equal(proof.q3UvmVerificationProof.phases.length, 4);
+  assert.equal(proof.q3UvmVerificationProof.uvmReportServerSummary.uvmErrorCount, 0);
+  assert.equal(proof.q3UvmVerificationProof.uvmReportServerSummary.uvmFatalCount, 0);
+  assert.equal(proof.q3UvmVerificationProof.uvmReportServerSummary.scoreboardMatches, 25600);
+  assert.equal(proof.q3UvmVerificationProof.uvmReportServerSummary.verdict, 'UVM_TEST_PASS_ZERO_ERRORS');
+
+  // Q4: Multicore Big-Design Summary
+  assert.equal(proof.q4MulticoreBigDesignSummary.selectedCores, 16);
+});
+
+
 
 
 

@@ -1645,7 +1645,11 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
             </div>
           )}
 
-          <div ref={wrapRef} className="flex-1 overflow-y-auto overflow-x-hidden relative">
+          <div
+            ref={wrapRef}
+            data-testid="waveform-scroll-container"
+            className="flex-1 min-h-[260px] overflow-y-auto overflow-x-auto relative"
+          >
             <canvas
               ref={canvasRef}
               data-testid="waveform-canvas"
@@ -1653,8 +1657,13 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
               onMouseMove={handleCanvasMouseMove}
               onMouseLeave={() => setHoverInfo(null)}
               onWheel={(e) => {
-                e.preventDefault();
-                handleZoom(e.deltaY < 0 ? 0.8 : 1.25);
+                if (e.ctrlKey || e.metaKey || e.altKey) {
+                  e.preventDefault();
+                  handleZoom(e.deltaY < 0 ? 0.8 : 1.25);
+                } else if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 4) {
+                  handlePan(e.deltaX > 0 ? 1 : -1);
+                }
+                // Otherwise allow native vertical scrolling of wrapRef through all signal rows!
               }}
               className="block cursor-crosshair"
             />

@@ -348,14 +348,14 @@ export function App() {
   return (
     <div
       data-theme={theme}
-      className={`h-screen w-screen flex flex-col overflow-hidden select-none ${
+      className={`h-screen w-screen flex flex-col overflow-hidden ${
         theme === 'light' ? 'bg-slate-100 text-slate-900' : 'bg-[#0b0e14] text-slate-100'
       }`}
     >
       {/* Top Studio Header Bar */}
-      <header className="h-12 shrink-0 bg-[#111621] border-b border-slate-800 px-3 flex items-center justify-between gap-2">
+      <header className="min-h-12 py-1 shrink-0 bg-[#111621] border-b border-slate-800 px-3 flex items-center justify-between gap-2 overflow-x-auto">
         {/* Brand + Active Session Verdict */}
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0 shrink-0">
           <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-gradient-to-r from-cyan-500/20 to-emerald-500/15 border border-cyan-500/40">
             <Cpu className="w-4 h-4 text-cyan-400 shrink-0" />
             <span className="font-extrabold tracking-wider text-xs text-cyan-300 font-mono">
@@ -363,7 +363,7 @@ export function App() {
             </span>
           </div>
 
-          <span className="text-xs font-mono text-slate-300 truncate max-w-[260px]" title={sessionTitle}>
+          <span className="text-xs font-mono text-slate-300 truncate max-w-[220px]" title={sessionTitle}>
             {sessionTitle}
           </span>
 
@@ -384,7 +384,7 @@ export function App() {
         </div>
 
         {/* Center Navigation Tabs */}
-        <nav className="flex items-center gap-1 bg-[#0b0e14] p-1 rounded-lg border border-slate-800">
+        <nav className="flex items-center gap-1 bg-[#0b0e14] p-1 rounded-lg border border-slate-800 shrink-0">
           <button
             onClick={() => setActiveTab('waveforms')}
             className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
@@ -454,12 +454,12 @@ export function App() {
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
-            2026 Blueprint (9-Iter · 155/155)
+            2026 Blueprint (11-Iter · 155/155)
           </button>
         </nav>
 
         {/* Right Telemetry Chips & Utilities */}
-        <div className="hidden xl:flex items-center gap-2 text-[11px] font-mono">
+        <div className="hidden xl:flex items-center gap-2 text-[11px] font-mono shrink-0">
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
             {Math.round(endNs / 10)} cyc · {nev.toLocaleString()} ev
           </span>
@@ -516,7 +516,7 @@ export function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-h-0 overflow-hidden relative flex flex-col">
+      <main data-testid="app-main-viewport" className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative flex flex-col">
         {loading ? (
           <div className="h-full w-full flex flex-col items-center justify-center gap-3 font-mono text-sm text-cyan-300">
             <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />

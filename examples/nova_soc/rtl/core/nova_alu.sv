@@ -24,3 +24,4 @@ module nova_alu (
         endcase
     end
 endmodule
+
