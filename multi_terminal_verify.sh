@@ -4,8 +4,9 @@
 # Simultaneous heavy workloads across independent sessions, exactly like a
 # team of engineers hammering the tool at once. All must pass.
 # ============================================================================
-cd /home/z/my-project/vikas-eda
-VIKAS="$(pwd)/target/release/vikas"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$REPO_DIR"
+VIKAS="$REPO_DIR/target/release/vikas"
 export VIKAS_NO_BANNER=1
 mkdir -p qa_results/multi
 LOG=qa_results/multi
@@ -15,7 +16,7 @@ echo "[MULTI] launching 5 parallel verification terminals @ $(date +%T)"
 # T1 — NOVA-SoC full + mutation testing (CPU heavy) — ISOLATED COPY
 (
   T1D=/tmp/multi_t1; rm -rf $T1D; mkdir -p $T1D
-  cp -r /home/z/my-project/vikas-eda/examples $T1D/ && mkdir -p $T1D/target/release && cp /home/z/my-project/vikas-eda/target/release/vikas $T1D/target/release/
+  cp -r "$REPO_DIR/examples" $T1D/ && mkdir -p $T1D/target/release && cp "$VIKAS" $T1D/target/release/
   cd $T1D
   VIKAS="$T1D/target/release/vikas"
   out=$($VIKAS run examples/nova_soc/nova.f 2>&1)
@@ -28,7 +29,7 @@ echo "[MULTI] launching 5 parallel verification terminals @ $(date +%T)"
 # T2 — kernel bench at 2 scales, repeated (perf stability) — ISOLATED COPY
 (
   T2D=/tmp/multi_t2; rm -rf $T2D; mkdir -p $T2D
-  cp -r /home/z/my-project/vikas-eda/examples $T2D/ && mkdir -p $T2D/target/release && cp /home/z/my-project/vikas-eda/target/release/vikas $T2D/target/release/
+  cp -r "$REPO_DIR/examples" $T2D/ && mkdir -p $T2D/target/release && cp "$VIKAS" $T2D/target/release/
   cd $T2D
   VIKAS="$T2D/target/release/vikas"
   $VIKAS bench --scale 2 >/dev/null 2>&1 && echo "T2-BENCH2 PASS" || echo "T2-BENCH2 FAIL"
@@ -41,7 +42,7 @@ echo "[MULTI] launching 5 parallel verification terminals @ $(date +%T)"
 # T3 — signoff + latch + CDC + FSM on two projects (static flows) — ISOLATED COPY
 (
   T3D=/tmp/multi_t3; rm -rf $T3D; mkdir -p $T3D
-  cp -r /home/z/my-project/vikas-eda/examples $T3D/ && mkdir -p $T3D/target/release && cp /home/z/my-project/vikas-eda/target/release/vikas $T3D/target/release/
+  cp -r "$REPO_DIR/examples" $T3D/ && mkdir -p $T3D/target/release && cp "$VIKAS" $T3D/target/release/
   cd $T3D
   VIKAS="$T3D/target/release/vikas"
   $VIKAS signoff examples/nova_soc/nova.f 2>&1 | tail -4
@@ -56,7 +57,7 @@ echo "[MULTI] launching 5 parallel verification terminals @ $(date +%T)"
 # T4 — big-dump stress: 5k-cycle sim -> vwf/vcd roundtrip -> studio with big data
 (
   mkdir -p /dev/shm/t4 && cd /dev/shm/t4
-  cp -r /home/z/my-project/vikas-eda/examples .
+  cp -r "$REPO_DIR/examples" .
   $VIKAS run examples/nova_soc/nova.f >/dev/null 2>&1
   s1=$(stat -c %s .vikas/vikas_wave.vwf 2>/dev/null || echo 0)
   $VIKAS convert .vikas/vikas_wave.vwf /dev/shm/t4/big.vcd >/dev/null 2>&1 && echo "T4-VCD-WRITE PASS" || echo "T4-VCD-WRITE FAIL"
@@ -69,7 +70,7 @@ echo "[MULTI] launching 5 parallel verification terminals @ $(date +%T)"
 # T5 — wave-format torture: all 6 native formats roundtrip + diff + search — ISOLATED COPY
 (
   T5D=/tmp/multi_t5; rm -rf $T5D; mkdir -p $T5D
-  cp -r /home/z/my-project/vikas-eda/examples $T5D/ && mkdir -p $T5D/target/release && cp /home/z/my-project/vikas-eda/target/release/vikas $T5D/target/release/
+  cp -r "$REPO_DIR/examples" $T5D/ && mkdir -p $T5D/target/release && cp "$VIKAS" $T5D/target/release/
   cd $T5D
   VIKAS="$T5D/target/release/vikas"
   $VIKAS run examples/demo_riscv_alu_hazard.sv >/dev/null 2>&1

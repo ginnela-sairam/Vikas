@@ -1,0 +1,5 @@
+{
+  "name": "VIKAS v1.2 — Post-Duopoly Linux-Native RTL EDA Platform",
+  "description": "XEZIM topo-scheduled SystemVerilog/Verilog simulator, VIKAS Studio waveform workbench, Open-KDB CSR graph intelligence, Silicon Physics & RK4 co-simulation, 3-layer latch detection, RTL mutation testing, switching power, and one-command tapeout signoff.",
+  "requestFramePermissions": []
+}

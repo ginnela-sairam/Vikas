@@ -130,6 +130,11 @@ pub fn build(mods: &[ModuleDef], top: &str) -> OpenKdb {
                 sigset.insert(name.clone());
             }
         }
+        let mod_file = if m.file.is_empty() || m.file == "merged" {
+            format!("{}.sv", m.name)
+        } else {
+            m.file.clone()
+        };
         for (lhs, rhs, line) in &m.assigns {
             if let Expr::Ident(ln) = lhs {
                 let mut ids = Vec::new();
@@ -144,7 +149,7 @@ pub fn build(mods: &[ModuleDef], top: &str) -> OpenKdb {
                 kdb.drivers.push(DriverSite {
                     signal: ln.clone(),
                     rhs_text: expr_text(rhs),
-                    file: m.file.clone(),
+                    file: mod_file.clone(),
                     line: *line,
                     kind: "assign".into(),
                 });
@@ -169,11 +174,12 @@ pub fn build(mods: &[ModuleDef], top: &str) -> OpenKdb {
                 // register blocks: record driver site but no comb edge
                 // (state <- state self-edges are sequential feedback, not loops)
                 for l in &lhs_set {
-                    let rhs_first = rhs_set.iter().next().cloned().unwrap_or_default();
+                    let rhs_specific = first_assigned_rhs(&ab.body, l)
+                        .unwrap_or_else(|| rhs_set.iter().next().cloned().unwrap_or_default());
                     kdb.drivers.push(DriverSite {
                         signal: l.clone(),
-                        rhs_text: rhs_first,
-                        file: m.file.clone(),
+                        rhs_text: rhs_specific,
+                        file: mod_file.clone(),
                         line: ab.line,
                         kind: ab.kind.clone(),
                     });
@@ -190,15 +196,17 @@ pub fn build(mods: &[ModuleDef], top: &str) -> OpenKdb {
                     kdb.drivers.push(DriverSite {
                         signal: l.clone(),
                         rhs_text: format!("{} ? {} : <hold>", cond, rhs_t),
-                        file: m.file.clone(),
+                        file: mod_file.clone(),
                         line: ab.line,
                         kind: ab.kind.clone(),
                     });
                 } else {
+                    let rhs_specific = first_assigned_rhs(&ab.body, l)
+                        .unwrap_or_else(|| lhs_set.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(","));
                     kdb.drivers.push(DriverSite {
                         signal: l.clone(),
-                        rhs_text: lhs_set.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(","),
-                        file: m.file.clone(),
+                        rhs_text: rhs_specific,
+                        file: mod_file.clone(),
                         line: ab.line,
                         kind: ab.kind.clone(),
                     });
@@ -287,6 +295,60 @@ fn collect_always_io(body: &[Stmt], lhss: &mut Vec<String>, rhss: &mut Vec<Strin
             _ => {}
         }
     }
+}
+
+/// Find the first non-reset assignment RHS expression for `sig` in an always block.
+fn first_assigned_rhs(body: &[Stmt], sig: &str) -> Option<String> {
+    let mut fallback: Option<String> = None;
+    fn walk(sts: &[Stmt], sig: &str, fallback: &mut Option<String>) -> Option<String> {
+        for st in sts {
+            match st {
+                Stmt::Assign { lhs, rhs, .. } => {
+                    let matched = match lhs {
+                        Expr::Ident(n) => n == sig,
+                        Expr::Index(b, _) | Expr::Slice(b, _, _) => matches!(&**b, Expr::Ident(n) if n == sig),
+                        _ => false,
+                    };
+                    if matched {
+                        let t = expr_text(rhs);
+                        if t != "0" && t != "'0" {
+                            return Some(t);
+                        } else if fallback.is_none() {
+                            *fallback = Some(t);
+                        }
+                    }
+                }
+                Stmt::If { then, els, .. } => {
+                    if let Some(r) = walk(els, sig, fallback) {
+                        return Some(r);
+                    }
+                    if let Some(r) = walk(then, sig, fallback) {
+                        return Some(r);
+                    }
+                }
+                Stmt::Case { arms, default, .. } => {
+                    for (_, b) in arms {
+                        if let Some(r) = walk(b, sig, fallback) {
+                            return Some(r);
+                        }
+                    }
+                    if let Some(d) = default {
+                        if let Some(r) = walk(d, sig, fallback) {
+                            return Some(r);
+                        }
+                    }
+                }
+                Stmt::Block(b) | Stmt::Event { body: b, .. } | Stmt::Delay { body: b, .. } => {
+                    if let Some(r) = walk(b, sig, fallback) {
+                        return Some(r);
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+    walk(body, sig, &mut fallback).or(fallback)
 }
 
 /// First `if (cond) sig = rhs` — used to render enable-condition text.

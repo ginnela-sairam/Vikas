@@ -2015,13 +2015,13 @@ function renderHub(){
   const cnt=STEPS.reduce((a,s)=>a+s.n,0);
   const toggled=STEPS.filter(s=>s.n>0).length;
   const cov=SIGS.length? toggled/SIGS.length*100:0;
-  const VDD=0.8, CFF=12;
+  const VDD=0.8, CFF=1.4;
   let totE=0; const perSig=[];
-  STEPS.forEach((s,i)=>{ const e=0.5*CFF*1e-15*VDD*VDD*s.n*1000; totE+=e; perSig.push([i,e,s.n]); });
+  STEPS.forEach((s,i)=>{ const e=0.5*CFF*VDD*VDD*s.n; totE+=e; if(s.n>0) perSig.push([i,e,s.n]); });
   perSig.sort((a,b)=>b[1]-a[1]);
   const xSigs=[];
   SIGS.forEach((s,i)=>{ const v=valAt(i,END); if(typeof v==='string'&&/[xz]/.test(v)) xSigs.push(i); });
-  const glit=STEPS.filter(s=>s.glitch.length);
+  const glit=STEPS.map((s,i)=>[s,i]).filter(([s])=>s.glitch.length).sort((a,b)=>b[0].glitch.length-a[0].glitch.length);
   const v=CTX.verdict, vk=CTX.verdictKind;
   let html='<div id="hubhead"><h2>Analysis Hub</h2><span class="hub-sub">'+esc(CTX.subtitle||'VIKAS Studio report')+'</span>'
    +(v? '<span class="badge-verdict bv-'+(vk||'ok')+'">'+esc(v)+'</span>':'')+'</div>';
@@ -2030,14 +2030,14 @@ function renderHub(){
    +'<div class="hbar"><div style="width:'+Math.min(100,cov)+'%"></div></div>'
    +'<div class="hc-note">'+toggled+' / '+SIGS.length+' signals toggled · '+fmtInt(cnt)+' total events</div>');
   html+=card('zap','Switching Power','<div class="hc-big"><span class="n">'+totE.toFixed(1)+'</span><span class="u">fJ est. @ '+VDD+'V</span></div>'
-   +'<div class="hc-note">P = Σ ½·C·V²·f from real toggle counts (C=12 fF/gate est.)</div>'
+   +'<div class="hc-note">P = Σ ½·C·V²·f from real toggle counts (C=1.4 fF/node est.)</div>'
    +perSig.slice(0,5).map(p=>'<div class="hrow"><span class="hn">'+esc(shortName(p[0]))+'</span><span class="hbar"><div style="width:'+Math.min(100,p[1]/(perSig[0][1]||1)*100)+'%"></div></span><span class="hv">'+p[1].toFixed(1)+' fJ</span></div>').join(''));
   html+=card('cpu','X-Propagation Scan',xSigs.length? '<div class="hc-big"><span class="n" style="color:var(--warn)">'+xSigs.length+'</span><span class="u">signals undefined at end</span></div>'
    +xSigs.slice(0,6).map(i=>'<div class="hrow"><span class="hn">'+esc(SIGS[i].n)+'</span><span class="hv">'+fmtRadix(valAt(i,END),SIGS[i].w,'hex')+'</span></div>').join('')
    : '<div class="hc-big"><span class="n" style="color:var(--ok)">0</span><span class="u">undefined</span></div><div class="hc-note">All signals have defined values at end of dump — X-clean design.</div>',
    xSigs.length? 'h-warn':'h-ok');
   html+=card('warn','Glitch Report',glit.length? '<div class="hc-big"><span class="n" style="color:var(--bad)">'+glit.length+'</span><span class="u">signals with same-time multi-toggles</span></div>'
-   +glit.slice(0,6).map(s=>'<div class="hrow"><span class="hn">'+esc(shortName(STEPS.indexOf(s)))+'</span><span class="hv">'+s.glitch.length+' events</span></div>').join('')
+   +glit.slice(0,6).map(([s,idx])=>'<div class="hrow"><span class="hn">'+esc(shortName(idx))+'</span><span class="hv">'+s.glitch.length+' events</span></div>').join('')
    : '<div class="hc-big"><span class="n" style="color:var(--ok)">0</span><span class="u">glitches</span></div><div class="hc-note">Zero-delta event collisions across the whole dump.</div>',
    glit.length? 'h-bad':'h-ok');
   const latches=(CTX.kdb&&CTX.kdb.inferred_latches)||[];

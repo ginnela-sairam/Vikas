@@ -1,3 +1,8 @@
 # root-anchored: must NOT match vendored crate subdirs like vendor/cc/src/target/
 /target/
 /.vikas/
+/node_modules/
+/dist/
+/.playwright-cli/
+/server.js
+

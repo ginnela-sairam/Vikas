@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0f1a;
+  --bg2: #0d1322;
+  --panel: #101829;
+  --panel2: #141d31;
+  --raised: #182342;
+  --edge: rgba(148, 163, 184, 0.14);
+  --edge2: rgba(148, 163, 184, 0.24);
+  --txt: #e2e8f0;
+  --dim: #94a3b8;
+  --faint: #64748b;
+  --accent: #22d3ee;
+  --accent2: #38bdf8;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --gold: #e8b93f;
+  --sel: #1d3a5f;
+  --sel2: #265081;
+  --cursorA: #f0f6ff;
+  --cursorB: #34d399;
+  --wave: #89e05a;
+  --bus: #38bdf8;
+  --clk: #22d3ee;
+  --xcol: #ef7373;
+  --zcol: #a98ff0;
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+}
+
+html[data-theme="verdi"] {
+  --bg: #171c26;
+  --bg2: #1a212d;
+  --panel: #1f2735;
+  --panel2: #242e3f;
+  --raised: #2b3649;
+  --edge: rgba(200, 210, 225, 0.13);
+  --txt: #d9dfeb;
+  --dim: #8f9bb0;
+  --accent: #e2b93b;
+  --accent2: #f0d47a;
+  --sel: #3a3320;
+  --sel2: #4d4425;
+}
+
+html[data-theme="light"] {
+  --bg: #eef1f5;
+  --bg2: #e8ecf2;
+  --panel: #ffffff;
+  --panel2: #f6f8fb;
+  --raised: #eef2f8;
+  --edge: #dde3ec;
+  --edge2: #cbd5e1;
+  --txt: #16233b;
+  --dim: #5b6b83;
+  --faint: #8b98ad;
+  --accent: #0369a1;
+  --accent2: #0284c7;
+  --sel: #d8ebfa;
+  --sel2: #c0dcf6;
+  --cursorA: #112233;
+  --cursorB: #059669;
+  --wave: #2f8f0f;
+  --bus: #026fa5;
+  --xcol: #c23a3a;
+  --zcol: #6d54b8;
+}
+
+html[data-theme="synth"] {
+  --bg: #07070f;
+  --bg2: #0a0b16;
+  --panel: #0f1120;
+  --panel2: #141630;
+  --raised: #1b1e3d;
+  --edge: rgba(150, 120, 255, 0.18);
+  --txt: #eae6ff;
+  --dim: #9d96c9;
+  --accent: #ff2fb3;
+  --accent2: #00e5ff;
+  --sel: #33184a;
+  --sel2: #48206b;
+  --ok: #00ffb2;
+  --warn: #ffd166;
+  --bad: #ff5c7a;
+  --gold: #ffd166;
+  --wave: #00e5a7;
+  --bus: #7aa2ff;
+  --clk: #00e5ff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
