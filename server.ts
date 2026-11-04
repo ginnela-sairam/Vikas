@@ -103,7 +103,7 @@ function getNovaSession(): CachedSession {
         notes: [
           'NOVA-SoC 26-file 5-level validation vehicle: CPU + Bus Arbiter + UART + SPI + Timer + WDT + PWM + GPIO + 2-FF Sync + Tie-Cells.',
           'All 9 golden self-checks passed: ISA ALU/branch/loop, UART serial frame recovery, SPI loopback, Timer IRQ, Watchdog no-bark, 2-FF CDC sync, PWM toggle, Tie-cell status, Dual-master debug read.',
-          'Topo-scheduled XEZIM kernel v1.2 — acyclic combinational chains settle in 1 delta pass.',
+          'Topo-scheduled VIKAS-KRONOS kernel v1.2 — acyclic combinational chains settle in 1 delta pass.',
         ],
       };
       return novaSessionCache;
@@ -138,7 +138,7 @@ async function startServer() {
     res.json({
       status: 'ok',
       version: '1.2.0',
-      kernel: 'XEZIM v1.2 Topo-Scheduled Event Kernel + Open-KDB + RK4 Silicon Physics Twin',
+      kernel: 'VIKAS-KRONOS v1.2 Topo-Scheduled Event Kernel + Open-KDB + RK4 Silicon Physics Twin',
     });
   });
 
@@ -322,8 +322,8 @@ async function startServer() {
     };
 
     const banner = `╔══════════════════════════════════════════════════════════════════════╗
-║  VIKAS v1.2 — Post-Duopoly Linux-Native RTL EDA Platform             ║
-║  XEZIM Kernel · Open-KDB · Silicon Physics Twin · VIKAS Studio       ║
+║  VIKAS v1.2 — Sovereign Next-Gen Linux-Native RTL EDA Platform       ║
+║  VIKAS-KRONOS Kernel · Open-KDB · Silicon Physics Twin · VIKAS Studio       ║
 ╚══════════════════════════════════════════════════════════════════════╝`;
 
     let output = '';
@@ -332,7 +332,7 @@ async function startServer() {
     switch (sub) {
       case 'version':
       case '--version':
-        output = `${banner}\nvikas 1.2.0 — XEZIM kernel v1.2 (topo-scheduled), Open-KDB CSR, VIKAS Studio, C++20 RK4 physics twin, 6 native wave formats (.vwf .vwt .vwe .vwp .vwi .vwm)`;
+        output = `${banner}\nvikas 1.2.0 — VIKAS-KRONOS kernel v1.2 (topo-scheduled), Open-KDB CSR, VIKAS Studio, C++20 RK4 physics twin, 6 native wave formats (.vwf .vwt .vwe .vwp .vwi .vwm)`;
         break;
       case 'help':
       case '--help':
@@ -355,7 +355,7 @@ async function startServer() {
         } else {
           output = `${banner}
 [VIKAS DOCTOR] 6-Check Host & Kernel Self-Test:
-  [1/6] XEZIM Topo-Scheduled Event Kernel .............. PASS (1-delta acyclic convergence)
+  [1/6] VIKAS-KRONOS Topo-Scheduled Event Kernel .............. PASS (1-delta acyclic convergence)
   [2/6] Native 6-Format Waveform Round-Trip (CRC32) .... PASS (.vwf .vwt .vwe .vwp .vwi .vwm)
   [3/6] Open-KDB CSR + Tarjan SCC + 3-Layer Latch ...... PASS
   [4/6] Silicon Physics (E=½CV²f + 0.12V + 77K Cryo) ... PASS
@@ -488,7 +488,7 @@ ${found
         if (matchFile) {
           output = `${banner}\n` + fs.readFileSync(path.join(qaDir, matchFile), 'utf-8');
         } else {
-          output = `${banner}\n[VIKAS ${sub.toUpperCase()}] Executed \`vikas ${raw}\` successfully across Open-KDB & XEZIM kernel -> exit 0`;
+          output = `${banner}\n[VIKAS ${sub.toUpperCase()}] Executed \`vikas ${raw}\` successfully across Open-KDB & VIKAS-KRONOS kernel -> exit 0`;
         }
       }
     }
@@ -525,7 +525,7 @@ ${found
       },
       {
         id: 'T2',
-        title: 'Terminal 2 — XEZIM v1.2 Kernel Throughput Bench (Scale 2 & Scale 4)',
+        title: 'Terminal 2 — VIKAS-KRONOS v1.2 Kernel Throughput Bench (Scale 2 & Scale 4)',
         cwd: '/tmp/multi_t2 (isolated worker)',
         status: 'PASS',
         checks_passed: 4,

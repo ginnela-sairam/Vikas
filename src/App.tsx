@@ -28,9 +28,10 @@ import { ProjectFileItem, RtlEditorIdeTab } from './components/RtlEditorIdeTab';
 import { AnalysisHubAndSignoffTab } from './components/AnalysisHubAndSignoffTab';
 import { DesignIntelAndPhysicsTab } from './components/DesignIntelAndPhysicsTab';
 import { TerminalAndGithubSyncTab } from './components/TerminalAndGithubSyncTab';
+import { Blueprint2026Tab } from './components/Blueprint2026Tab';
 
-type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'terminal';
-type ThemeId = 'dark' | 'verdi' | 'light' | 'synth';
+type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'terminal' | 'blueprint';
+type ThemeId = 'dark' | 'gold' | 'light' | 'synth';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabId>('waveforms');
@@ -443,6 +444,18 @@ export function App() {
             <Terminal className="w-3.5 h-3.5" />
             CLI · 5-Term QA · GitHub
           </button>
+
+          <button
+            onClick={() => setActiveTab('blueprint')}
+            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              activeTab === 'blueprint'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                : 'text-amber-300/80 hover:text-amber-200'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            2026 Blueprint (9-Iter · 155/155)
+          </button>
         </nav>
 
         {/* Right Telemetry Chips & Utilities */}
@@ -450,9 +463,14 @@ export function App() {
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
             {Math.round(endNs / 10)} cyc · {nev.toLocaleString()} ev
           </span>
-          <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-amber-300 flex items-center gap-1">
+          <span
+            className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-amber-300 flex items-center gap-1"
+            title="Pre-Synthesis Switching Energy E_sw = ½·C_load·V_DD²·N_toggles at V_DD = 0.80V"
+          >
             <Zap className="w-3 h-3 text-amber-400" />
-            E ≈ {totalEnergyFj.toLocaleString()} fJ
+            <span>
+              E<sub className="text-[8px]">sw</sub> ≈ {totalEnergyFj.toLocaleString()} fJ · V<sub className="text-[8px]">DD</sub>=0.8V
+            </span>
           </span>
 
           <button
@@ -467,7 +485,7 @@ export function App() {
           <button
             onClick={() =>
               setTheme((prev) =>
-                prev === 'dark' ? 'verdi' : prev === 'verdi' ? 'synth' : prev === 'synth' ? 'light' : 'dark'
+                prev === 'dark' ? 'gold' : prev === 'gold' ? 'synth' : prev === 'synth' ? 'light' : 'dark'
               )
             }
             className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 flex items-center gap-1 cursor-pointer"
@@ -521,6 +539,7 @@ export function App() {
             simulating={simulating}
             onJumpToSource={handleJumpToSource}
             onImportVcdOrVwf={handleImportVcdOrVwf}
+            kdb={kdb}
           />
         ) : activeTab === 'editor' ? (
           <RtlEditorIdeTab
@@ -556,6 +575,8 @@ export function App() {
             cursorTimeNs={curA ?? 150}
             onJumpToSourceFile={(fp) => handleJumpToSource(fp)}
           />
+        ) : activeTab === 'blueprint' ? (
+          <Blueprint2026Tab />
         ) : (
           <TerminalAndGithubSyncTab />
         )}
@@ -632,7 +653,7 @@ export function App() {
               <div><kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-cyan-300">Double-Click</kbd> : Jump to RTL Source</div>
             </div>
             <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
-              <span>Post-Duopoly Open-Source Linux RTL Platform</span>
+              <span>Sovereign Next-Gen Open-Source Linux RTL Platform</span>
               <a
                 href="/studio-standalone"
                 target="_blank"

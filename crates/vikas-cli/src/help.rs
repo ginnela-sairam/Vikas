@@ -7,14 +7,14 @@ pub fn catalog() {
     println!("{}", c("  VIKAS v1.1 — command catalog (60 commands, 18 breakthroughs)", CYAN));
     println!("{}", c("══════════════════════════════════════════════════════════════", BOLD));
     let groups: &[(&str, &[(&str, &str)])] = &[
-        ("SIMULATION (XEZIM kernel — multi-file, filelists, UVM-aware)", &[
+        ("SIMULATION (VIKAS-KRONOS kernel — multi-file, filelists, UVM-aware)", &[
             ("run <files|manifest.f> [--top m] [--max-ns N] [--gui]", "simulate + auto-dump + Open-KDB + telemetry + latch alert"),
             ("studio <files> [-o out.html] [--no-open]", "one-shot VIKAS Studio: simulate + KDB + latch audit → HTML5 workbench"),
             ("quickrun <files>", "auto-generate testbench stimulus then simulate (feature 2)"),
             ("watch <files>", "inotify live re-simulation on save (feature 3)"),
             ("autogen-tb <rtl.sv>", "write auto-TB to <rtl>_tb.sv without simulating"),
-            ("bench [--scale N]", "XEZIM kernel throughput suite: comb/NBA/FIFO/SoC stress → events/s (v1.1)"),
-            ("edit [file]", "VIKAS built-in editor (vim-style keys: h j k l i :w :q)"),
+            ("bench [--scale N]", "VIKAS-KRONOS kernel throughput suite: comb/NBA/FIFO/SoC stress → events/s (v1.2)"),
+            ("edit [file]", "VIKAS-VED built-in modal editor (modal keys: h j k l i :w :q)"),
         ]),
         ("BREAKTHROUGH 13 — LATCH DETECTION (3 layers)", &[
             ("latch <files> [--json]", "L1 static AST + L3 patch; exit 2 when inferred latches found"),
@@ -72,7 +72,7 @@ pub fn catalog() {
         ]),
         ("AI & INTEGRATION (breakthrough 12)", &[
             ("mcp [workdir]", "MCP JSON-RPC 2.0 server: signals/wave_slice/end_time (31)"),
-            ("wcp --addr host:port", "Surfer WCP \\0-framed hot-reload server (4/5)"),
+            ("wcp --addr host:port", "VIKAS-DRISHTI WCP \\0-framed hot-reload server (4/5)"),
         ]),
         ("PROJECT & CI (features 10/38/48/50)", &[
             ("session", "print/validate vikas.toml session-as-code (10)"),

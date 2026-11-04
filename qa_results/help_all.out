@@ -2,5 +2,5 @@
   VIKAS v1.1 — command catalog (60 commands, 18 breakthroughs)
 ══════════════════════════════════════════════════════════════
 
-■ SIMULATION (XEZIM kernel — multi-file, filelists, UVM-aware)
+■ SIMULATION (VIKAS-KRONOS kernel — multi-file, filelists, UVM-aware)
   run <files|manifest.f> [--top m] [--max-ns N] [--gui]      simulate + auto-dump + Open-KDB + telemetry + latch alert

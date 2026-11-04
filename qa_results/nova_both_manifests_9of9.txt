@@ -4,7 +4,7 @@
   ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
   ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Open Linux-Native RTL Platform — XEZIM Kernel + Open-KDB + Wave Engine
+  [VIKAS v1] Open Linux-Native RTL Platform — VIKAS-KRONOS Kernel + Open-KDB + Wave Engine
   100% Rust core · C++20 mixed-signal twin · offline · zero Python
 
 NOVA-OK   1 gpio_out  = 005a

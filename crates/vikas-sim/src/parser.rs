@@ -1,4 +1,4 @@
-//! VIKAS v1 — XEZIM kernel parser (AST).
+//! VIKAS v1.2 — VIKAS-KRONOS kernel parser (AST).
 //! Parses modules, ports, params, always blocks, assign, initial, decls.
 
 use super::lexer::Tok;

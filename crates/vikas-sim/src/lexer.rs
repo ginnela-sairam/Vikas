@@ -1,4 +1,4 @@
-//! VIKAS v1 — XEZIM kernel lexer.
+//! VIKAS v1.2 — VIKAS-KRONOS kernel lexer.
 //! Tokenizes SystemVerilog/Verilog with 4-state logic, multi-file support.
 
 #[derive(Clone, Debug, PartialEq)]

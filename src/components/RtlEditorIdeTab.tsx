@@ -51,8 +51,8 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
   steps,
   cursorTimeNs,
 }) => {
-  const [vimMode, setVimMode] = useState<'INSERT' | 'NORMAL' | 'COMMAND'>('INSERT');
-  const [vimCmd, setVimCmd] = useState('');
+  const [vedMode, setVedMode] = useState<'INSERT' | 'NORMAL' | 'COMMAND'>('INSERT');
+  const [vedCmd, setVedCmd] = useState('');
   const [fileFilter, setFileFilter] = useState('');
   const [newFileModal, setNewFileModal] = useState(false);
   const [newFileName, setNewFileName] = useState('examples/custom_alu.sv');
@@ -69,7 +69,7 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
     [activeFile.path, activeFile.content]
   );
 
-  // Inline live signal values at Cursor A timestamp (Feature 15: Verdi nTrace inline annotator)
+  // Inline live signal values at Cursor A timestamp (Feature 15: VIKAS-VED Live Trace inline annotator)
   const inlineAnnotations = useMemo(() => {
     const map = new Map<string, string>();
     signals.forEach((sig, i) => {
@@ -90,9 +90,9 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
 
   const lines = useMemo(() => activeFile.content.split('\n'), [activeFile.content]);
 
-  const handleVimCommand = async (e: React.FormEvent) => {
+  const handleVedCommand = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cmd = vimCmd.trim();
+    const cmd = vedCmd.trim();
     if (cmd === ':w' || cmd === 'w') {
       await onSaveFile(activeFile.path, activeFile.content);
       setStatusMsg(`[VIKAS-VED] "${activeFile.path}" written (${lines.length}L)`);
@@ -104,8 +104,8 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
       await onAutoPatchLatches(activeFile.path, activeFile.content);
       setStatusMsg(`[VIKAS-VED] Applied L3 latch auto-patch`);
     }
-    setVimCmd('');
-    setVimMode('INSERT');
+    setVedCmd('');
+    setVedMode('INSERT');
   };
 
   return (
@@ -173,18 +173,18 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
             <span className="font-mono text-xs font-bold text-[var(--txt)]">{activeFile.path}</span>
             <span
               onClick={() =>
-                setVimMode((m) => (m === 'INSERT' ? 'NORMAL' : m === 'NORMAL' ? 'COMMAND' : 'INSERT'))
+                setVedMode((m) => (m === 'INSERT' ? 'NORMAL' : m === 'NORMAL' ? 'COMMAND' : 'INSERT'))
               }
               className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold cursor-pointer ${
-                vimMode === 'INSERT'
+                vedMode === 'INSERT'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : vimMode === 'NORMAL'
+                  : vedMode === 'NORMAL'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                   : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
               }`}
               title="Click to cycle VIKAS-VED Modal Editor state (INSERT / NORMAL / COMMAND)"
             >
-              VIKAS-VED: {vimMode}
+              VIKAS-VED: {vedMode}
             </span>
             {liveLatches.length > 0 ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/40">
@@ -263,7 +263,7 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
           </div>
         )}
 
-        {/* Split Editor + Live Annotated View (Feature 15: Verdi nTrace inline values) */}
+        {/* Split Editor + Live Annotated View (Feature 15: VIKAS-VED Live Trace inline values) */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0 divide-x divide-[var(--edge)]">
           {/* Editable Code Buffer */}
           <div className="flex flex-col min-h-0 bg-[#090d16]">
@@ -285,7 +285,7 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
             <div className="px-3 py-1 bg-[var(--panel2)] border-b border-[var(--edge)] text-[10.5px] font-mono text-[var(--accent)] flex justify-between items-center">
               <span className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3" />
-                LIVE RTL VALUE ANNOTATOR (Verdi nTrace @ t = {cursorTimeNs} ns)
+                LIVE RTL VALUE ANNOTATOR (VIKAS-VED Live Trace @ t = {cursorTimeNs} ns)
               </span>
               <span className="text-[var(--dim)]">Feature #15</span>
             </div>
@@ -327,16 +327,16 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
           </div>
         </div>
 
-        {/* VIM Command Bar & Status */}
+        {/* VIKAS-VED Command Bar & Status */}
         <form
-          onSubmit={handleVimCommand}
+          onSubmit={handleVedCommand}
           className="h-8 bg-[var(--panel)] border-t border-[var(--edge)] px-3 flex items-center gap-3 font-mono text-xs"
         >
           <span className="text-[var(--accent)] font-bold">VIKAS-VED</span>
           <input
-            aria-label="Vim command input"
-            value={vimCmd}
-            onChange={(e) => setVimCmd(e.target.value)}
+            aria-label="VIKAS-VED modal command input"
+            value={vedCmd}
+            onChange={(e) => setVedCmd(e.target.value)}
             placeholder=":w (save) · :run (simulate) · :patch (fix inferred latches)"
             className="bg-[var(--bg2)] border border-[var(--edge)] rounded px-2 py-0.5 text-xs text-[var(--txt)] outline-none w-80"
           />

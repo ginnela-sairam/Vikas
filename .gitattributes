@@ -1,0 +1,18 @@
+# VIKAS Sovereign Linux-Native EDA Platform — Git Attributes (AP-24)
+# Enforce LF line endings and executable permissions on all shell scripts
+# so Windows 11 / WSL2 / Linux checkouts never fail the GitHub Actions exec-bits job.
+* text=auto eol=lf
+*.sh text eol=lf
+*.sv text eol=lf
+*.svh text eol=lf
+*.v text eol=lf
+*.vh text eol=lf
+*.f text eol=lf
+*.files text eol=lf
+*.uvm text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf

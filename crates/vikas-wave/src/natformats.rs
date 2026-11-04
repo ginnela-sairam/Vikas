@@ -577,4 +577,85 @@ mod tests {
     fn vwm_roundtrip() {
         roundtrip(std::path::Path::new("/dev/shm/t.vwm"));
     }
+
+    #[test]
+    fn mipmap_pyramid_envelopes() {
+        let d = sample();
+        let envs = super::build_mipmap_envelopes(&d, 2, 16);
+        assert_eq!(envs.len(), 16);
+        let total_toggles: u32 = envs.iter().map(|e| e.toggle_cnt).sum();
+        assert!(total_toggles > 0, "mipmap must capture transitions");
+    }
+}
+
+/// Binary Interval Mipmap Pyramid envelope node (`WV-01` / `AP-02`):
+/// $\mathcal{E}_{k,i} = (\min, \max, v_{\text{first}}, v_{\text{last}}, \text{popcnt}(\Delta), \text{glitch})$
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MipmapEnvelope {
+    pub t_start: u64,
+    pub t_end: u64,
+    pub v_min: u64,
+    pub v_max: u64,
+    pub v_first: String,
+    pub v_last: String,
+    pub toggle_cnt: u32,
+    pub glitch_cnt: u32,
+    pub has_xz: bool,
+}
+
+/// Build an $O(B)$ sub-pixel mipmap envelope array over `buckets` time intervals for signal `sig_idx`.
+pub fn build_mipmap_envelopes(d: &WaveDump, sig_idx: usize, buckets: usize) -> Vec<MipmapEnvelope> {
+    let b_count = buckets.max(1);
+    let end_t = d.end_time.max(1);
+    let span = (end_t as f64) / (b_count as f64);
+    let mut out = Vec::with_capacity(b_count);
+    for b in 0..b_count {
+        let t0 = (b as f64 * span).floor() as u64;
+        let t1 = (((b + 1) as f64 * span).ceil() as u64).max(t0 + 1);
+        out.push(MipmapEnvelope {
+            t_start: t0,
+            t_end: t1,
+            v_min: u64::MAX,
+            v_max: 0,
+            v_first: String::from("0"),
+            v_last: String::from("0"),
+            toggle_cnt: 0,
+            glitch_cnt: 0,
+            has_xz: false,
+        });
+    }
+    let mut last_time: Option<u64> = None;
+    for ch in d.changes.iter().filter(|c| c.sig == sig_idx) {
+        let idx = (((ch.time as f64) / (end_t as f64)) * (b_count as f64)) as usize;
+        let bucket = &mut out[idx.min(b_count - 1)];
+        let hex = ch.value.to_hex_str();
+        if bucket.toggle_cnt == 0 {
+            bucket.v_first = hex.clone();
+        }
+        bucket.v_last = hex;
+        bucket.toggle_cnt += 1;
+        if let Some(prev_t) = last_time {
+            if ch.time == prev_t {
+                bucket.glitch_cnt += 1;
+            }
+        }
+        last_time = Some(ch.time);
+        if ch.value.has_xz() {
+            bucket.has_xz = true;
+        }
+        if let Some(num) = ch.value.as_u64() {
+            if num < bucket.v_min {
+                bucket.v_min = num;
+            }
+            if num > bucket.v_max {
+                bucket.v_max = num;
+            }
+        }
+    }
+    for env in &mut out {
+        if env.v_min == u64::MAX {
+            env.v_min = 0;
+        }
+    }
+    out
 }

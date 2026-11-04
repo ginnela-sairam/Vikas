@@ -86,27 +86,57 @@ enum Cmd {
 }
 
 fn parse_args(args: &[String]) -> Result<Cmd> {
-    let mut it = args.iter();
-    let cmd = it.next().unwrap_or(&"help".into()).clone();
-    let rest: Vec<String> = it.cloned().collect();
+    // Breakthrough NB-27 / AP-23: If invoked directly with commercial simulator flags
+    // (e.g. `vikas -f project.f -top soc_tb +incdir+inc -full64 -kdb`), route to `run`.
+    let first = args.first().map(|s| s.as_str()).unwrap_or("help");
+    let implicit_run = first.starts_with("-f")
+        || first.starts_with("-F")
+        || first.starts_with("+incdir+")
+        || first.starts_with("+define+")
+        || first == "-top"
+        || first == "-s"
+        || first == "-full64"
+        || first.ends_with(".f")
+        || first.ends_with(".sv")
+        || first.ends_with(".v");
+
+    let (cmd, rest): (String, Vec<String>) = if implicit_run {
+        ("run".to_string(), args.to_vec())
+    } else {
+        let mut it = args.iter();
+        let c = it.next().unwrap_or(&"help".into()).clone();
+        (c, it.cloned().collect())
+    };
+
     let files = |r: &[String]| -> Vec<PathBuf> {
         const VALUED: &[&str] = &[
-            "--top", "--max-ns", "-o", "--time", "--from", "--to", "--array",
+            "--top", "-top", "-s", "--max-ns", "-o", "--time", "--from", "--to", "--array",
             "--dump", "--addr", "--vdd", "--temp-k", "--bus",
             "--max-mutants", "--min-score", "--cnode", "--freq-mhz",
+            "-y", "-l", "-do",
         ];
         let mut out = Vec::new();
         let mut skip_next = false;
+        let mut take_file_next = false;
         for s in r {
             if skip_next {
                 skip_next = false;
+                continue;
+            }
+            if take_file_next {
+                take_file_next = false;
+                out.push(PathBuf::from(s));
+                continue;
+            }
+            if s == "-f" || s == "-F" || s == "-v" {
+                take_file_next = true;
                 continue;
             }
             if VALUED.contains(&s.as_str()) {
                 skip_next = true;
                 continue;
             }
-            if !s.starts_with('-') {
+            if !s.starts_with('-') && !s.starts_with('+') {
                 out.push(PathBuf::from(s));
             }
         }
@@ -115,19 +145,22 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
     let flagv = |r: &[String], name: &str| -> Option<String> {
         r.iter().position(|s| s == name).and_then(|i| r.get(i + 1)).cloned()
     };
+    let top_flag = |r: &[String]| -> Option<String> {
+        flagv(r, "--top").or_else(|| flagv(r, "-top")).or_else(|| flagv(r, "-s"))
+    };
     let numv = |r: &[String], name: &str, d: u64| -> u64 {
         flagv(r, name).and_then(|v| v.parse().ok()).unwrap_or(d)
     };
     match cmd.as_str() {
-        "run" => Ok(Cmd::Run {
+        "run" | "vcs" | "xrun" => Ok(Cmd::Run {
             files: files(&rest),
-            top: flagv(&rest, "--top"),
+            top: top_flag(&rest),
             max_ns: numv(&rest, "--max-ns", 100_000),
             gui: rest.contains(&"--gui".into()),
         }),
         "studio" => Ok(Cmd::Studio {
             files: files(&rest),
-            top: flagv(&rest, "--top"),
+            top: top_flag(&rest),
             max_ns: numv(&rest, "--max-ns", 100_000),
             out: flagv(&rest, "-o").map(PathBuf::from),
             open: !rest.contains(&"--no-open".into()),
@@ -322,7 +355,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Version => {
-            println!("vikas 1.1.3 — XEZIM kernel v1.1 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
+            println!("vikas 1.2.0 — VIKAS-KRONOS kernel v1.2 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
             Ok(())
         }
         Cmd::HelpFormats | Cmd::InfoFormats => {

@@ -1,4 +1,4 @@
-//! VIKAS v1 — XEZIM elaborator: flattens module hierarchy into a flat
+//! VIKAS v1.2 — VIKAS-KRONOS elaborator: flattens module hierarchy into a flat
 //! signal namespace with port bindings. Supports multi-file projects.
 
 use super::parser::{ConnExpr, Expr, ModuleDef, Stmt, VarKind};

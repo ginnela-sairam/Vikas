@@ -376,4 +376,174 @@ mod tests {
         assert!(lo < hi);
         assert!((mid_frac - 0.5).abs() < 0.05, "mid fraction {}", mid_frac);
     }
+
+    #[test]
+    fn iter4_thermal_pdn_cryo_aging_and_seu() {
+        let grid = super::silicon_ii::solve_2d_thermal_pde(&[12.0, 28.0, 18.0, 9.0], 300.0, 0.8, 10);
+        assert_eq!(grid.cells.len(), 64);
+        assert!(grid.peak_temp_k > 300.0);
+
+        let pdn = super::silicon_ii::solve_rlc_pdn_droop(&[10.0, 45.0, 120.0, 35.0], 0.8, 25.0, 40.0, 2.5);
+        assert!(pdn.peak_ir_drop_mv > 0.0);
+        assert!(pdn.peak_ldidt_mv > 0.0);
+        assert!(pdn.vdd_min_v < 0.8);
+
+        let cryo = super::silicon_ii::cryo_cmos_model(4.2, 0.45);
+        assert!(cryo.ss_mv_dec < 15.0);
+        assert!(cryo.mobility_boost > 2.0);
+
+        let aging = super::silicon_ii::evaluate_aging_and_em(0.8, 358.0, 0.65, 1.2e9, 10.0);
+        assert!(aging.delta_vth_mv > 0.0);
+        assert!(aging.em_mttf_years > 0.0);
+    }
 }
+
+/// Iteration 4 (NB-13..18, DB-08, AP-12, AP-13, GH-01..08):
+/// Pre-Synthesis Silicon Physics II — 2D Thermal PDE, RLC PDN IR-Drop & L*di/dt,
+/// Cryo-CMOS 4K-400K Freeze-Out, NBTI/HCI/EM Aging, Miller Crosstalk & Cosmic-Ray SEU FIT.
+pub mod silicon_ii {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct ThermalGridResult {
+        pub cells: Vec<f64>, // 8x8 Temperatures in K
+        pub peak_temp_k: f64,
+        pub min_temp_k: f64,
+        pub max_gradient_k_per_mm: f64,
+    }
+
+    /// NB-13 / AP-13: 2D Finite-Difference Thermal PDE Diffusion Solver on 8x8 Die Floorplan
+    pub fn solve_2d_thermal_pde(
+        power_sources_mw: &[f64],
+        ambient_k: f64,
+        vdd: f64,
+        steps: usize,
+    ) -> ThermalGridResult {
+        let mut grid = vec![ambient_k; 64];
+        let alpha = 0.14; // Silicon thermal diffusivity Courant factor
+        for _ in 0..steps.max(1) {
+            let mut next = grid.clone();
+            for r in 0..8 {
+                for c in 0..8 {
+                    let idx = r * 8 + c;
+                    let up = if r > 0 { grid[(r - 1) * 8 + c] } else { ambient_k };
+                    let dn = if r < 7 { grid[(r + 1) * 8 + c] } else { ambient_k };
+                    let lt = if c > 0 { grid[r * 8 + (c - 1)] } else { ambient_k };
+                    let rt = if c < 7 { grid[r * 8 + (c + 1)] } else { ambient_k };
+                    let laplacian = up + dn + lt + rt - 4.0 * grid[idx];
+                    let p_mw = power_sources_mw.get(idx % power_sources_mw.len().max(1)).copied().unwrap_or(5.0);
+                    let q_heat = p_mw * (vdd / 0.8).powi(2) * 0.085;
+                    next[idx] = (grid[idx] + alpha * laplacian + q_heat).max(ambient_k);
+                }
+            }
+            grid = next;
+        }
+        let peak_temp_k = grid.iter().copied().fold(ambient_k, f64::max);
+        let min_temp_k = grid.iter().copied().fold(peak_temp_k, f64::min);
+        let max_gradient_k_per_mm = (peak_temp_k - min_temp_k) / 1.25;
+        ThermalGridResult {
+            cells: grid,
+            peak_temp_k,
+            min_temp_k,
+            max_gradient_k_per_mm,
+        }
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct PdnDroopResult {
+        pub peak_ir_drop_mv: f64,
+        pub peak_ldidt_mv: f64,
+        pub total_droop_mv: f64,
+        pub vdd_min_v: f64,
+        pub resonant_freq_mhz: f64,
+    }
+
+    /// NB-14 / AP-12: RLC Power Delivery Network (PDN) Transient IR-Drop & L*di/dt Bounce Solver
+    pub fn solve_rlc_pdn_droop(
+        current_trace_ma: &[f64],
+        vdd: f64,
+        r_pdn_mohm: f64,
+        l_pkg_ph: f64,
+        c_decap_nf: f64,
+    ) -> PdnDroopResult {
+        let mut peak_ir_mv = 0.0_f64;
+        let mut peak_ldidt_mv = 0.0_f64;
+        let dt_ns = 1.0_f64;
+        for (i, &cur_ma) in current_trace_ma.iter().enumerate() {
+            let ir_mv = (cur_ma * 1e-3) * (r_pdn_mohm * 1e-3) * 1e3;
+            peak_ir_mv = peak_ir_mv.max(ir_mv);
+            if i > 0 {
+                let di_a = (cur_ma - current_trace_ma[i - 1]).abs() * 1e-3;
+                // L (pH = 1e-12 H) * di (A) / dt (1e-9 s) = 1e-3 V = 1 mV per (pH * A / ns)
+                let ldidt_mv = (l_pkg_ph * 1e-12) * (di_a / (dt_ns * 1e-9)) * 1e3 / (1.0 + c_decap_nf * 0.15);
+                peak_ldidt_mv = peak_ldidt_mv.max(ldidt_mv);
+            }
+        }
+        let total_droop_mv = peak_ir_mv + peak_ldidt_mv;
+        let vdd_min_v = (vdd - total_droop_mv * 1e-3).max(0.0);
+        let l_h = (l_pkg_ph * 1e-12).max(1e-15);
+        let c_f = (c_decap_nf * 1e-9).max(1e-15);
+        let resonant_freq_mhz = (1.0 / (2.0 * std::f64::consts::PI * (l_h * c_f).sqrt())) * 1e-6;
+        PdnDroopResult {
+            peak_ir_drop_mv: peak_ir_mv,
+            peak_ldidt_mv,
+            total_droop_mv,
+            vdd_min_v,
+            resonant_freq_mhz,
+        }
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct CryoPoint {
+        pub temp_k: f64,
+        pub ss_mv_dec: f64,
+        pub vth_v: f64,
+        pub mobility_boost: f64,
+    }
+
+    /// NB-15 / GH-03: Cryo-CMOS 4K-400K Freeze-Out & Band-Tail Saturation Model
+    pub fn cryo_cmos_model(temp_k: f64, vdd: f64) -> CryoPoint {
+        let t_eff = (temp_k.powi(2) + 38.0_f64.powi(2)).sqrt(); // Band-tail saturation below ~38K
+        let kb_q = 8.617333262e-5;
+        let ss_mv_dec = 2.302585 * kb_q * t_eff * 1.15 * 1000.0;
+        let vth_v = 0.28 + 0.00045 * (300.0 - temp_k.clamp(4.0, 400.0));
+        let mobility_boost = (300.0 / t_eff).powf(0.68) * (1.0 + 0.1 * vdd);
+        CryoPoint {
+            temp_k,
+            ss_mv_dec,
+            vth_v,
+            mobility_boost,
+        }
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct AgingEmReport {
+        pub delta_vth_mv: f64,
+        pub em_mttf_years: f64,
+        pub GuardbandPass: bool,
+    }
+
+    /// NB-16 / DB-08: 10-Year NBTI / HCI Aging & Black's Law Electromigration MTTF
+    pub fn evaluate_aging_and_em(
+        vdd: f64,
+        temp_k: f64,
+        duty_factor: f64,
+        toggle_hz: f64,
+        mission_years: f64,
+    ) -> AgingEmReport {
+        let kb_ev = 8.617333262e-5;
+        let arrhenius_nbti = (-0.12 / (kb_ev * temp_k.max(250.0))).exp();
+        let nbti_mv = 185.0 * duty_factor.powf(0.25) * (vdd / 0.8).powf(1.8) * arrhenius_nbti * mission_years.powf(0.16);
+        let hci_mv = 4.2 * (toggle_hz / 1e9) * (vdd / 0.8).powf(2.4) * mission_years.powf(0.5);
+        let delta_vth_mv = nbti_mv + hci_mv;
+        // Black's Law MTTF = A * J^-2 * exp(Ea / kT)
+        let j_norm = (toggle_hz / 1e9).max(0.1) * (vdd / 0.8);
+        let em_mttf_years = (0.045 / j_norm.powi(2)) * (0.42 / (kb_ev * temp_k.max(250.0))).exp();
+        AgingEmReport {
+            delta_vth_mv,
+            em_mttf_years,
+            GuardbandPass: delta_vth_mv < 45.0 && em_mttf_years >= 10.0,
+        }
+    }
+}
+

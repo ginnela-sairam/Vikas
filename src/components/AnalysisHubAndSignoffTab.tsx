@@ -13,10 +13,15 @@ import {
   Zap,
 } from 'lucide-react';
 import {
+  buildSugiyamaRtlSchematic,
   computeSignoffScore,
   computeSwitchingPower,
+  elaborateSystemVerilog2023Constructs,
   OpenKdb,
+  partitionWorkStealingDag,
+  runFormalBmcAndKInduction,
   runMutationTesting,
+  runRtlToGateSynthesisAndLec,
   SignalMeta,
   SignalSteps,
 } from '../engine/vikasEngine';
@@ -44,6 +49,8 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
   const [freqMhz, setFreqMhz] = useState<number>(100);
   const [maxMutants, setMaxMutants] = useState<number>(16);
   const [mutantFilter, setMutantFilter] = useState<'ALL' | 'KILLED' | 'SURVIVED'>('ALL');
+  const [bmcBoundK, setBmcBoundK] = useState<number>(24);
+  const [workerCount, setWorkerCount] = useState<number>(4);
 
   // 1. Toggle coverage analysis
   const coverageStats = useMemo(() => {
@@ -112,6 +119,28 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
     if (mutantFilter === 'ALL') return mutationReport.mutants;
     return mutationReport.mutants.filter((m) => m.status === mutantFilter);
   }, [mutationReport.mutants, mutantFilter]);
+
+  // 6. Iteration 3: VIKAS-CHITRA Sugiyama Layered RTL Schematic (AP-07)
+  const sugiyamaGraph = useMemo(
+    () => buildSugiyamaRtlSchematic(kdb, signals, steps, 150),
+    [kdb, signals, steps]
+  );
+
+  // 7. Iteration 3: Formal Bit-Vector CDCL/SMT BMC + k-Induction Prover (NB-08..12 / AP-05)
+  const formalReport = useMemo(
+    () => runFormalBmcAndKInduction(kdb, files, bmcBoundK),
+    [kdb, files, bmcBoundK]
+  );
+
+  // 8. Iteration 3: Built-In RTL-to-Gate Synthesis & Miter LEC (DB-01 / DB-03)
+  const lecReport = useMemo(() => runRtlToGateSynthesisAndLec(kdb), [kdb]);
+
+  // 9. Iteration 3: IEEE 1800-2023 Construct Elaborator & Work-Stealing DAG Partitioner (AP-03 / NB-02)
+  const sv2023Constructs = useMemo(() => elaborateSystemVerilog2023Constructs(files), [files]);
+  const dagPartition = useMemo(
+    () => partitionWorkStealingDag(kdb, workerCount),
+    [kdb, workerCount]
+  );
 
   return (
     <div className="h-full overflow-y-auto bg-[#0b0e14] p-4 space-y-4 text-slate-200">
@@ -611,6 +640,224 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ===================================================================== */}
+      {/* ITERATION 3 SUITE: SUGIYAMA RTL SCHEMATIC, FORMAL BMC & RTL-TO-GATE LEC */}
+      {/* ===================================================================== */}
+      <div className="rounded-xl border border-cyan-500/40 bg-[#111621] p-4 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-2.5">
+          <div>
+            <h2 className="text-sm font-bold font-mono text-cyan-300 flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-cyan-400" />
+              <span>
+                VIKAS-CHITRA Sugiyama Layered RTL Schematic (AP-07) · Barycenter Crossing Minimization
+              </span>
+            </h2>
+            <p className="text-[11px] font-mono text-slate-400">
+              Top: {sugiyamaGraph.top} · {sugiyamaGraph.nodes.length} Elaborated Nodes ·{' '}
+              {sugiyamaGraph.edges.length} Orthogonal Nets · Critical Path FO4 ={' '}
+              {sugiyamaGraph.criticalPathFo4}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-sky-950/80 border border-sky-500/40 text-sky-300">
+              Layer 0: Primary Inputs
+            </span>
+            <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-500/40 text-purple-300">
+              Layer 1: Sequential FF/FSM
+            </span>
+            <span className="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-amber-300">
+              Layer 2: Comb ALU/Mux Cones
+            </span>
+            <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-300">
+              Layer 3: Primary Outputs
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-[#090d16] rounded-lg border border-slate-800 p-2 overflow-x-auto">
+          <svg viewBox="0 0 840 420" className="w-full h-80 block font-mono">
+            {/* Layer Column Headers */}
+            <text x="70" y="24" fill="#38bdf8" fontSize="10" fontWeight="bold">
+              L0: INPUT PORTS
+            </text>
+            <text x="260" y="24" fill="#a78bfa" fontSize="10" fontWeight="bold">
+              L1: SEQUENTIAL FFs
+            </text>
+            <text x="470" y="24" fill="#fbbf24" fontSize="10" fontWeight="bold">
+              L2: COMBINATIONAL CONES
+            </text>
+            <text x="680" y="24" fill="#34d399" fontSize="10" fontWeight="bold">
+              L3: OUTPUT PORTS
+            </text>
+
+            {/* Orthogonal Manhattan Edges */}
+            {sugiyamaGraph.edges.map((e, idx) => {
+              const midX = (e.x1 + e.x2) / 2;
+              const d = `M ${e.x1} ${e.y1} L ${midX} ${e.y1} L ${midX} ${e.y2} L ${e.x2} ${e.y2}`;
+              return (
+                <path
+                  key={idx}
+                  d={d}
+                  fill="none"
+                  stroke={e.isCritical ? '#fb7185' : 'rgba(56,189,248,0.45)'}
+                  strokeWidth={e.isCritical ? '1.8' : '1.2'}
+                />
+              );
+            })}
+
+            {/* Sugiyama Nodes */}
+            {sugiyamaGraph.nodes.map((node) => {
+              const strokeCol =
+                node.kind === 'INPUT'
+                  ? '#38bdf8'
+                  : node.kind === 'REG_FF'
+                  ? '#a78bfa'
+                  : node.kind === 'OUTPUT'
+                  ? '#34d399'
+                  : '#fbbf24';
+              return (
+                <g
+                  key={node.id}
+                  onClick={() => {
+                    const si = signals.findIndex(
+                      (s) => s.n === node.id || s.n.endsWith('.' + node.id)
+                    );
+                    if (si >= 0) onJumpToSignalInWave(si, 150);
+                  }}
+                  className="cursor-pointer"
+                >
+                  <rect
+                    x={node.x}
+                    y={node.y}
+                    width="115"
+                    height="36"
+                    rx="5"
+                    fill="#111827"
+                    stroke={strokeCol}
+                    strokeWidth="1.4"
+                  />
+                  <text x={node.x + 6} y={node.y + 14} fill="#f8fafc" fontSize="9.5" fontWeight="bold">
+                    {node.label.slice(0, 14)}
+                  </text>
+                  <text x={node.x + 6} y={node.y + 28} fill="#34d399" fontSize="9">
+                    {node.valAtCursor} ({node.width}b)
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+
+      {/* Formal BMC + k-Induction Prover (NB-08..12) AND RTL-to-Gate Synthesis & Miter LEC (DB-03) */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 font-mono">
+        {/* Formal Bit-Vector CDCL/SMT BMC & k-Induction */}
+        <div className="rounded-xl border border-purple-500/40 bg-[#111621] p-4 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">
+                NB-08..12 Formal Bit-Vector CDCL/SMT BMC &amp; k-Induction Prover
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Proven: {formalReport.provenCount} · Counterexamples: {formalReport.cexCount} ·
+                Depth k = {formalReport.boundDepthK} cycles
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-slate-400">Depth k:</span>
+              <input
+                type="number"
+                aria-label="Formal BMC Bound Depth k"
+                min={4}
+                max={64}
+                value={bmcBoundK}
+                onChange={(e) => setBmcBoundK(Number(e.target.value) || 24)}
+                className="w-16 bg-[#0b0e14] border border-slate-700 rounded px-2 py-0.5 text-purple-300"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            {formalReport.properties.map((p) => (
+              <div
+                key={p.id}
+                className="p-2.5 rounded bg-[#0b0e14] border border-slate-800 space-y-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-cyan-300">
+                    {p.id} [{p.engine}]
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      p.status === 'PROVEN_UNBOUNDED'
+                        ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
+                        : 'bg-rose-950/80 text-rose-300 border border-rose-500/40'
+                    }`}
+                  >
+                    {p.status} ({p.solveTimeMs} ms)
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-300 break-all">{p.property}</div>
+                {p.cexTestbenchSv && (
+                  <pre className="mt-1 p-2 rounded bg-rose-950/20 border border-rose-500/30 text-[10px] text-rose-200 overflow-x-auto">
+                    {p.cexTestbenchSv}
+                  </pre>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Built-In RTL-to-Gate Synthesis & Miter LEC (DB-03) + IEEE 1800-2023 & DAG Partitioner */}
+        <div className="rounded-xl border border-emerald-500/40 bg-[#111621] p-4 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+                DB-03 Built-In RTL-to-Gate Technology Mapper &amp; Miter XOR LEC
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Miter Status: <span className="text-emerald-300 font-bold">{lecReport.miterStatus}</span> ·{' '}
+                {lecReport.totalGates} Gates ({lecReport.totalAreaUm2} μm²) · Tcrit = {lecReport.criticalPathPs} ps
+              </p>
+            </div>
+            <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-[10px] text-emerald-300 font-bold">
+              {lecReport.conesVerified} Cones Verified
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            {lecReport.cellBreakdown.map((c) => (
+              <div
+                key={c.cellType}
+                className="p-2 rounded bg-[#0b0e14] border border-slate-800 flex items-center justify-between"
+              >
+                <span className="text-cyan-300 font-bold">{c.cellType}</span>
+                <span className="text-slate-300">
+                  {c.count} ({c.areaUm2}μm²)
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <pre className="p-2.5 rounded bg-[#0b0e14] border border-slate-800 text-[10px] text-emerald-300 overflow-x-auto">
+            {lecReport.netlistPreview}
+          </pre>
+
+          <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-300 flex-wrap gap-2">
+            <div>
+              <span className="text-amber-300 font-bold">AP-03 SV-2023 Elaborator:</span>{' '}
+              {sv2023Constructs.map((c) => `${c.name} (${c.totalBits}b)`).join(' · ')}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-cyan-300 font-bold">NB-02 Work-Stealing DAG:</span>
+              <span>
+                {dagPartition.workerCount} threads → {dagPartition.estimatedSpeedup}x speedup
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

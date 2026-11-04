@@ -1,4 +1,4 @@
-//! VIKAS v1 — XEZIM execution VM: event-driven, IEEE-1364 delta-cycle and
+//! VIKAS v1.2 — VIKAS-KRONOS execution VM: event-driven, IEEE-1364/1800 delta-cycle and
 //! NBA (nonblocking) regions, combinational iteration with glitch tracking,
 //! edge-sensitive wake, taint dye, physics telemetry, latch-hold shadow signals.
 

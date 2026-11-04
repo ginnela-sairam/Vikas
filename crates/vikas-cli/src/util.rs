@@ -29,8 +29,8 @@ pub fn banner() {
   ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
   ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
-  100% Rust core (XEZIM kernel) · C++20 mixed-signal twin · zero Python
+  [VIKAS v1.2] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
+  100% Rust core (VIKAS-KRONOS kernel) · C++20 mixed-signal twin · zero Python
 "#;
     println!("{}", c(b.trim_start_matches('\n'), CYAN));
 }

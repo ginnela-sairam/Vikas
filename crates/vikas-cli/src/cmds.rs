@@ -154,7 +154,7 @@ pub fn cmd_watch(files: Vec<PathBuf>) -> Result<()> {
 }
 
 pub fn cmd_editor(file: Option<PathBuf>) -> Result<()> {
-    // VIKAS built-in editor: vim-style modal editor (feature: own editor, no gvim dep)
+    // VIKAS built-in editor: VIKAS-VED modal editor (feature: native modal editor, zero external dep)
     let path = file.unwrap_or_else(|| PathBuf::from("untitled.sv"));
     let mut lines: Vec<String> = if path.exists() {
         std::fs::read_to_string(&path)?.lines().map(|l| l.to_string()).collect()
@@ -490,8 +490,8 @@ fn doctor_env() -> Result<()> {
         println!("  {} {:<22} {}", c("OK  ", GREEN), label, c(&detail, DIM));
     };
     // 1. kernel identity
-    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("1.1.3");
-    ok("binary", format!("vikas {ver} — XEZIM kernel v1.1 (topo-scheduled)"));
+    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("1.2.0");
+    ok("binary", format!("vikas {ver} — VIKAS-KRONOS kernel v1.2 (topo-scheduled)"));
     checks += 1;
     // 2. host
     let os = std::env::var("OSTYPE").unwrap_or_else(|_| "linux".into());

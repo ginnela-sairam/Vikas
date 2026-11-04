@@ -29,7 +29,8 @@
   --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
 }
 
-html[data-theme="verdi"] {
+html[data-theme="gold"],
+[data-theme="gold"] {
   --bg: #171c26;
   --bg2: #1a212d;
   --panel: #1f2735;
@@ -44,7 +45,8 @@ html[data-theme="verdi"] {
   --sel2: #4d4425;
 }
 
-html[data-theme="light"] {
+html[data-theme="light"],
+[data-theme="light"] {
   --bg: #eef1f5;
   --bg2: #e8ecf2;
   --panel: #ffffff;
@@ -67,7 +69,8 @@ html[data-theme="light"] {
   --zcol: #6d54b8;
 }
 
-html[data-theme="synth"] {
+html[data-theme="synth"],
+[data-theme="synth"] {
   --bg: #07070f;
   --bg2: #0a0b16;
   --panel: #0f1120;

@@ -1,6 +1,6 @@
-//! VIKAS v1 — `vikas bench`: performance benchmark suite.
+//! VIKAS v1.2 — `vikas bench`: performance benchmark suite.
 //! Generates four stress designs at increasing scale, runs them through the
-//! XEZIM event kernel, and reports throughput (events/s, cycles/s, elaboration
+//! VIKAS-KRONOS event kernel, and reports throughput (events/s, cycles/s, elaboration
 //! ms) plus an honest VCS-class commercial-kernel reference comparison.
 //! Results land in qa_results/bench.json for CI tracking.
 
@@ -20,7 +20,7 @@ pub fn cmd_bench(scale: u32, save_dir: Option<PathBuf>) -> Result<()> {
         "╔════════════════════════════════════════════════════════════════════════════╗",
         crate::util::CYAN));
     println!("{}", crate::util::c(
-        "║          VIKAS BENCH — XEZIM kernel throughput benchmark suite           ║",
+        "║       VIKAS BENCH — VIKAS-KRONOS kernel throughput benchmark suite         ║",
         crate::util::CYAN));
     println!("{}", crate::util::c(
         "╚════════════════════════════════════════════════════════════════════════════╝",
@@ -64,7 +64,7 @@ pub fn cmd_bench(scale: u32, save_dir: Option<PathBuf>) -> Result<()> {
     // ---- honest VCS-class reference ----
     println!();
     println!("{}", crate::util::c("  ── commercial-kernel reference (same design class, typical published ranges) ──", crate::util::DIM));
-    println!("  XEZIM (this host) : {:>12} events/s  · single-thread interpreter · 100% Rust", crate::util::c(&fmt_tput(agg), crate::util::GREEN));
+    println!("  VIKAS-KRONOS      : {:>12} events/s  · single-thread interpreter · 100% Rust", crate::util::c(&fmt_tput(agg), crate::util::GREEN));
     println!("  VCS-class kernels : {:>12}  · compiled C++ native · 4-8 core parallel", "0.5M - 40M events/s");
     println!("  Verilator-class   : {:>12}  · cycle-compiled C++ (not event-driven)", "50M - 500M events/s");
     println!();

@@ -11,7 +11,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 use vikas_wave::WaveDump;
 
-/// Surfer-WCP frame: JSON terminated by `\0` (0x00).
+/// VIKAS-DRISHTI WCP frame: JSON terminated by `\0` (0x00).
 pub fn wcp_frame(msg: &serde_json::Value) -> Vec<u8> {
     let mut b = serde_json::to_vec(msg).unwrap_or_default();
     b.push(0u8);

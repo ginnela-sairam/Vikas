@@ -144,12 +144,22 @@ impl Loader {
                         self.defines.push((d.to_string(), "1".into()));
                     }
                 }
-            } else if let Some(rest) = line.strip_prefix("-f ") {
+            } else if let Some(rest) = line.strip_prefix("-f ").or_else(|| line.strip_prefix("-F ")) {
                 let mut p = base.clone();
                 p.push(rest.trim());
                 out.extend(self.parse_filelist(&p)?);
-            } else if line.starts_with('-') {
-                continue; // other tool flags: +lint, -sv, --top etc. tolerated
+            } else if let Some(rest) = line.strip_prefix("-v ") {
+                let mut p = base.clone();
+                p.push(rest.trim());
+                if p.exists() {
+                    out.push(p);
+                }
+            } else if let Some(rest) = line.strip_prefix("-y ") {
+                let mut p = base.clone();
+                p.push(rest.trim());
+                self.incdirs.push(p);
+            } else if line.starts_with('-') || line.starts_with('+') {
+                continue; // commercial flags: +acc, +libext+, -full64, -kdb, -s, -top, etc. tolerated
             } else {
                 let name = line.trim_matches('"');
                 let mut p = base.clone();

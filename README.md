@@ -1,6 +1,6 @@
 # VIKAS v1.1 — Post-Duopoly Linux-Native RTL EDA Platform
 
-**VIKAS** = XEZIM (**v1.1 topo-scheduled event kernel**, SystemVerilog/Verilog,
+**VIKAS** = VIKAS-KRONOS (**v1.1 topo-scheduled event kernel**, SystemVerilog/Verilog,
 100% Rust) + **VIKAS STUDIO** (professional single-file HTML5 EDA workbench:
 menus · 40-icon toolbar · dock panels · minimap · 4 themes · command palette)
 + Open-KDB (CSR design-graph intelligence) + Silicon-Physics twin (C++20 RK4)
@@ -91,7 +91,7 @@ vikas help                                     # full 59-command catalog
 
 One self-contained offline HTML file (130 KB at demo scale, 283 KB at
 455-signal NOVA scale) that renders like a commercial tool, not a science
-project. VLM-audited against Verdi/GTKWave/ModelSim: **9/10 waveform view,
+project. VLM-audited against Verdi/VIKAS-TARANG/ModelSim: **9/10 waveform view,
 9/10 analysis hub, 8/10 design intel, zero critical visual bugs.**
 
 **Application chrome** — title bar with live status chips + PASS/LATCH-RISK
@@ -149,7 +149,7 @@ PageUp/Down · [ ] results · G/U group · E bus-expand · A analog · T theme �
 ```text
 vikas-eda/
 ├── crates/
-│   ├── vikas-sim/       XEZIM kernel: lexer, parser, elaborator, event VM
+│   ├── vikas-sim/       VIKAS-KRONOS kernel: lexer, parser, elaborator, event VM
 │   │                    (IEEE delta + NBA regions, `include, filelists, params,
 │   │                    unpacked memory arrays, latch inference analysis,
 │   │                    expression port connections, mutation-testing engine)
@@ -185,7 +185,7 @@ vikas-eda/
 9. Sub-cycle glitch hazard detection (VIKAS_CAUSALITY tracks)
 10. /dev/shm zero-disk-wear arena + lock-free SPSC ring
 11. Bit-parallel temporal query engine
-12. Surfer WCP `\0`-framed protocol + native MCP server for AI agents
+12. VIKAS-DRISHTI WCP `\0`-framed protocol + native MCP server for AI agents
 13. **3-layer inferred latch detection** (static L1 + live hold-state telemetry
     `VIKAS_CAUSALITY_latch_hold_*` + copy-paste SV patches, exit 2 in CI)
 14. **RTL MUTATION TESTING** (`vikas mutant`) — the hardware analog of

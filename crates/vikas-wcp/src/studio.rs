@@ -145,7 +145,7 @@ pub fn generate_studio(
         .replace("__CTX__", &serde_json::to_string(&hub_json)?)
         .replace(
             "__BUILD__",
-            &format!("VIKAS v{} · XEZIM kernel · {}", env!("CARGO_PKG_VERSION"), chrono_free_now()),
+            &format!("VIKAS v{} · VIKAS-KRONOS kernel · {}", env!("CARGO_PKG_VERSION"), chrono_free_now()),
         );
     std::fs::write(out_path, html)?;
     Ok(())

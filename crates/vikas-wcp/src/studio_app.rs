@@ -1977,7 +1977,7 @@ function aboutDialog(){
    '<div id="aboutlogo">'
    +'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M12 2 21 7 21 15 12 22 3 15 3 7Z"/><path d="M7.5 8.5 12 15.5 16.5 8.5"/></svg>'
    +'<div id="aboutname">VIKAS <b>STUDIO</b></div></div>'
-   +'<div id="aboutsub">Post-duopoly Linux-native RTL EDA platform · XEZIM event kernel 100% Rust<br>Professional single-file HTML5 workbench · fully offline · zero dependencies</div>'
+   +'<div id="aboutsub">Post-duopoly Linux-native RTL EDA platform · VIKAS-KRONOS event kernel 100% Rust<br>Professional single-file HTML5 workbench · fully offline · zero dependencies</div>'
    +'<div id="aboutstats"><div><div class="as-v">'+fmtInt(SIGS.length)+'</div><div class="as-k">signals</div></div>'
    +'<div><div class="as-v">'+fmtInt(cnt)+'</div><div class="as-k">events</div></div>'
    +'<div><div class="as-v">'+fmtT(END)+'</div><div class="as-k">ns end</div></div>'

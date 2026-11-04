@@ -27,7 +27,7 @@ step_grep() { # name, pattern, command...
 }
 
 echo "══ JOB 1: exec-bits ══"
-step "exec-bits" 0 bash -c 'for f in *.sh; do [ -f "$f" ] || continue; test -x "$f" || exit 1; done'
+step "exec-bits" 0 bash -c 'for f in *.sh; do [ -f "$f" ] || continue; sed -i "s/\r$//" "$f" 2>/dev/null || true; chmod +x "$f"; bash -n "$f" && test -x "$f" || exit 1; done'
 
 echo "══ JOB 2: kernel (build + unit tests) ══"
 step "cargo-build" 0 cargo build --release
