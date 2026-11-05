@@ -22,6 +22,8 @@ import {
   RotateCcw,
   Ruler,
   Search,
+  SkipBack,
+  SkipForward,
   Sparkles,
   Tag,
   Trash2,
@@ -40,6 +42,7 @@ import {
   createStreamingWaveChunks,
   decodeProtocolSwimlanes,
   evaluateTemporalSvaSequence,
+  evaluateWaveformBooleanExpression,
   exportPublicationWaveform,
   extractPipelineWaterfall,
   filterVisibleSignalsByNameAndType,
@@ -194,13 +197,14 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       createdAt: '09:08:12',
     },
   ]);
-  const [activeRightDockTab, setActiveRightDockTab] = useState<'INSPECTOR' | 'BOOKMARKS'>('BOOKMARKS');
+  const [activeRightDockTab, setActiveRightDockTab] = useState<'INSPECTOR' | 'BOOKMARKS'>('INSPECTOR');
   const [newBookmarkName, setNewBookmarkName] = useState('');
   const [newBookmarkNotes, setNewBookmarkNotes] = useState('');
   const [newBookmarkColor, setNewBookmarkColor] = useState('#f59e0b');
   const [showAddBookmarkDialog, setShowAddBookmarkDialog] = useState(false);
   const [visibleSignalFilter, setVisibleSignalFilter] = useState('');
   const [visibleTypeFilter, setVisibleTypeFilter] = useState<string>('ALL');
+  const [searchStatusToast, setSearchStatusToast] = useState<string | null>(null);
 
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;
@@ -1075,6 +1079,17 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
     }
   };
 
+  const handleCanvasDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const rect = cv.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const hit = layoutItems.items.find((it) => y >= it.y && y <= it.y + it.h);
+    if (hit && signals[hit.row.si]) {
+      onJumpToSource(signals[hit.row.si].n);
+    }
+  };
+
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const cv = canvasRef.current;
     if (!cv) return;
@@ -1122,10 +1137,87 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
     setT0(nextT0);
   };
 
+  const handlePan = (dir: number) => {
+    const step = Math.max(10, tspan * 0.15);
+    const nextT0 = Math.max(0, Math.min(Math.max(0, endNs - tspan), t0 + dir * step));
+    setT0(nextT0);
+  };
+
   const handleFit = () => {
     setT0(0);
     setTspan(Math.max(endNs, 100));
   };
+
+  const jumpToSignalEdge = (direction: 'prev' | 'next') => {
+    const targetRow = selectedRow || rows[0];
+    if (!targetRow) return;
+    const st = steps[targetRow.si];
+    const sig = signals[targetRow.si];
+    if (!st || !st.t || st.t.length === 0) return;
+    const refT = curA !== null ? curA : Math.round(t0 + tspan * 0.35);
+    let nextT: number | undefined;
+    if (direction === 'next') {
+      nextT = st.t.find((t) => t > refT);
+      if (nextT === undefined) nextT = st.t[0];
+    } else {
+      for (let i = st.t.length - 1; i >= 0; i--) {
+        if (st.t[i] < refT) {
+          nextT = st.t[i];
+          break;
+        }
+      }
+      if (nextT === undefined) nextT = st.t[st.t.length - 1];
+    }
+    if (nextT !== undefined) {
+      setCurA(nextT);
+      if (nextT < t0 || nextT > t0 + tspan) {
+        setT0(Math.max(0, Math.min(Math.max(0, endNs - tspan), nextT - tspan / 2)));
+      }
+      setSearchStatusToast(
+        `${direction === 'next' ? 'Next' : 'Prev'} edge on ${sig?.n.split('.').pop() || 'sig'} -> ${nextT} ns`
+      );
+    }
+  };
+
+  // Global keyboard shortcuts (W/S zoom, A/D pan, F/0 fit, N/P next/prev edge, E expand bus)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+      const key = e.key.toLowerCase();
+      if (key === 'w' || key === '+' || key === '=') {
+        e.preventDefault();
+        handleZoom(0.65);
+      } else if (key === 's' || key === '-') {
+        e.preventDefault();
+        handleZoom(1.55);
+      } else if (key === 'a' || key === 'arrowleft') {
+        e.preventDefault();
+        handlePan(-1);
+      } else if (key === 'd' || key === 'arrowright') {
+        e.preventDefault();
+        handlePan(1);
+      } else if (key === 'f' || key === '0') {
+        e.preventDefault();
+        handleFit();
+      } else if (key === 'n') {
+        e.preventDefault();
+        jumpToSignalEdge('next');
+      } else if (key === 'p') {
+        e.preventDefault();
+        jumpToSignalEdge('prev');
+      } else if (key === 'e' && selectedRow) {
+        e.preventDefault();
+        setRows((prev) =>
+          prev.map((r) => (r.id === selectedRow.id ? { ...r, expanded: !r.expanded } : r))
+        );
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
 
   const handleRunSearch = () => {
     const q = searchQuery.trim();
@@ -1135,10 +1227,35 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       if (m) {
         const targetT = Math.min(endNs, parseInt(m[0], 10));
         setCurA(targetT);
-        setT0(Math.max(0, Math.min(endNs - tspan, targetT - tspan / 2)));
+        setT0(Math.max(0, Math.min(Math.max(0, endNs - tspan), targetT - tspan / 2)));
+        setSearchStatusToast(`Jumped Cursor A -> ${targetT} ns`);
       }
       return;
     }
+
+    // Evaluate boolean / relational expression when in EXPR mode or when relational operators are present
+    if (searchMode === 'expr' || /(?:==|!=|>=|<=|>|<|&&|\|\|)/.test(q)) {
+      const exprRes = evaluateWaveformBooleanExpression(q, signals, steps, endNs, curA);
+      if (exprRes.valid && exprRes.nextMatchTime !== null) {
+        const targetT = exprRes.nextMatchTime;
+        setCurA(targetT);
+        setT0(Math.max(0, Math.min(Math.max(0, endNs - tspan), targetT - tspan / 2)));
+        if (exprRes.matchedSignals.length > 0) {
+          const firstSigIdx = signals.findIndex((s) => s.n === exprRes.matchedSignals[0]);
+          if (firstSigIdx >= 0) {
+            const existing = rows.find((r) => r.si === firstSigIdx);
+            if (existing) setSelectedId(existing.id);
+          }
+        }
+        setSearchStatusToast(
+          `Expr matched @ ${targetT} ns (${exprRes.matchingTimes.length} total timestamp${exprRes.matchingTimes.length === 1 ? '' : 's'})`
+        );
+      } else {
+        setSearchStatusToast(exprRes.errorMessage || `No timestamps matched "${q}"`);
+      }
+      return;
+    }
+
     let rx: RegExp;
     try {
       rx = new RegExp(q.replace(/^add:\s*/i, ''), 'i');
@@ -1159,7 +1276,10 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
           });
         }
       });
-      if (additions.length > 0) setRows((prev) => [...prev, ...additions]);
+      if (additions.length > 0) {
+        setRows((prev) => [...prev, ...additions]);
+        setSearchStatusToast(`Added ${additions.length} signal(s) matching /${q.replace(/^add:\s*/i, '')}/`);
+      }
       return;
     }
     const foundIdx = signals.findIndex((s) => rx.test(s.n));
@@ -1179,6 +1299,9 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
         setRows((prev) => [newRow, ...prev]);
         setSelectedId(newRow.id);
       }
+      setSearchStatusToast(`Focused signal: ${signals[foundIdx].n}`);
+    } else {
+      setSearchStatusToast(`No signal found matching "${q}"`);
     }
   };
 
@@ -1294,6 +1417,29 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
         >
           <Ruler className="w-3.5 h-3.5" />
           Δt Measure B
+        </button>
+
+        <button
+          type="button"
+          data-testid="prev-edge-btn"
+          onClick={() => jumpToSignalEdge('prev')}
+          aria-label="Previous Transition Edge"
+          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-[var(--panel2)] hover:bg-[var(--raised)] text-[var(--txt)] border border-[var(--edge)] cursor-pointer"
+          title="Jump Cursor A to previous transition edge of selected signal (Shortcut: P)"
+        >
+          <SkipBack className="w-3.5 h-3.5 text-cyan-400" />
+          Prev Edge
+        </button>
+        <button
+          type="button"
+          data-testid="next-edge-btn"
+          onClick={() => jumpToSignalEdge('next')}
+          aria-label="Next Transition Edge"
+          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-[var(--panel2)] hover:bg-[var(--raised)] text-[var(--txt)] border border-[var(--edge)] cursor-pointer"
+          title="Jump Cursor A to next transition edge of selected signal (Shortcut: N)"
+        >
+          <SkipForward className="w-3.5 h-3.5 text-cyan-400" />
+          Next Edge
         </button>
 
         <button
@@ -1450,26 +1596,36 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
         <div className="flex items-center bg-[var(--bg2)] border border-[var(--edge2)] rounded px-2 py-0.5 ml-1 flex-1 max-w-md">
           <Search className="w-3.5 h-3.5 text-[var(--dim)] mr-1.5 shrink-0" />
           <input
+            data-testid="waveform-global-search-input"
             aria-label="Search signal or boolean expression"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleRunSearch();
             }}
-            placeholder="search signal · add:uart · goto:1200"
+            placeholder={
+              searchMode === 'expr'
+                ? 'expr: zero_flag == 1 · alu_result > 0'
+                : searchMode === 'goto'
+                ? 'goto timestamp (e.g. 120)'
+                : 'search signal · add:uart · zero_flag == 1'
+            }
             className="bg-transparent text-xs font-mono text-[var(--txt)] outline-none flex-1 min-w-0"
           />
           <button
             type="button"
+            data-testid="waveform-search-mode-btn"
             onClick={() =>
               setSearchMode((m) => (m === 'signal' ? 'expr' : m === 'expr' ? 'goto' : 'signal'))
             }
             className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--panel)] text-[var(--accent)] border border-[var(--edge)] ml-1 cursor-pointer"
+            title="Cycle search mode: SIGNAL (name/regex) -> EXPR (boolean condition e.g. zero_flag == 1) -> GOTO (timestamp ns)"
           >
             {searchMode.toUpperCase()}
           </button>
           <button
             type="button"
+            data-testid="waveform-search-run-btn"
             onClick={handleRunSearch}
             aria-label="Execute Search"
             className="p-1 text-[var(--dim)] hover:text-[var(--accent)] cursor-pointer"
@@ -1477,6 +1633,16 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
             <Play className="w-3 h-3" />
           </button>
         </div>
+
+        {searchStatusToast && (
+          <span
+            data-testid="waveform-search-status-toast"
+            onClick={() => setSearchStatusToast(null)}
+            className="text-[10.5px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 cursor-pointer"
+          >
+            {searchStatusToast}
+          </span>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <select
@@ -1947,6 +2113,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
               ref={canvasRef}
               data-testid="waveform-canvas"
               onClick={handleCanvasClick}
+              onDoubleClick={handleCanvasDoubleClick}
               onMouseMove={handleCanvasMouseMove}
               onMouseLeave={() => setHoverInfo(null)}
               onWheel={(e) => {
@@ -2135,7 +2302,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
 
                     <div className="space-y-2 pt-1">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent)]">
-                        Cross-Probe & Display
+                        Cross-Probe, Radix &amp; Trace Formatting
                       </div>
                       <button
                         type="button"
@@ -2145,6 +2312,89 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
                         <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
                         Cross-Probe Driver in RTL IDE
                       </button>
+
+                      {/* Edge Stepper inside Inspector */}
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => jumpToSignalEdge('prev')}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded bg-[var(--bg2)] hover:bg-[var(--raised)] border border-[var(--edge)] text-cyan-300 font-mono text-[11px] cursor-pointer"
+                        >
+                          <SkipBack className="w-3 h-3" />
+                          Prev Edge (P)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => jumpToSignalEdge('next')}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded bg-[var(--bg2)] hover:bg-[var(--raised)] border border-[var(--edge)] text-cyan-300 font-mono text-[11px] cursor-pointer"
+                        >
+                          <SkipForward className="w-3 h-3" />
+                          Next Edge (N)
+                        </button>
+                      </div>
+
+                      {/* Per-Row Radix Override */}
+                      <div className="flex items-center justify-between gap-1 bg-[var(--bg2)] p-1.5 rounded border border-[var(--edge)]">
+                        <span className="text-[10px] text-[var(--dim)] uppercase font-mono">Radix:</span>
+                        <div className="flex gap-1">
+                          {(['hex', 'bin', 'dec', 'signed', 'ascii'] as const).map((rOpt) => (
+                            <button
+                              key={rOpt}
+                              type="button"
+                              onClick={() =>
+                                setRows((prev) =>
+                                  prev.map((r) =>
+                                    r.id === selectedRow.id ? { ...r, radix: rOpt } : r
+                                  )
+                                )
+                              }
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono uppercase cursor-pointer ${
+                                (selectedRow.radix || defRadix) === rOpt
+                                  ? 'bg-cyan-500 text-slate-950 font-bold'
+                                  : 'bg-[var(--panel)] text-[var(--dim)] hover:text-[var(--txt)]'
+                              }`}
+                            >
+                              {rOpt}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Per-Row Custom Trace Color Picker */}
+                      <div className="flex items-center justify-between gap-1 bg-[var(--bg2)] p-1.5 rounded border border-[var(--edge)]">
+                        <span className="text-[10px] text-[var(--dim)] uppercase font-mono">Trace Color:</span>
+                        <div className="flex items-center gap-1.5">
+                          {[
+                            { c: null, label: 'Auto' },
+                            { c: '#34d399', label: 'Emerald' },
+                            { c: '#38bdf8', label: 'Cyan' },
+                            { c: '#f59e0b', label: 'Amber' },
+                            { c: '#a855f7', label: 'Purple' },
+                            { c: '#f43f5e', label: 'Rose' },
+                          ].map((col, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() =>
+                                setRows((prev) =>
+                                  prev.map((r) =>
+                                    r.id === selectedRow.id ? { ...r, color: col.c } : r
+                                  )
+                                )
+                              }
+                              style={col.c ? { backgroundColor: col.c } : undefined}
+                              className={`h-4 rounded cursor-pointer text-[9px] font-mono ${
+                                col.c ? 'w-4 rounded-full' : 'px-1.5 bg-slate-800 text-slate-300'
+                              } ${
+                                selectedRow.color === col.c ? 'ring-2 ring-white' : 'opacity-80 hover:opacity-100'
+                              }`}
+                              title={col.label}
+                            >
+                              {!col.c ? 'Auto' : ''}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
                       <div className="flex gap-1.5">
                         <button

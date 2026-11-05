@@ -250,7 +250,23 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
         </div>
 
         {/* 3-Layer Inferred Latch Status */}
-        <div className="rounded-lg border border-slate-800 bg-[#111621] p-3.5 flex flex-col justify-between">
+        <div
+          onClick={() => {
+            if (kdb.inferred_latches.length > 0) {
+              onJumpToSourceFile(kdb.inferred_latches[0].file);
+            }
+          }}
+          className={`rounded-lg border p-3.5 flex flex-col justify-between ${
+            kdb.inferred_latches.length === 0
+              ? 'border-slate-800 bg-[#111621]'
+              : 'border-rose-500/40 bg-rose-950/20 cursor-pointer hover:border-rose-400 transition-colors'
+          }`}
+          title={
+            kdb.inferred_latches.length > 0
+              ? `Click to open ${kdb.inferred_latches[0].file} in RTL Editor`
+              : 'Zero inferred latches across workspace'
+          }
+        >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               3-Layer Latch Guard
@@ -275,7 +291,7 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
           <div className="text-[11px] text-slate-400 font-mono">
             {kdb.inferred_latches.length === 0
               ? 'L1 AST + L2 Hold verified clean'
-              : 'Open RTL Editor to apply L3 patch'}
+              : 'Click to open RTL Editor & apply L3 patch'}
           </div>
         </div>
       </div>
@@ -537,7 +553,14 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
                 <tr key={m.id} className="hover:bg-slate-800/40">
                   <td className="py-1.5 px-3 text-slate-400">#{m.id}</td>
                   <td className="py-1.5 px-3 text-cyan-300">
-                    {m.file}:{m.line}
+                    <button
+                      type="button"
+                      onClick={() => onJumpToSourceFile(m.file)}
+                      className="hover:underline text-left cursor-pointer text-cyan-300 hover:text-cyan-200"
+                      title={`Jump to ${m.file}:${m.line} in RTL Editor`}
+                    >
+                      {m.file}:{m.line}
+                    </button>
                   </td>
                   <td className="py-1.5 px-3 text-slate-300">{m.module}</td>
                   <td className="py-1.5 px-3 text-purple-300">{m.category}</td>
@@ -853,8 +876,21 @@ export const AnalysisHubAndSignoffTab: React.FC<AnalysisHubAndSignoffTabProps> =
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-cyan-300 font-bold">NB-02 Work-Stealing DAG:</span>
-              <span>
-                {dagPartition.workerCount} threads → {dagPartition.estimatedSpeedup}x speedup
+              <select
+                aria-label="Work-Stealing DAG Worker Threads"
+                data-testid="dag-worker-threads-select"
+                value={workerCount}
+                onChange={(e) => setWorkerCount(Number(e.target.value))}
+                className="bg-[#0b0e14] border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-cyan-300 font-bold cursor-pointer"
+              >
+                <option value={4}>4 threads</option>
+                <option value={8}>8 threads</option>
+                <option value={16}>16 threads</option>
+                <option value={32}>32 threads</option>
+                <option value={64}>64 threads</option>
+              </select>
+              <span className="text-emerald-300 font-bold">
+                → {dagPartition.estimatedSpeedup}x speedup
               </span>
             </div>
           </div>

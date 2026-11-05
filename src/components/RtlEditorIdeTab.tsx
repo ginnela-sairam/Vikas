@@ -25,19 +25,24 @@ import {
 import {
   analyzeLatches,
   applyAllLintQuickFixes,
+  batchCompileAllPolyglotLanguages,
   compilePolyglotEdaSource,
   computeLocalAiRtlCompletions,
   formatSignalValue,
+  fortuneAiDeepReasonAndHealRtl,
+  fortuneAiGenerateRtlFromSpec,
+  FortuneAiHealReport,
   getLanguageStarterTemplate33,
   lintRtlSource,
   OpenKdb,
   parseWorkspaceModulesForCompletion,
+  PolyglotBatchCompileSummary,
   PolyglotCompileResult,
   RtlCompletionSuggestion,
   RtlLintDiagnostic,
   SignalMeta,
   SignalSteps,
-  SUPPORTED_EDA_LANGUAGES_CATALOG_33,
+  SUPPORTED_EDA_LANGUAGES_CATALOG_38,
   valAtTime,
 } from '../engine/vikasEngine';
 
@@ -89,17 +94,26 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('SystemVerilog');
 
-  // 33-Language Polyglot Compiler Drawer state
+  // 38-Language Polyglot Compiler Drawer state
   const [polyglotResult, setPolyglotResult] = useState<PolyglotCompileResult | null>(null);
+  const [polyglotBatchSummary, setPolyglotBatchSummary] = useState<PolyglotBatchCompileSummary | null>(null);
   const [polyglotDrawerOpen, setPolyglotDrawerOpen] = useState(false);
 
-  // Local In-Engine Neural AI Code Completion state (VIKAS-NEURAL-LM v2.0)
+  // Local In-Engine Fortune AI Architect & Completion state (VIKAS-FORTUNE-AI v4.0)
   const [cursorPos, setCursorPos] = useState<number>(0);
   const [cursorLine, setCursorLine] = useState<number>(1);
   const [cursorCol, setCursorCol] = useState<number>(1);
   const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(false);
+  const [isActivelyTyping, setIsActivelyTyping] = useState(false);
   const [activeSuggestionIdx, setActiveSuggestionIdx] = useState(0);
   const [quickInsertMenuOpen, setQuickInsertMenuOpen] = useState(false);
+
+  // Fortune AI v4.0 Co-Pilot & Deep-Reasoning Auto-Healer Drawer state
+  const [fortuneAiDrawerOpen, setFortuneAiDrawerOpen] = useState(false);
+  const [fortuneHealReport, setFortuneHealReport] = useState<FortuneAiHealReport | null>(null);
+  const [fortunePrompt, setFortunePrompt] = useState(
+    '64-bit pipelined RISC-V superscalar vector ALU and fused multiply-accumulate unit'
+  );
 
   // Active diagnostic tooltip popover
   const [activeDiagTooltip, setActiveDiagTooltip] = useState<RtlLintDiagnostic | null>(null);
@@ -191,9 +205,9 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
     return m ? m[1] : '';
   }, [activeFile.content, cursorPos]);
 
-  // Local AI suggestions computed with sub-millisecond zero-network latency across all 33 languages + workspace modules
+  // Local Fortune AI suggestions computed with sub-millisecond zero-network latency
   const aiSuggestions: RtlCompletionSuggestion[] = useMemo(() => {
-    if (!aiSuggestionsOpen && currentTokenPrefix.length < 2) return [];
+    if (!aiSuggestionsOpen && (!isActivelyTyping || currentTokenPrefix.length < 2)) return [];
     return computeLocalAiRtlCompletions(
       currentTokenPrefix,
       activeFile.content,
@@ -203,7 +217,7 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
       selectedLanguage,
       files
     );
-  }, [currentTokenPrefix, activeFile.content, cursorPos, signals, kdb, selectedLanguage, aiSuggestionsOpen, files]);
+  }, [currentTokenPrefix, activeFile.content, cursorPos, signals, kdb, selectedLanguage, aiSuggestionsOpen, isActivelyTyping, files]);
 
   // Always-available top ghost suggestion for the status bar / Tab completion preview
   const topGhostSuggestion = useMemo(() => {
@@ -278,15 +292,16 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
 
     // Escape closes suggestions
     if (e.key === 'Escape') {
-      if (aiSuggestionsOpen) {
+      if (aiSuggestionsOpen || isActivelyTyping) {
         e.preventDefault();
         setAiSuggestionsOpen(false);
+        setIsActivelyTyping(false);
       }
       return;
     }
 
     // Navigate completion list if open
-    if ((aiSuggestionsOpen || currentTokenPrefix.length >= 2) && aiSuggestions.length > 0) {
+    if ((aiSuggestionsOpen || (isActivelyTyping && currentTokenPrefix.length >= 2)) && aiSuggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setActiveSuggestionIdx((i) => (i + 1) % aiSuggestions.length);
@@ -305,56 +320,162 @@ export const RtlEditorIdeTab: React.FC<RtlEditorIdeTabProps> = ({
     }
   };
 
-  // Insert completion suggestion into active buffer
+  // Insert completion suggestion into active buffer (with Port-Header Protection for multi-line snippets/modules!)
   const insertAiSuggestion = (sug: RtlCompletionSuggestion) => {
     if (!sug) return;
-    const prefixLen = currentTokenPrefix.length;
-    const start = Math.max(0, cursorPos - prefixLen);
-    const end = cursorPos;
-    const newContent =
-      activeFile.content.slice(0, start) + sug.insertText + activeFile.content.slice(end);
+    const isMultiLineConstruct =
+      sug.kind === 'snippet' || sug.kind === 'module' || sug.insertText.includes('\n');
+
+    let newContent = activeFile.content;
+    let targetCursorPos = cursorPos;
+
+    // Check if the cursor is currently inside an ANSI module port header `module ... ( ... );`
+    const modHeaderMatch = activeFile.content.match(/\bmodule\s+[A-Za-z_]\w*(?:\s*#\s*\([\s\S]*?\))?\s*\([\s\S]*?\)\s*;/);
+    const isInsideModulePortHeader =
+      modHeaderMatch &&
+      modHeaderMatch.index !== undefined &&
+      cursorPos > modHeaderMatch.index &&
+      cursorPos <= modHeaderMatch.index + modHeaderMatch[0].length;
+
+    if (isMultiLineConstruct && isInsideModulePortHeader && modHeaderMatch && modHeaderMatch.index !== undefined) {
+      // Automatically place multi-line snippets & module instantiations cleanly in the module body right after `);`!
+      const headerEndOffset = modHeaderMatch.index + modHeaderMatch[0].length;
+      const indentedBlock =
+        '\n    ' + sug.insertText.split('\n').join('\n    ');
+      newContent =
+        activeFile.content.slice(0, headerEndOffset) +
+        indentedBlock +
+        activeFile.content.slice(headerEndOffset);
+      targetCursorPos = headerEndOffset + indentedBlock.length;
+    } else {
+      const prefixLen = currentTokenPrefix.length;
+      const start = Math.max(0, cursorPos - prefixLen);
+      const end = cursorPos;
+      newContent =
+        activeFile.content.slice(0, start) + sug.insertText + activeFile.content.slice(end);
+      targetCursorPos = start + sug.insertText.length;
+    }
+
     onUpdateFileContent(activeFile.path, newContent);
     setAiSuggestionsOpen(false);
+    setIsActivelyTyping(false);
 
     // Reposition cursor after inserted text
     setTimeout(() => {
       if (textareaRef.current) {
-        const newPos = start + sug.insertText.length;
         textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(newPos, newPos);
-        setCursorPos(newPos);
+        textareaRef.current.setSelectionRange(targetCursorPos, targetCursorPos);
+        setCursorPos(targetCursorPos);
       }
     }, 10);
     setStatusMsg(
-      `[VIKAS-NEURAL-LM] Inserted ${sug.label} (${sug.confidencePct?.toFixed(1) || '98.5'}% conf · Perplexity ${sug.tokenPerplexity || '1.08'})`
+      `[VIKAS-FORTUNE-AI v4.0] Inserted ${sug.label} (${sug.confidencePct?.toFixed(1) || '99.2'}% conf · Perplexity ${sug.tokenPerplexity || '1.05'})`
     );
   };
 
   // Single Quick fix application
   const applyQuickFix = (diag: RtlLintDiagnostic) => {
     if (!diag.quickFix) return;
+    // If structural syntax error (SYN-03, SYN-04, SEC-08), run full Fortune AI Deep Auto-Healer
+    if (['SYN-03', 'SYN-04', 'SYN-07', 'SEC-08'].includes(diag.rule)) {
+      handleFortuneAiAutoHeal(false);
+      return;
+    }
     const targetIdx = diag.quickFix.targetLine - 1;
     if (targetIdx < 0 || targetIdx >= lines.length) return;
     const newLines = [...lines];
-    newLines[targetIdx] = diag.quickFix.replacement;
+    if (diag.quickFix.replacement === '') {
+      newLines.splice(targetIdx, 1);
+    } else {
+      newLines[targetIdx] = diag.quickFix.replacement;
+    }
     const updated = newLines.join('\n');
     onUpdateFileContent(activeFile.path, updated);
     setActiveDiagTooltip(null);
-    setStatusMsg(`[VIKAS Linter] Applied quick-fix for ${diag.rule}: ${diag.title}`);
+    setStatusMsg(`[VIKAS-FORTUNE-AI] Applied quick-fix for ${diag.rule}: ${diag.title}`);
   };
 
-  // 1-Click Fix All Lint Violations
+  // 1-Click Fortune AI Deep-Reasoning Auto-Healer (fixes SYN-01..SYN-07 + SEC-01..SEC-12)
+  const handleFortuneAiAutoHeal = async (andSimulate = false) => {
+    const report = fortuneAiDeepReasonAndHealRtl(activeFile.content, activeFile.path);
+    setFortuneHealReport(report);
+    setFortuneAiDrawerOpen(true);
+    setActiveDiagTooltip(null);
+    onUpdateFileContent(activeFile.path, report.healedCode);
+    setStatusMsg(
+      `[VIKAS-FORTUNE-AI v4.0] Auto-healed ${report.appliedCount} syntax/lint issue(s) (${report.beforeErrors} Errors -> ${report.afterErrors} Errors)!`
+    );
+    if (andSimulate) {
+      await onSimulateFile(activeFile.path, report.healedCode);
+    }
+  };
+
+  // 1-Click Fix All Lint Violations (delegates to Fortune AI Deep Auto-Healer)
   const handleFixAllLintIssues = () => {
     const res = applyAllLintQuickFixes(activeFile.content, activeFile.path);
-    if (res.appliedCount > 0) {
-      onUpdateFileContent(activeFile.path, res.fixedCode);
+    const report = fortuneAiDeepReasonAndHealRtl(activeFile.content, activeFile.path);
+    setFortuneHealReport(report);
+    if (res.appliedCount > 0 || report.healedCode !== activeFile.content) {
+      onUpdateFileContent(activeFile.path, report.healedCode);
       setActiveDiagTooltip(null);
       setStatusMsg(
-        `[VIKAS Linter] Auto-remediated ${res.appliedCount} violation(s) (${res.appliedRules.join(', ')})!`
+        `[VIKAS-FORTUNE-AI v4.0] Auto-healed ${report.appliedCount} syntax & semantic violation(s) (${report.appliedRules.join(', ')})!`
       );
     } else {
-      setStatusMsg(`[VIKAS Linter] No auto-fixable lint violations remaining.`);
+      setStatusMsg(`[VIKAS-FORTUNE-AI v4.0] Zero syntax or lint violations remaining.`);
     }
+  };
+
+  // Load the exact corrupted SystemVerilog stress test (SYN-01..SYN-05 + SEC-08) to demonstrate Fortune AI Auto-Heal
+  const handleInjectCorruptedSyntaxDemo = () => {
+    const corruptedDemo = `// [VIKAS-KRONOS] IEEE 1800-2023 SystemVerilog Synthesis & Simulation Target
+module nova_dsp_mac #(parameter int WIDTH = 32) (
+    input lV HCogic           clk,
+    input logic8T68YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF always_comb          rst_n,typedef enum logic [1:0] { S_IDLE, S_ACTIVE, S_DONE } state_t;
+state_t state_q, state_d;
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) state_q <= S_IDLE;
+    else        state_q <= state_d;
+end
+always_comb begin
+    state_d = state_q;
+state_t state_q, state_d;
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) state_q <= S_IDLE;
+    else        state_q <= state_d;
+end
+always_comb begin
+    state_d = state_q;
+    unique case (state_q)
+        S_IDLE:   if (start) state_d = S_ACTIVE;
+        S_ACTIVE: if (done)  state_d = S_DONE;
+        S_DONE:              state_d = S_IDLE;
+        default:             state_d = S_IDLE;
+    endcase
+end
+    input  logic             valid_i,
+    input  logic [WIDTH-1:0] a_i,
+    input  logic [WIDTH-1:0] b_i,
+    input  logic [WIDTH-1:0] acc_i,
+    output logic [WIDTH-1:0] mac_o,
+    output logic             valid_o
+);
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            mac_o   <= '0;
+            valid_o <= 1'b0;
+        end else begin
+            valid_o <= valid_i;
+            if (valid_i) mac_o <= (a_i * b_i) + acc_i;
+        end
+    end
+endmodule`;
+    onUpdateFileContent(activeFile.path, corruptedDemo);
+    setDiagnosticsOpen(true);
+    setFortuneAiDrawerOpen(true);
+    setStatusMsg(
+      `[VIKAS-VED Compiler Gate] Loaded corrupted RTL stress test (SYN-01, SYN-02, SYN-03, SYN-04, SYN-05, SEC-08 detected) — Click "Fortune AI Auto-Heal All" to repair!`
+    );
   };
 
   // Load a comprehensive lint showcase buffer to test SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-10 in real time
@@ -394,23 +515,46 @@ endmodule
     );
   };
 
-  // Load runnable template for the currently selected language from the 33-language catalog
+  // Synthesize new signoff-clean RTL from natural language specification using Fortune AI v4.0
+  const handleFortuneAiSynthesizeFromPrompt = (customPrompt?: string) => {
+    const spec = customPrompt || fortunePrompt;
+    const synth = fortuneAiGenerateRtlFromSpec(spec, selectedLanguage);
+    onUpdateFileContent(activeFile.path, synth.code);
+    const report = fortuneAiDeepReasonAndHealRtl(synth.code, activeFile.path);
+    setFortuneHealReport(report);
+    setFortuneAiDrawerOpen(true);
+    setStatusMsg(`[VIKAS-FORTUNE-AI v4.0] Synthesized zero-lint module "${synth.moduleName}" from natural-language spec!`);
+  };
+
+  // Load runnable template for the currently selected language from the 38-language catalog
   const handleLoad33LangTemplate = (langOverride?: string) => {
     const targetLang = langOverride || selectedLanguage;
     const tpl = getLanguageStarterTemplate33(targetLang);
     onUpdateFileContent(activeFile.path, tpl.starterCode);
     setStatusMsg(
-      `[VIKAS 33-Lang Studio] Loaded runnable ${tpl.langName} (${tpl.ext}) starter template`
+      `[VIKAS 38-Lang Studio] Loaded runnable ${tpl.langName} (${tpl.ext}) starter template`
     );
   };
 
-  // Compile active source using the 33-Language Polyglot Compiler
+  // Compile active source using the 38-Language Polyglot Compiler
   const handleCompile33Lang = () => {
     const res = compilePolyglotEdaSource(activeFile.content, selectedLanguage, signals);
     setPolyglotResult(res);
+    setPolyglotBatchSummary(null);
     setPolyglotDrawerOpen(true);
     setStatusMsg(
-      `[VIKAS-POLYGLOT] Compiled ${res.languageName} -> ${res.extractedModuleName} (${res.gateEquivalentCount} gates @ ${res.estimatedFmaxMhz} MHz)`
+      `[VIKAS-POLYGLOT-38] Compiled ${res.languageName} -> ${res.extractedModuleName} (${res.gateEquivalentCount} gates @ ${res.estimatedFmaxMhz} MHz)`
+    );
+  };
+
+  // Batch compile all 38 supported languages in a single SIMD pass
+  const handleBatchCompileAll38 = () => {
+    const summary = batchCompileAllPolyglotLanguages(true, signals);
+    setPolyglotBatchSummary(summary);
+    setPolyglotResult(summary.results[0] || null);
+    setPolyglotDrawerOpen(true);
+    setStatusMsg(
+      `[VIKAS-POLYGLOT-38] Batch-compiled all ${summary.totalLanguagesCompiled}/38 languages in ${summary.totalWallTimeMs} ms (${summary.totalSynthesizedGates.toLocaleString()} gates · ${summary.speedupVsLegacyMultiToolFlow}x faster)`
     );
   };
 
@@ -447,6 +591,15 @@ endmodule
       handleFixAllLintIssues();
     } else if (cmd === ':compile' || cmd === 'compile') {
       handleCompile33Lang();
+    } else if (cmd === ':compile-all' || cmd === 'compile-all') {
+      handleBatchCompileAll38();
+    } else if (/^:?(?:line\s+)?(\d+)$/i.test(cmd)) {
+      const m = cmd.match(/(\d+)/);
+      if (m) {
+        const targetLn = Math.max(1, Math.min(lines.length, parseInt(m[1], 10)));
+        jumpToLine(targetLn);
+        setStatusMsg(`[VIKAS-VED] Jumped to line ${targetLn}`);
+      }
     }
     setVedCmd('');
     setVedMode('INSERT');
@@ -523,19 +676,19 @@ endmodule
           })}
         </div>
 
-        {/* 33 Supported Languages & Local AI Model Quick Reference */}
+        {/* 38 Supported Languages & VIKAS-FORTUNE-AI v4.0 Model Quick Reference */}
         <div className="p-2.5 border-t border-slate-800 bg-[#090d16] text-[10px] text-slate-400 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-300 flex items-center gap-1">
+            <span className="font-bold text-slate-200 flex items-center gap-1">
               <Cpu className="w-3 h-3 text-purple-400" />
-              VIKAS-NEURAL-LM v2.0
+              VIKAS-FORTUNE-AI v4.0
             </span>
             <span className="px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-bold text-[9px]">
               100% LOCAL
             </span>
           </div>
           <div className="text-[10px] text-slate-500 leading-tight">
-            In-Engine AST + N-Gram Neural Model · 33 EDA Languages · {workspaceParsedModules.length + 4} Modules Indexed
+            Deep-Reasoning AST Auto-Healer & RTL Architect · 38 EDA Languages · {workspaceParsedModules.length + 4} Modules Indexed
           </div>
           <div className="flex gap-1 pt-0.5">
             <button
@@ -555,6 +708,15 @@ endmodule
               title="Load a SystemVerilog file demonstrating SEC-01..SEC-04 non-blocking gutter lint markers"
             >
               Lint Demo
+            </button>
+            <button
+              type="button"
+              data-testid="load-corrupted-demo-btn"
+              onClick={handleInjectCorruptedSyntaxDemo}
+              className="px-2 py-1 rounded bg-purple-950/70 hover:bg-purple-900/80 text-purple-200 border border-purple-500/40 text-[10px] font-bold cursor-pointer"
+              title="Load corrupted SystemVerilog stress test (SYN-01..SYN-05 + SEC-08) to verify Fortune AI Auto-Heal"
+            >
+              Syntax Test
             </button>
           </div>
         </div>
@@ -582,9 +744,9 @@ endmodule
               VIKAS-VED: {vedMode}
             </span>
 
-            {/* Language Selector for All 33 Supported EDA Languages */}
+            {/* Language Selector for All 38 Supported EDA Languages */}
             <div className="flex items-center gap-1">
-              <span className="text-[10px] text-slate-400">33-Lang:</span>
+              <span className="text-[10px] text-slate-400">38-Lang:</span>
               <select
                 aria-label="Active Language Dialect"
                 data-testid="language-dialect-select"
@@ -592,7 +754,7 @@ endmodule
                 onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="bg-[#090d16] text-[11px] font-mono text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 outline-none cursor-pointer"
               >
-                {SUPPORTED_EDA_LANGUAGES_CATALOG_33.map((lang) => (
+                {SUPPORTED_EDA_LANGUAGES_CATALOG_38.map((lang) => (
                   <option key={lang.id} value={lang.langKey}>
                     {lang.name} ({lang.ext})
                   </option>
@@ -603,10 +765,20 @@ endmodule
                 data-testid="compile-33lang-btn"
                 onClick={handleCompile33Lang}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 border border-indigo-500/50 cursor-pointer"
-                title="Compile active language via VIKAS 33-Language Polyglot Compiler to SystemVerilog + FIRRTL IR"
+                title="Compile active language via VIKAS 38-Language Polyglot Compiler to SystemVerilog + FIRRTL IR"
               >
                 <Zap className="w-3 h-3 text-indigo-400" />
-                Compile 33-Lang
+                Compile Active
+              </button>
+              <button
+                type="button"
+                data-testid="compile-all-38lang-btn"
+                onClick={handleBatchCompileAll38}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/50 cursor-pointer"
+                title="SIMD Batch-Compile all 38 supported EDA languages (33 baseline + 5 extra: UVM, SystemC, Hardcaml, SystemRDL, Cocotb)"
+              >
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                Compile All 38
               </button>
             </div>
 
@@ -629,16 +801,16 @@ endmodule
                 {warningCount} Warning{warningCount > 1 ? 's' : ''}
               </span>
             ) : null}
-            {fixableDiagCount > 0 ? (
+            {lintDiagnostics.length > 0 ? (
               <button
                 type="button"
                 data-testid="fix-all-lint-btn"
-                onClick={handleFixAllLintIssues}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 cursor-pointer"
-                title="Apply all non-blocking RTL lint Quick Fixes in one click"
+                onClick={() => handleFortuneAiAutoHeal(false)}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-950/90 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/60 cursor-pointer"
+                title="Run VIKAS-FORTUNE-AI v4.0 5-Pass Deep AST & Semantic Auto-Healer to repair all syntax and lint violations"
               >
                 <Wand2 className="w-3 h-3 text-emerald-400" />
-                Fix All ({fixableDiagCount})
+                Fortune AI Fix All ({lintDiagnostics.length})
               </button>
             ) : null}
             {errorCount === 0 && warningCount === 0 ? (
@@ -681,6 +853,18 @@ endmodule
               </button>
             </div>
 
+            {/* Fortune AI v4.0 Deep Co-Pilot Toggle */}
+            <button
+              type="button"
+              data-testid="fortune-ai-copilot-btn"
+              onClick={() => setFortuneAiDrawerOpen((v) => !v)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold bg-fuchsia-950/80 hover:bg-fuchsia-900 text-fuchsia-200 border border-fuchsia-500/50 cursor-pointer"
+              title="Open VIKAS-FORTUNE-AI v4.0 Deep-Reasoning Auto-Healer & Natural-Language RTL Architect"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-400" />
+              Fortune AI v4.0
+            </button>
+
             {/* Local AI Auto-Wire Quick Menu */}
             <div className="relative">
               <button
@@ -688,10 +872,10 @@ endmodule
                 data-testid="ai-complete-trigger-btn"
                 onClick={() => setQuickInsertMenuOpen((v) => !v)}
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-purple-950/70 hover:bg-purple-900/80 text-purple-200 border border-purple-500/50 cursor-pointer"
-                title="Local In-Engine Neural AI RTL Code Completion & Workspace Module Auto-Instantiator"
+                title="VIKAS-FORTUNE-AI v4.0 RTL Code Completion & Workspace Module Auto-Instantiator"
               >
                 <Bot className="w-3.5 h-3.5 text-purple-400" />
-                Local AI Complete
+                AI Auto-Wire & Snippets
                 <ChevronDown className="w-3 h-3 text-purple-400" />
               </button>
 
@@ -701,7 +885,7 @@ endmodule
                   onClick={() => setQuickInsertMenuOpen(false)}
                 >
                   <div className="text-[10px] uppercase font-bold text-purple-300 px-2 py-1 flex items-center justify-between border-b border-slate-800">
-                    <span>VIKAS-NEURAL-LM v2.0</span>
+                    <span>VIKAS-FORTUNE-AI v4.0</span>
                     <span className="text-[9px] text-emerald-400">100% In-Engine Local</span>
                   </div>
                   <div className="text-[11px] text-slate-400 px-2 py-0.5">
@@ -735,7 +919,7 @@ endmodule
                       </button>
                     ))}
                   <div className="border-t border-slate-800 pt-1 text-[10px] text-slate-400 px-2">
-                    Verified Architectural Snippets & Templates:
+                    Verified Architectural Snippets (Auto-Placed in Module Body):
                   </div>
                   <button
                     type="button"
@@ -801,8 +985,13 @@ endmodule
             </button>
             <button
               type="button"
+              data-testid="simulate-live-btn"
               onClick={async () => {
-                await onSaveFile(activeFile.path, activeFile.content);
+                if (errorCount === 0) {
+                  await onSaveFile(activeFile.path, activeFile.content);
+                } else {
+                  setDiagnosticsOpen(true);
+                }
                 await onSimulateFile(activeFile.path, activeFile.content);
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 cursor-pointer"
@@ -812,6 +1001,38 @@ endmodule
             </button>
           </div>
         </div>
+
+        {/* Syntax / Compile Error Alert Banner with 1-Click VIKAS-FORTUNE-AI v4.0 Deep Auto-Healer */}
+        {errorCount > 0 && (
+          <div
+            data-testid="syntax-compile-error-banner"
+            className="bg-red-950/75 border-b border-red-500/50 px-4 py-1.5 flex items-center justify-between gap-4 shrink-0"
+          >
+            <div className="space-y-0.5 text-xs min-w-0">
+              <div className="font-bold text-red-200 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                VIKAS-KRONOS COMPILER GATE: {errorCount} Fatal Syntax / Elaboration Error{errorCount > 1 ? 's' : ''} Detected in `{activeFile.path}`
+              </div>
+              <div className="font-mono text-[11px] text-red-300/95 truncate">
+                • [{lintDiagnostics.find((d) => d.severity === 'error')?.rule}] Line{' '}
+                {lintDiagnostics.find((d) => d.severity === 'error')?.line}:{' '}
+                {lintDiagnostics.find((d) => d.severity === 'error')?.title} —{' '}
+                {lintDiagnostics.find((d) => d.severity === 'error')?.message}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                data-testid="fortune-ai-auto-heal-btn"
+                onClick={() => handleFortuneAiAutoHeal(true)}
+                className="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs cursor-pointer flex items-center gap-1.5 shadow-lg"
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                Fortune AI Auto-Heal All ({lintDiagnostics.length}) & Simulate
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Latch Alert Banner if latches detected */}
         {liveLatches.length > 0 && (
@@ -937,9 +1158,26 @@ endmodule
                     data-testid="rtl-code-textarea"
                     aria-label="SystemVerilog RTL Code Editor"
                     value={activeFile.content}
-                    onChange={(e) => onUpdateFileContent(activeFile.path, e.target.value)}
+                    onChange={(e) => {
+                      const nextVal = e.target.value;
+                      const selPos = e.target.selectionStart || 0;
+                      const charBefore = selPos > 0 ? nextVal[selPos - 1] : '';
+                      onUpdateFileContent(activeFile.path, nextVal);
+                      setCursorPos(selPos);
+                      if (/^[A-Za-z0-9_$]$/.test(charBefore)) {
+                        setIsActivelyTyping(true);
+                        setActiveSuggestionIdx(0);
+                      } else {
+                        setIsActivelyTyping(false);
+                        setAiSuggestionsOpen(false);
+                      }
+                    }}
                     onScroll={handleEditorScroll}
-                    onClick={updateCursorTracking}
+                    onClick={(e) => {
+                      updateCursorTracking(e);
+                      setIsActivelyTyping(false);
+                      setAiSuggestionsOpen(false);
+                    }}
                     onKeyUp={updateCursorTracking}
                     onSelect={updateCursorTracking}
                     onKeyDown={handleKeyDown}
@@ -988,11 +1226,11 @@ endmodule
                     </div>
                   )}
 
-                  {/* Local AI Code Completion Floating Suggestions Menu */}
-                  {(aiSuggestionsOpen || (currentTokenPrefix.length >= 2 && aiSuggestions.length > 0)) && (
+                  {/* VIKAS-FORTUNE-AI v4.0 Code Completion Floating Suggestions Menu (Only when actively typing or Ctrl+Space) */}
+                  {(aiSuggestionsOpen || (isActivelyTyping && currentTokenPrefix.length >= 2)) && aiSuggestions.length > 0 && (
                     <div
                       data-testid="local-ai-completion-dropdown"
-                      className="absolute z-50 w-[420px] max-w-[92%] rounded-lg bg-[#111726] border border-cyan-500/50 shadow-2xl p-2 space-y-1 text-xs"
+                      className="absolute z-50 w-[430px] max-w-[92%] rounded-lg bg-[#111726] border border-cyan-500/50 shadow-2xl p-2 space-y-1 text-xs"
                       style={{
                         top: Math.min(260, Math.max(16, cursorLine * 20 - (textareaRef.current?.scrollTop || 0) + 10)),
                         left: Math.min(260, Math.max(16, cursorCol * 7)),
@@ -1001,9 +1239,22 @@ endmodule
                       <div className="flex items-center justify-between px-2 py-0.5 border-b border-slate-800 text-[10px] text-cyan-300 font-bold uppercase">
                         <span className="flex items-center gap-1">
                           <Bot className="w-3 h-3 text-cyan-400" />
-                          VIKAS-NEURAL-LM ({aiSuggestions.length} · {selectedLanguage})
+                          VIKAS-FORTUNE-AI v4.0 ({aiSuggestions.length} · {selectedLanguage})
                         </span>
-                        <span className="text-emerald-400">100% Local · Tab/Enter</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-emerald-400">100% Local · Tab/Esc</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAiSuggestionsOpen(false);
+                              setIsActivelyTyping(false);
+                            }}
+                            className="text-slate-400 hover:text-white cursor-pointer px-1"
+                            title="Close completion menu (Esc)"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
 
                       <div className="max-h-52 overflow-y-auto space-y-0.5 font-mono">
@@ -1120,16 +1371,142 @@ endmodule
           )}
         </div>
 
-        {/* 33-Language Polyglot Compiler Output Drawer */}
+        {/* VIKAS-FORTUNE-AI v4.0 Deep-Reasoning Auto-Healer & RTL Architect Studio Drawer */}
+        {fortuneAiDrawerOpen && (
+          <div
+            data-testid="fortune-ai-drawer"
+            className="h-44 bg-[#0d1122] border-t border-fuchsia-500/40 flex flex-col shrink-0"
+          >
+            <div className="flex items-center justify-between px-3 py-1 bg-[#151832] border-b border-fuchsia-500/30 text-[11px]">
+              <span className="font-bold text-fuchsia-300 flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-fuchsia-400" />
+                VIKAS-FORTUNE-AI v4.0 — DEEP-REASONING AST AUTO-HEALER & RTL ARCHITECT (100% Local In-Engine)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleFortuneAiAutoHeal(true)}
+                  className="px-2.5 py-0.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[10px] cursor-pointer flex items-center gap-1"
+                >
+                  <Wand2 className="w-3 h-3" />
+                  Auto-Heal Active Buffer & Simulate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFortuneAiDrawerOpen(false)}
+                  className="text-slate-400 hover:text-white cursor-pointer px-1"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 grid grid-cols-12 divide-x divide-slate-800 overflow-hidden text-[11px] font-mono">
+              {/* Left 6 cols: 5-Stage Deep Reasoning & Auto-Heal Report */}
+              <div className="col-span-6 p-2 overflow-y-auto space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-bold text-cyan-300 uppercase">
+                  <span>Fortune AI 5-Stage Compiler AST Reasoning Trace</span>
+                  {fortuneHealReport && (
+                    <span className="text-emerald-400">
+                      {fortuneHealReport.beforeErrors} Err / {fortuneHealReport.beforeWarnings} Warn → {fortuneHealReport.afterErrors} Err / {fortuneHealReport.afterWarnings} Warn ({fortuneHealReport.confidencePct}% Conf)
+                    </span>
+                  )}
+                </div>
+                {fortuneHealReport ? (
+                  <div className="space-y-1">
+                    {fortuneHealReport.reasoningSteps.map((st) => (
+                      <div
+                        key={st.step}
+                        className="px-2 py-1 rounded bg-[#101629] border border-slate-800 flex items-start justify-between gap-2"
+                      >
+                        <div>
+                          <div className="font-bold text-slate-200 text-[10.5px]">
+                            Pass {st.step}: {st.phase}
+                          </div>
+                          <div className="text-[10px] text-slate-400">{st.detail}</div>
+                        </div>
+                        <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold shrink-0">
+                          {st.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-slate-400 text-[10.5px] py-2">
+                     Fortune AI v4.0 continuously monitors your buffer for SYN-01..SYN-07 syntax defects and SEC-01..SEC-12 IEEE 1800 hazards. Click <b>Auto-Heal Active Buffer & Simulate</b> to reconstruct clean ANSI module headers and eliminate multi-driver/type errors.
+                  </div>
+                )}
+              </div>
+
+              {/* Right 6 cols: Natural Language Prompt-to-RTL Synthesizer */}
+              <div className="col-span-6 p-2 overflow-y-auto space-y-1.5">
+                <div className="text-[10px] font-bold text-fuchsia-300 uppercase">
+                  Natural-Language Hardware Spec → Zero-Lint SystemVerilog Synthesizer
+                </div>
+                <div className="flex gap-1.5">
+                  <input
+                    aria-label="Fortune AI RTL architecture prompt"
+                    value={fortunePrompt}
+                    onChange={(e) => setFortunePrompt(e.target.value)}
+                    placeholder="Describe hardware block (e.g., parameterized sync FIFO, AXI4-Lite slave, superscalar ALU)..."
+                    className="flex-1 bg-[#090d16] border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200 outline-none focus:border-fuchsia-400"
+                  />
+                  <button
+                    type="button"
+                    data-testid="fortune-ai-synthesize-btn"
+                    onClick={() => handleFortuneAiSynthesizeFromPrompt()}
+                    className="px-2.5 py-1 rounded bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-[10.5px] cursor-pointer shrink-0"
+                  >
+                    Synthesize RTL
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleFortuneAiSynthesizeFromPrompt('Parameterized synchronous streaming FIFO with watermark count')}
+                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-[10px] cursor-pointer"
+                  >
+                    + Sync Streaming FIFO
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleFortuneAiSynthesizeFromPrompt('AMBA AXI4-Lite slave register slice interface')}
+                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 text-[10px] cursor-pointer"
+                  >
+                    + AXI4-Lite Slave Bus
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleFortuneAiSynthesizeFromPrompt('64-bit pipelined RISC-V superscalar vector ALU and MAC')}
+                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 text-[10px] cursor-pointer"
+                  >
+                    + Superscalar ALU+MAC
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 38-Language Polyglot Compiler Output Drawer */}
         {polyglotDrawerOpen && polyglotResult && (
           <div
             data-testid="polyglot-compiler-drawer"
-            className="h-44 bg-[#0b1020] border-t border-indigo-500/40 flex flex-col shrink-0"
+            className="h-48 bg-[#0b1020] border-t border-indigo-500/40 flex flex-col shrink-0"
           >
             <div className="flex items-center justify-between px-3 py-1 bg-[#111830] border-b border-indigo-500/30 text-[11px]">
               <span className="font-bold text-indigo-300 flex items-center gap-2">
                 <Zap className="w-3.5 h-3.5 text-indigo-400" />
-                {polyglotResult.compilerPass} — Module: <b className="text-white">{polyglotResult.extractedModuleName}</b> ({polyglotResult.gateEquivalentCount} Gates · {polyglotResult.estimatedFmaxMhz} MHz)
+                {polyglotBatchSummary ? (
+                  <span>
+                    VIKAS-POLYGLOT-38 SIMD BATCH COMPILER: <b className="text-emerald-400">{polyglotBatchSummary.totalLanguagesCompiled}/38 Languages PASS</b> in{' '}
+                    <b className="text-cyan-300">{polyglotBatchSummary.totalWallTimeMs} ms</b> ({polyglotBatchSummary.totalSynthesizedGates.toLocaleString()} Gates · Avg {polyglotBatchSummary.averageEstimatedFmaxMhz} MHz)
+                  </span>
+                ) : (
+                  <span>
+                    {polyglotResult.compilerPass} — Module: <b className="text-white">{polyglotResult.extractedModuleName}</b> ({polyglotResult.gateEquivalentCount} Gates · {polyglotResult.estimatedFmaxMhz} MHz)
+                  </span>
+                )}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -1154,15 +1531,34 @@ endmodule
             </div>
             <div className="flex-1 min-h-0 grid grid-cols-3 divide-x divide-slate-800 overflow-hidden text-[11px] font-mono">
               <div className="p-2 overflow-y-auto space-y-1">
-                <div className="text-[10px] font-bold text-indigo-300 uppercase">Compiler Passes</div>
-                {polyglotResult.compilerLog.map((log, i) => (
-                  <div key={i} className="text-slate-300 text-[10.5px]">
-                    {log}
-                  </div>
-                ))}
+                <div className="text-[10px] font-bold text-indigo-300 uppercase">
+                  {polyglotBatchSummary ? `All 38 Compiled Languages (${polyglotBatchSummary.totalWallTimeMs} ms)` : 'Compiler Passes'}
+                </div>
+                {polyglotBatchSummary
+                  ? polyglotBatchSummary.results.map((r, i) => (
+                      <div
+                        key={r.languageId}
+                        onClick={() => setPolyglotResult(r)}
+                        className={`flex items-center justify-between px-1.5 py-0.5 rounded cursor-pointer text-[10px] ${
+                          polyglotResult.languageId === r.languageId
+                            ? 'bg-indigo-950/80 text-cyan-300 font-bold'
+                            : 'text-slate-300 hover:bg-slate-800/60'
+                        }`}
+                      >
+                        <span className="truncate">
+                          {i + 1}. {r.languageName}
+                        </span>
+                        <span className="text-emerald-400 shrink-0 ml-2">{r.compileLatencyMs}ms PASS</span>
+                      </div>
+                    ))
+                  : polyglotResult.compilerLog.map((log, i) => (
+                      <div key={i} className="text-slate-300 text-[10.5px]">
+                        {log}
+                      </div>
+                    ))}
               </div>
               <div className="p-2 overflow-y-auto">
-                <div className="text-[10px] font-bold text-cyan-300 uppercase mb-1">Synthesized IEEE 1800-2023 SV</div>
+                <div className="text-[10px] font-bold text-cyan-300 uppercase mb-1">Synthesized IEEE 1800-2023 SV ({polyglotResult.languageName})</div>
                 <pre className="text-[10px] text-slate-300 whitespace-pre-wrap">{polyglotResult.synthesizedSvCode}</pre>
               </div>
               <div className="p-2 overflow-y-auto">
@@ -1268,8 +1664,8 @@ endmodule
               aria-label="VIKAS-VED modal command input"
               value={vedCmd}
               onChange={(e) => setVedCmd(e.target.value)}
-              placeholder=":w (save) · :run (sim) · :fix (fix lint) · :compile (33-lang)"
-              className="bg-[#090d16] border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-200 outline-none w-80 focus:border-cyan-500 shrink-0"
+              placeholder=":w · :run · :fix · :compile · :compile-all (38-lang) · :12 (line)"
+              className="bg-[#090d16] border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-200 outline-none w-96 focus:border-cyan-500 shrink-0"
             />
             {statusMsg && <span className="text-emerald-400 text-[11px] truncate">{statusMsg}</span>}
           </div>

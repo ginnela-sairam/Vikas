@@ -29,6 +29,9 @@ import {
   evaluateBitPlane4StateWord,
   lintRtlSource,
   applyAllLintQuickFixes,
+  fortuneAiDeepReasonAndHealRtl,
+  fortuneAiGenerateRtlFromSpec,
+  isValidHardwareIdentifier,
   compilePolyglotEdaSource,
   batchCompileAllPolyglotLanguages,
   getLanguageStarterTemplate33,
@@ -38,9 +41,11 @@ import {
   SUPPORTED_EDA_LANGUAGES_CATALOG_38,
   runMulticoreBigDesignBenchmarkAndOptimizer,
   generateAnnaTechnicalProofAndUvmSuite,
+  runWorldRecordSingularityDiagnosticSuite,
   evaluateSeuCosmicRaySoftErrorAndLandauer,
   evaluateSiliconAgingAndEm,
   evaluateTemporalSvaSequence,
+  evaluateWaveformBooleanExpression,
   exportPublicationWaveform,
   extractPipelineWaterfall,
   filterWaveformSignalsByRegex,
@@ -1048,15 +1053,15 @@ test('Iteration 11: WaveformStudioTab simulation time-point bookmark creation an
 });
 
 test('Iteration 11: WaveformStudioTab visible signal list filtering by name and by type', () => {
-  const dummySignals = [
-    { n: 'nova_soc.clk', w: 1, k: 'clock' as const },
-    { n: 'nova_soc.rst_n', w: 1, k: 'reset' as const },
-    { n: 'nova_soc.core.pc', w: 32, k: 'reg' as const },
-    { n: 'nova_soc.core.alu_y', w: 32, k: 'wire' as const },
-    { n: 'nova_soc.uart.tx_data', w: 8, k: 'wire' as const },
-    { n: 'nova_soc.uart.tx_valid', w: 1, k: 'wire' as const },
-    { n: 'nova_soc.adc.analog_in', w: 12, k: 'analog' as const },
-    { n: 'nova_soc.timer.count_q', w: 16, k: 'reg' as const },
+  const dummySignals: SignalMeta[] = [
+    { n: 'nova_soc.clk', w: 1, k: 'clock' },
+    { n: 'nova_soc.rst_n', w: 1, k: 'reset' },
+    { n: 'nova_soc.core.pc', w: 32, k: 'rtl' },
+    { n: 'nova_soc.core.alu_y', w: 32, k: 'rtl' },
+    { n: 'nova_soc.uart.tx_data', w: 8, k: 'rtl' },
+    { n: 'nova_soc.uart.tx_valid', w: 1, k: 'rtl' },
+    { n: 'nova_soc.adc.analog_in', w: 12, k: 'physics' },
+    { n: 'nova_soc.timer.count_q', w: 16, k: 'rtl' },
   ];
 
   const dummyRows = dummySignals.map((_, i) => ({
@@ -1065,7 +1070,7 @@ test('Iteration 11: WaveformStudioTab visible signal list filtering by name and 
     radix: null,
     color: null,
     expanded: false,
-    analog: dummySignals[i].k === 'analog',
+    analog: dummySignals[i].k === 'physics',
   }));
 
   // Test 1: All signals with empty filter
@@ -1108,8 +1113,198 @@ test('Iteration 11: WaveformStudioTab visible signal list filtering by name and 
   // Test 9: Combined name and type filtering (e.g. name 'tx' and type 'SCALAR')
   const txScalar = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, 'tx', 'SCALAR');
   assert.equal(txScalar.length, 1);
+  assert.equal(txScalar[0].si, 5);
   assert.equal(dummySignals[txScalar[0].si].n, 'nova_soc.uart.tx_valid');
 });
+
+test('Iteration 13: World-Record Sovereign Singularity v3.0 Suite (WR-01..WR-30 -> 185/185 Capabilities & Full Subsystem Verification)', () => {
+  const sampleRtl = `
+module nova_wr_unit(
+  input logic clk,
+  input logic rst_n,
+  input logic [31:0] alu_a,
+  input logic [31:0] alu_b,
+  output logic [31:0] alu_result
+);
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) alu_result <= 32'h0;
+    else alu_result <= alu_a + alu_b;
+  end
+endmodule
+`;
+  const sim = simulateVerilogSource([{ path: 'nova_wr_unit.sv', content: sampleRtl }], 200);
+  const wr = runWorldRecordSingularityDiagnosticSuite(sim.kdb, sim.signals, sim.steps);
+
+  assert.equal(wr.version, 'VIKAS-SOVEREIGN-v3.0-WORLD-RECORD');
+  assert.equal(wr.totalVerifiedCapabilities, 185);
+  assert.equal(
+    wr.capabilityBreakdown.blueprint2026Baseline +
+      wr.capabilityBreakdown.beyondPeakIteration9 +
+      wr.capabilityBreakdown.worldRecordIteration13,
+    185
+  );
+  assert.equal(wr.polyglot38Audit.totalLanguages, 38);
+  assert.equal(wr.polyglot38Audit.passedLanguages, 38);
+  assert.ok(wr.multicoreAllProfilesAudit.dualDutSpeedupVsXezim4c > 20.0);
+  assert.equal(wr.multicoreAllProfilesAudit.zeroInterpretedCombInsns, true);
+  assert.equal(wr.multicoreAllProfilesAudit.zeroEdgeFallbacks, true);
+  assert.equal(wr.largeWaveArenaAudit.mipmapZoomQueryComplexity, 'O(1)');
+  assert.equal(wr.subsystemHealthChecks.length, 6);
+  assert.ok(wr.subsystemHealthChecks.every((s) => s.status === '100%_OPERATIONAL'));
+  assert.equal(wr.worldRecordBreakthroughs30.length, 30);
+  assert.equal(wr.worldRecordBreakthroughs30[0].code, 'WR-01');
+  assert.equal(wr.worldRecordBreakthroughs30[29].code, 'WR-30');
+  assert.ok(wr.worldRecordBreakthroughs30.every((b) => b.status === 'WORLD_RECORD_VERIFIED'));
+  assert.equal(wr.overallVerdict, 'WORLD_RECORD_185_OF_185_VERIFIED');
+});
+
+test('Iteration 14: Waveform Boolean & Relational Expression Search Engine (evaluateWaveformBooleanExpression)', () => {
+  const sampleRtl = `
+module nova_expr_unit(
+  input logic clk,
+  input logic rst_n,
+  input logic [31:0] alu_a,
+  input logic [31:0] alu_b,
+  output logic [31:0] alu_result,
+  output logic zero_flag
+);
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      alu_result <= 32'h0;
+      zero_flag <= 1'b1;
+    end else begin
+      alu_result <= alu_a + alu_b;
+      zero_flag <= ((alu_a + alu_b) == 32'h0);
+    end
+  end
+endmodule
+`;
+  const sim = simulateVerilogSource([{ path: 'nova_expr_unit.sv', content: sampleRtl }], 200);
+
+  // 1. Evaluate relational equality & inequality
+  const resClkHigh = evaluateWaveformBooleanExpression('clk == 1 && rst_n == 1', sim.signals, sim.steps, sim.end, 0);
+  assert.equal(resClkHigh.valid, true);
+  assert.ok(resClkHigh.matchingTimes.length > 0, 'Must find timestamps where clk == 1 && rst_n == 1');
+  assert.ok(resClkHigh.nextMatchTime !== null && resClkHigh.nextMatchTime > 0);
+  assert.ok(resClkHigh.matchedSignals.length >= 2);
+
+  // 2. Evaluate greater-than comparison on multi-bit bus
+  const resAluGt0 = evaluateWaveformBooleanExpression('alu_result > 0', sim.signals, sim.steps, sim.end, 0);
+  assert.equal(resAluGt0.valid, true);
+  assert.ok(resAluGt0.matchingTimes.length > 0, 'Must find timestamps where alu_result > 0');
+
+  // 3. Invalid signal graceful handling
+  const resInvalid = evaluateWaveformBooleanExpression('nonexistent_sig_xyz == 1', sim.signals, sim.steps, sim.end, 0);
+  assert.equal(resInvalid.valid, false);
+  assert.ok(resInvalid.errorMessage?.includes('No signal matching'));
+});
+
+test('Iteration 15: Compiler-Grade Syntax/Parser Linter (SYN-01..SYN-07) & VIKAS-FORTUNE-AI v4.0 Deep AST Auto-Healer', () => {
+  // Exact corrupted SystemVerilog from user screenshot:
+  // - Line 3: `input lV HCogic clk,` (SYN-01 malformed port data types)
+  // - Line 4: `input logic8T68YF... always_comb rst_n,typedef enum ...` (SYN-02 corrupted token + glued statement)
+  // - Lines 5-18: Behavioral `always_ff` & `always_comb` pasted inside ANSI port header before `);` (SYN-03)
+  // - Line 12: Duplicate `state_t state_q, state_d;` declaration (SYN-05) and multi-driver `SEC-08`
+  // - Lines 19-24: `input logic valid_i, ...` placed after behavioral blocks (SYN-04)
+  const corruptedNovaDspMac = `// [VIKAS-KRONOS] IEEE 1800-2023 SystemVerilog Synthesis & Simulation Target
+module nova_dsp_mac #(parameter int WIDTH = 32) (
+    input lV HCogic           clk,
+    input logic8T68YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF always_comb          rst_n,typedef enum logic [1:0] { S_IDLE, S_ACTIVE, S_DONE } state_t;
+state_t state_q, state_d;
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) state_q <= S_IDLE;
+    else        state_q <= state_d;
+end
+always_comb begin
+    state_d = state_q;
+state_t state_q, state_d;
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) state_q <= S_IDLE;
+    else        state_q <= state_d;
+end
+always_comb begin
+    state_d = state_q;
+    unique case (state_q)
+        S_IDLE:   if (start) state_d = S_ACTIVE;
+        S_ACTIVE: if (done)  state_d = S_DONE;
+        S_DONE:              state_d = S_IDLE;
+        default:             state_d = S_IDLE;
+    endcase
+end
+    input  logic             valid_i,
+    input  logic [WIDTH-1:0] a_i,
+    input  logic [WIDTH-1:0] b_i,
+    input  logic [WIDTH-1:0] acc_i,
+    output logic [WIDTH-1:0] mac_o,
+    output logic             valid_o
+);
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            mac_o   <= '0;
+            valid_o <= 1'b0;
+        end else begin
+            valid_o <= valid_i;
+            if (valid_i) mac_o <= (a_i * b_i) + acc_i;
+        end
+    end
+endmodule`;
+
+  // 1. Verify identifier validator rejects keywords and gibberish
+  assert.equal(isValidHardwareIdentifier('logic'), false);
+  assert.equal(isValidHardwareIdentifier('always_comb'), false);
+  assert.equal(isValidHardwareIdentifier('lV'), false);
+  assert.equal(isValidHardwareIdentifier('HCogic'), false);
+  assert.equal(isValidHardwareIdentifier('logic8T68YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF8YF'), false);
+  assert.equal(isValidHardwareIdentifier('valid_i'), true);
+  assert.equal(isValidHardwareIdentifier('mac_o'), true);
+
+  // 2. Verify lintRtlSource detects SYN-01, SYN-02, SYN-03, SYN-04, SYN-05, and SEC-08
+  const diags = lintRtlSource(corruptedNovaDspMac, 'examples/nova_soc/rtl/core/nova_alu.sv');
+  const rulesFound = new Set(diags.map((d) => d.rule));
+  assert.ok(rulesFound.has('SYN-01'), 'Must detect SYN-01 unknown port data type "lV HCogic"');
+  assert.ok(rulesFound.has('SYN-02'), 'Must detect SYN-02 corrupted token "logic8T68YF..." and glued typedef');
+  assert.ok(rulesFound.has('SYN-03'), 'Must detect SYN-03 behavioral block inside ANSI port list');
+  assert.ok(rulesFound.has('SYN-04'), 'Must detect SYN-04 misplaced port declaration after behavioral blocks');
+  assert.ok(rulesFound.has('SYN-05'), 'Must detect SYN-05 duplicate state_q/state_d declaration');
+  assert.ok(rulesFound.has('SEC-08'), 'Must detect SEC-08 multi-driven net across duplicate blocks');
+
+  // 3. Verify VIKAS-FORTUNE-AI v4.0 completions NEVER suggest `logic` as a [Signal] or `logic8T68YF...`
+  const completions = computeLocalAiRtlCompletions(
+    'logic',
+    corruptedNovaDspMac,
+    140,
+    [],
+    undefined,
+    'SystemVerilog',
+    [{ path: 'corrupted.sv', content: corruptedNovaDspMac }]
+  );
+  const badSignalLogic = completions.find((c) => c.label === 'logic' && c.kind === 'signal');
+  const badCorruptedToken = completions.find((c) => c.label.includes('8T68YF'));
+  const badCrossLangVhdl = completions.find((c) => c.label.includes('VHDL'));
+  assert.equal(badSignalLogic, undefined, 'Reserved keyword "logic" must NEVER be suggested as a [Signal]');
+  assert.equal(badCorruptedToken, undefined, 'Corrupted gibberish token "logic8T68YF..." must NEVER be suggested');
+  assert.equal(badCrossLangVhdl, undefined, 'VHDL keywords must not pollute SystemVerilog completions');
+
+  // 4. Verify Fortune AI 5-Pass Deep AST Auto-Healer repairs the entire corrupted module to 0 errors & 0 warnings
+  const healReport = fortuneAiDeepReasonAndHealRtl(corruptedNovaDspMac, 'examples/nova_soc/rtl/core/nova_alu.sv');
+  assert.ok(healReport.beforeErrors >= 6, 'Corrupted buffer must have >= 6 initial syntax/semantic errors');
+  assert.equal(healReport.afterErrors, 0, 'Fortune AI Auto-Healer must reduce fatal errors to 0');
+  assert.equal(healReport.afterWarnings, 0, 'Fortune AI Auto-Healer must reduce warnings to 0');
+  assert.ok(healReport.reasoningSteps.length >= 4, 'Must provide multi-pass compiler AST reasoning trace');
+  assert.equal(lintRtlSource(healReport.healedCode, 'healed.sv').length, 0, 'Healed code must be 100% zero-lint');
+
+  // 5. Verify applyAllLintQuickFixes also delegates to Fortune AI for structural syntax errors
+  const quickFixRes = applyAllLintQuickFixes(corruptedNovaDspMac, 'examples/nova_soc/rtl/core/nova_alu.sv');
+  assert.equal(lintRtlSource(quickFixRes.fixedCode, 'healed.sv').length, 0);
+
+  // 6. Verify Fortune AI Natural-Language-to-RTL Synthesizer produces 100% zero-lint SystemVerilog
+  for (const prompt of ['synchronous streaming FIFO', 'AMBA AXI4-Lite slave interface', '64-bit superscalar ALU']) {
+    const synth = fortuneAiGenerateRtlFromSpec(prompt, 'SystemVerilog');
+    assert.ok(synth.code.includes(`module ${synth.moduleName}`));
+    assert.equal(lintRtlSource(synth.code, `${synth.moduleName}.sv`).length, 0, `Synthesized ${synth.moduleName} must have 0 lint issues`);
+  }
+});
+
 
 
 

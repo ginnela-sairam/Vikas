@@ -28,10 +28,9 @@ import { ProjectFileItem, RtlEditorIdeTab } from './components/RtlEditorIdeTab';
 import { AnalysisHubAndSignoffTab } from './components/AnalysisHubAndSignoffTab';
 import { DesignIntelAndPhysicsTab } from './components/DesignIntelAndPhysicsTab';
 import { TerminalAndGithubSyncTab } from './components/TerminalAndGithubSyncTab';
-import { Blueprint2026Tab } from './components/Blueprint2026Tab';
 import { CeremorphicProofTab } from './components/CeremorphicProofTab';
 
-type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'terminal' | 'blueprint' | 'proof';
+type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'benchmarks' | 'terminal';
 type ThemeId = 'dark' | 'gold' | 'light' | 'synth';
 
 export function App() {
@@ -331,14 +330,15 @@ export function App() {
 
   const paletteActions = [
     { label: 'Simulate NOVA-SoC (26 files · 455 signals · NOVA-PASS 9/9)', run: () => handleSelectProject('examples/nova_soc/nova.f') },
-    { label: 'Simulate Inferred Latch Trap Demo (Breakthrough #13)', run: () => handleSelectProject('examples/demo_latch_trap.sv') },
+    { label: 'Simulate Inferred Latch Trap Demo (3-Layer Latch Guard)', run: () => handleSelectProject('examples/demo_latch_trap.sv') },
     { label: 'Simulate 12-Bit SAR ADC Mixed-Signal Demo', run: () => handleSelectProject('examples/demo_sar_adc.sv') },
     { label: 'Simulate RISC-V ALU Pipeline Hazard Demo', run: () => handleSelectProject('examples/demo_riscv_alu_hazard.sv') },
-    { label: 'Switch to Waveforms Studio Tab', run: () => setActiveTab('waveforms') },
-    { label: 'Switch to Built-In Multi-File RTL Editor (VIKAS-VED)', run: () => setActiveTab('editor') },
-    { label: 'Switch to Tapeout Signoff & Mutation Testing Hub', run: () => setActiveTab('analysis') },
-    { label: 'Switch to Open-KDB, Counterfactual SAT & Silicon Physics Lab', run: () => setActiveTab('intel') },
-    { label: 'Switch to 60-Command CLI, 5-Terminal QA & GitHub Sync', run: () => setActiveTab('terminal') },
+    { label: 'Switch to Waveforms Studio Tab (VIKAS-TARANG)', run: () => setActiveTab('waveforms') },
+    { label: 'Switch to Built-In 38-Language RTL Editor (VIKAS-VED)', run: () => setActiveTab('editor') },
+    { label: 'Switch to Tapeout Signoff, Formal BMC & Mutation Hub (VIKAS-DRISHTI)', run: () => setActiveTab('analysis') },
+    { label: 'Switch to Open-KDB, Counterfactual SAT & Silicon Physics Lab (VIKAS-NADI)', run: () => setActiveTab('intel') },
+    { label: 'Switch to Multicore Scaling, IEEE 1800.2 UVM & Industry Benchmarks (VIKAS-KRONOS)', run: () => setActiveTab('benchmarks') },
+    { label: 'Switch to 64-Command CLI, 5-Terminal QA & GitHub Sync', run: () => setActiveTab('terminal') },
     { label: 'Download Air-Gapped Linux + Rust Full Tarball (.tar.gz)', run: () => window.location.assign('/api/download-bundle') },
   ];
 
@@ -354,22 +354,22 @@ export function App() {
       }`}
     >
       {/* Top Studio Header Bar */}
-      <header className="min-h-12 py-1 shrink-0 bg-[#111621] border-b border-slate-800 px-3 flex items-center justify-between gap-2 overflow-x-auto">
+      <header className="min-h-11 py-1 shrink-0 bg-[#111621] border-b border-slate-800 px-2.5 flex items-center justify-between gap-2 overflow-x-auto">
         {/* Brand + Active Session Verdict */}
-        <div className="flex items-center gap-2.5 min-w-0 shrink-0">
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-gradient-to-r from-cyan-500/20 to-emerald-500/15 border border-cyan-500/40">
-            <Cpu className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span className="font-extrabold tracking-wider text-xs text-cyan-300 font-mono">
-              VIKAS STUDIO v1.2
+        <div className="flex items-center gap-2 min-w-0 shrink-0">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-gradient-to-r from-cyan-500/20 to-emerald-500/15 border border-cyan-500/40">
+            <Cpu className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span className="font-extrabold tracking-wider text-[11px] text-cyan-300 font-mono">
+              VIKAS STUDIO v3.0
             </span>
           </div>
 
-          <span className="text-xs font-mono text-slate-300 truncate max-w-[220px]" title={sessionTitle}>
+          <span className="hidden 2xl:inline text-xs font-mono text-slate-300 truncate max-w-[160px]" title={sessionTitle}>
             {sessionTitle}
           </span>
 
           <span
-            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border shrink-0 flex items-center gap-1 ${
+            className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border shrink-0 flex items-center gap-1 ${
               verdictKind === 'ok'
                 ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300'
                 : 'bg-rose-950/70 border-rose-500/40 text-rose-300'
@@ -387,8 +387,9 @@ export function App() {
         {/* Center Navigation Tabs */}
         <nav className="flex items-center gap-1 bg-[#0b0e14] p-1 rounded-lg border border-slate-800 shrink-0">
           <button
+            data-testid="nav-tab-waveforms"
             onClick={() => setActiveTab('waveforms')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2 py-1 rounded text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
               activeTab === 'waveforms'
                 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                 : 'text-slate-400 hover:text-slate-200'
@@ -399,8 +400,9 @@ export function App() {
           </button>
 
           <button
+            data-testid="nav-tab-editor"
             onClick={() => setActiveTab('editor')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2 py-1 rounded text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
               activeTab === 'editor'
                 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                 : 'text-slate-400 hover:text-slate-200'
@@ -411,8 +413,9 @@ export function App() {
           </button>
 
           <button
+            data-testid="nav-tab-analysis"
             onClick={() => setActiveTab('analysis')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2 py-1 rounded text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
               activeTab === 'analysis'
                 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                 : 'text-slate-400 hover:text-slate-200'
@@ -423,8 +426,9 @@ export function App() {
           </button>
 
           <button
+            data-testid="nav-tab-intel"
             onClick={() => setActiveTab('intel')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2 py-1 rounded text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
               activeTab === 'intel'
                 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                 : 'text-slate-400 hover:text-slate-200'
@@ -435,44 +439,34 @@ export function App() {
           </button>
 
           <button
+            data-testid="nav-tab-benchmarks"
+            onClick={() => setActiveTab('benchmarks')}
+            className={`px-2 py-1 rounded text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
+              activeTab === 'benchmarks'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                : 'text-cyan-400/90 hover:text-cyan-200'
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+            Multicore · UVM · Benchmarks
+          </button>
+
+          <button
+            data-testid="nav-tab-terminal"
             onClick={() => setActiveTab('terminal')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2 py-1 rounded text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
               activeTab === 'terminal'
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
-            CLI · 5-Term QA · GitHub
-          </button>
-
-          <button
-            onClick={() => setActiveTab('blueprint')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              activeTab === 'blueprint'
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                : 'text-amber-300/80 hover:text-amber-200'
-            }`}
-          >
-            <Zap className="w-3.5 h-3.5" />
-            2026 Blueprint (11-Iter · 155/155)
-          </button>
-
-          <button
-            onClick={() => setActiveTab('proof')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              activeTab === 'proof'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                : 'text-cyan-400/90 hover:text-cyan-200'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-            Ceremorphic Proof (Anna's 4 Qs)
+            CLI · 5-Term · GitHub
           </button>
         </nav>
 
         {/* Right Telemetry Chips & Utilities */}
-        <div className="hidden xl:flex items-center gap-2 text-[11px] font-mono shrink-0">
+        <div className="hidden xl:flex items-center gap-1.5 text-[10.5px] font-mono shrink-0">
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
             {Math.round(endNs / 10)} cyc · {nev.toLocaleString()} ev
           </span>
@@ -510,7 +504,7 @@ export function App() {
 
           <a
             href="/api/download-bundle"
-            download="vikas-v1.2-linux-airgapped-full.tar.gz"
+            download="vikas-v3.0-linux-airgapped-full.tar.gz"
             className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1"
             title="Download complete Linux + Rust + C++20 air-gapped repository tarball"
           >
@@ -533,7 +527,7 @@ export function App() {
         {loading ? (
           <div className="h-full w-full flex flex-col items-center justify-center gap-3 font-mono text-sm text-cyan-300">
             <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-            <div>Loading VIKAS v1.2 Topo-Scheduled NOVA-SoC Session (455 signals · 14,579 events)...</div>
+            <div>Loading VIKAS v3.0 Topo-Scheduled NOVA-SoC Session (455 signals · 14,579 events)...</div>
           </div>
         ) : activeTab === 'waveforms' ? (
           <WaveformStudioTab
@@ -589,9 +583,7 @@ export function App() {
             cursorTimeNs={curA ?? 150}
             onJumpToSourceFile={(fp) => handleJumpToSource(fp)}
           />
-        ) : activeTab === 'blueprint' ? (
-          <Blueprint2026Tab />
-        ) : activeTab === 'proof' ? (
+        ) : activeTab === 'benchmarks' ? (
           <CeremorphicProofTab
             kdb={kdb}
             signals={signals}
@@ -654,7 +646,7 @@ export function App() {
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <h3 className="text-sm font-bold font-mono text-cyan-300">
-                VIKAS STUDIO v1.2 — Keyboard Shortcuts
+                VIKAS STUDIO v3.0 — Keyboard Shortcuts
               </h3>
               <button
                 onClick={() => setHelpModalOpen(false)}
