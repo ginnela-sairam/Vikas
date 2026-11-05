@@ -18,6 +18,9 @@ import {
   computeSignoffScore,
   computeSwitchingPower,
   computeWaveformDiff,
+  createSimulationBookmark,
+  computeBookmarkViewport,
+  filterVisibleSignalsByNameAndType,
   createStreamingWaveChunks,
   decodeProtocolSwimlanes,
   downsampleLttb,
@@ -1009,6 +1012,105 @@ endmodule`;
   // Q4: Multicore Big-Design Summary
   assert.equal(proof.q4MulticoreBigDesignSummary.selectedCores, 16);
 });
+
+test('Iteration 11: WaveformStudioTab simulation time-point bookmark creation and viewport calculation', () => {
+  // Test 1: createSimulationBookmark with single cursor
+  const bm1 = createSimulationBookmark('Reset Deasserted', 40, null, '#38bdf8', 'Power-on reset release');
+  assert.ok(bm1.id.startsWith('bm-'));
+  assert.equal(bm1.name, 'Reset Deasserted');
+  assert.equal(bm1.timeA, 40);
+  assert.equal(bm1.timeB, null);
+  assert.equal(bm1.deltaNs, null);
+  assert.equal(bm1.color, '#38bdf8');
+  assert.equal(bm1.notes, 'Power-on reset release');
+
+  // Test 2: createSimulationBookmark with dual cursors (Cursor A and B)
+  const bm2 = createSimulationBookmark('ALU Pipeline Hazard Window', 200, 240, '#f59e0b', 'Forwarding RAW hazard window');
+  assert.equal(bm2.timeA, 200);
+  assert.equal(bm2.timeB, 240);
+  assert.equal(bm2.deltaNs, 40);
+
+  // Test 3: computeBookmarkViewport centering single cursor
+  const vp1 = computeBookmarkViewport(bm1, 100, 1000);
+  assert.equal(vp1.curA, 40);
+  assert.equal(vp1.curB, null);
+  assert.ok(vp1.targetT0 >= 0);
+  assert.ok(vp1.targetT0 <= 40);
+
+  // Test 4: computeBookmarkViewport framing dual cursors
+  const vp2 = computeBookmarkViewport(bm2, 100, 1000);
+  assert.equal(vp2.curA, 200);
+  assert.equal(vp2.curB, 240);
+  // Viewport span should encompass the 40ns delta with margin
+  assert.ok(vp2.targetTspan >= 40);
+  assert.ok(vp2.targetT0 <= 200);
+  assert.ok(vp2.targetT0 + vp2.targetTspan >= 240);
+});
+
+test('Iteration 11: WaveformStudioTab visible signal list filtering by name and by type', () => {
+  const dummySignals = [
+    { n: 'nova_soc.clk', w: 1, k: 'clock' as const },
+    { n: 'nova_soc.rst_n', w: 1, k: 'reset' as const },
+    { n: 'nova_soc.core.pc', w: 32, k: 'reg' as const },
+    { n: 'nova_soc.core.alu_y', w: 32, k: 'wire' as const },
+    { n: 'nova_soc.uart.tx_data', w: 8, k: 'wire' as const },
+    { n: 'nova_soc.uart.tx_valid', w: 1, k: 'wire' as const },
+    { n: 'nova_soc.adc.analog_in', w: 12, k: 'analog' as const },
+    { n: 'nova_soc.timer.count_q', w: 16, k: 'reg' as const },
+  ];
+
+  const dummyRows = dummySignals.map((_, i) => ({
+    id: `row-${i}`,
+    si: i,
+    radix: null,
+    color: null,
+    expanded: false,
+    analog: dummySignals[i].k === 'analog',
+  }));
+
+  // Test 1: All signals with empty filter
+  const allFiltered = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'ALL');
+  assert.equal(allFiltered.length, 8);
+
+  // Test 2: Search by partial name (e.g. 'uart')
+  const uartSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, 'uart', 'ALL');
+  assert.equal(uartSignals.length, 2);
+  assert.ok(uartSignals.every((r) => dummySignals[r.si].n.includes('uart')));
+
+  // Test 3: Filter by type CLOCK
+  const clockSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'CLOCK');
+  assert.equal(clockSignals.length, 1);
+  assert.equal(dummySignals[clockSignals[0].si].n, 'nova_soc.clk');
+
+  // Test 4: Filter by type RESET
+  const resetSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'RESET');
+  assert.equal(resetSignals.length, 1);
+  assert.equal(dummySignals[resetSignals[0].si].n, 'nova_soc.rst_n');
+
+  // Test 5: Filter by type BUS (>1 bit)
+  const busSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'BUS');
+  assert.ok(busSignals.every((r) => dummySignals[r.si].w > 1));
+  assert.equal(busSignals.length, 5); // pc, alu_y, tx_data, analog_in, count_q
+
+  // Test 6: Filter by type SCALAR (1 bit)
+  const scalarSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'SCALAR');
+  assert.ok(scalarSignals.every((r) => dummySignals[r.si].w === 1));
+  assert.equal(scalarSignals.length, 3); // clk, rst_n, tx_valid
+
+  // Test 7: Filter by type DATA
+  const dataSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'DATA');
+  assert.ok(dataSignals.length >= 2); // alu_y, tx_data
+
+  // Test 8: Filter by type CONTROL
+  const controlSignals = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, '', 'CONTROL');
+  assert.ok(controlSignals.some((r) => dummySignals[r.si].n.includes('tx_valid')));
+
+  // Test 9: Combined name and type filtering (e.g. name 'tx' and type 'SCALAR')
+  const txScalar = filterVisibleSignalsByNameAndType(dummyRows, dummySignals, 'tx', 'SCALAR');
+  assert.equal(txScalar.length, 1);
+  assert.equal(dummySignals[txScalar[0].si].n, 'nova_soc.uart.tx_valid');
+});
+
 
 
 

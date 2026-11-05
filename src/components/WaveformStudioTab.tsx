@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
+  Bookmark,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Compass,
   Crosshair,
   Download,
   Expand,
@@ -12,28 +14,35 @@ import {
   Filter,
   FolderOpen,
   Layers,
+  MapPin,
   Maximize2,
   Minimize2,
   Play,
   Plus,
+  RotateCcw,
   Ruler,
   Search,
   Sparkles,
+  Tag,
   Trash2,
+  X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
 import {
   compute3dTimeBitPowerSurface,
+  computeBookmarkViewport,
   computeEyeDiagram,
   computeGlitchXzHeatRibbon,
   computeMipmapEnvelopes,
   computeWaveformDiff,
+  createSimulationBookmark,
   createStreamingWaveChunks,
   decodeProtocolSwimlanes,
   evaluateTemporalSvaSequence,
   exportPublicationWaveform,
   extractPipelineWaterfall,
+  filterVisibleSignalsByNameAndType,
   filterWaveformSignalsByRegex,
   formatSignalValue,
   generateResearchPaperPdfBytes,
@@ -42,6 +51,7 @@ import {
   SigKind,
   SignalMeta,
   SignalSteps,
+  SimulationBookmark,
   simulateWhatIfWaveformPatch,
   traceCausalConeAtTime,
   valAtTime,
@@ -140,6 +150,58 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
   // Iteration 9: IEEE / ISSCC Research-Paper Formatted PDF Simulation Summary Modal
   const [pdfReportModalOpen, setPdfReportModalOpen] = useState<boolean>(false);
   const [pdfDownloadedBanner, setPdfDownloadedBanner] = useState<string | null>(null);
+
+  // Iteration 11: Simulation Time-Point Bookmarks & Visible Signal Filter States
+  const [bookmarks, setBookmarks] = useState<SimulationBookmark[]>([
+    {
+      id: 'bm-seed-1',
+      name: 'T0: Reset Release & Clock Align',
+      timeA: 40,
+      timeB: 80,
+      deltaNs: 40,
+      color: '#38bdf8',
+      notes: 'Active-low reset deasserted; system PLL locked to 100MHz.',
+      createdAt: '09:00:00',
+    },
+    {
+      id: 'bm-seed-2',
+      name: 'T1: First Instruction Fetch & Decode',
+      timeA: 120,
+      timeB: 160,
+      deltaNs: 40,
+      color: '#34d399',
+      notes: 'PC=0x8000_0000 fetched; opcode decoded to ADDI.',
+      createdAt: '09:02:15',
+    },
+    {
+      id: 'bm-seed-3',
+      name: 'T2: ALU Hazard & Forwarding Window',
+      timeA: 240,
+      timeB: 280,
+      deltaNs: 40,
+      color: '#f59e0b',
+      notes: 'RAW hazard detected on rs1=x5; EX-to-EX forwarding activated.',
+      createdAt: '09:05:40',
+    },
+    {
+      id: 'bm-seed-4',
+      name: 'T3: Memory Writeback & Retire',
+      timeA: 420,
+      timeB: 480,
+      deltaNs: 60,
+      color: '#a855f7',
+      notes: 'Store data committed to nova_ram; retirement counter incremented.',
+      createdAt: '09:08:12',
+    },
+  ]);
+  const [activeRightDockTab, setActiveRightDockTab] = useState<'INSPECTOR' | 'BOOKMARKS'>('BOOKMARKS');
+  const [newBookmarkName, setNewBookmarkName] = useState('');
+  const [newBookmarkNotes, setNewBookmarkNotes] = useState('');
+  const [newBookmarkColor, setNewBookmarkColor] = useState('#f59e0b');
+  const [showAddBookmarkDialog, setShowAddBookmarkDialog] = useState(false);
+  const [visibleSignalFilter, setVisibleSignalFilter] = useState('');
+  const [visibleTypeFilter, setVisibleTypeFilter] = useState<string>('ALL');
+
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;
     y: number;
@@ -224,12 +286,57 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
     }));
   }, [rows, treeFilter, regexFilterResult, matchedSignalIndexSet, signals]);
 
-  const inViewSet = useMemo(() => new Set(filteredRows.map((r) => r.si)), [filteredRows]);
+  // Iteration 11: Filter visible signals list by name or type
+  const displayedWaveRows = useMemo(() => {
+    return filterVisibleSignalsByNameAndType(
+      filteredRows,
+      signals,
+      visibleSignalFilter,
+      visibleTypeFilter
+    );
+  }, [filteredRows, signals, visibleSignalFilter, visibleTypeFilter]);
+
+  const inViewSet = useMemo(() => new Set(displayedWaveRows.map((r) => r.si)), [displayedWaveRows]);
 
   const selectedRow = useMemo(
-    () => filteredRows.find((r) => r.id === selectedId) || filteredRows[0] || rows[0] || null,
-    [filteredRows, rows, selectedId]
+    () => displayedWaveRows.find((r) => r.id === selectedId) || displayedWaveRows[0] || rows[0] || null,
+    [displayedWaveRows, rows, selectedId]
   );
+
+  // Navigation handlers for simulation bookmarks
+  const handleJumpToBookmark = (bm: SimulationBookmark) => {
+    const { targetT0, targetTspan, curA: newA, curB: newB } = computeBookmarkViewport(
+      bm,
+      tspan,
+      endNs
+    );
+    setT0(targetT0);
+    setTspan(targetTspan);
+    if (newA !== null) setCurA(newA);
+    if (newB !== null) setCurB(newB);
+  };
+
+  const handleCreateBookmark = () => {
+    const timeA = curA !== null ? curA : Math.round(t0 + tspan * 0.25);
+    const timeB = curB !== null ? curB : null;
+    const name = newBookmarkName.trim() || `Bookmark @ ${timeA}ns${timeB !== null ? ` / ${timeB}ns` : ''}`;
+    const newBm = createSimulationBookmark(
+      name,
+      timeA,
+      timeB,
+      newBookmarkColor,
+      newBookmarkNotes
+    );
+    setBookmarks((prev) => [newBm, ...prev]);
+    setNewBookmarkName('');
+    setNewBookmarkNotes('');
+    setShowAddBookmarkDialog(false);
+    setActiveRightDockTab('BOOKMARKS');
+  };
+
+  const handleDeleteBookmark = (id: string) => {
+    setBookmarks((prev) => prev.filter((b) => b.id !== id));
+  };
 
   // WV-02: Causal Cone-of-Influence (COI) Ray-Tracer edges for selected signal @ Cursor A
   const coiRays = useMemo(() => {
@@ -321,7 +428,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       displayedSignalsCount: filteredRows.length,
       activeRegexFilter: treeFilter.trim() || '*',
     });
-  }, [kdb, activeTarget, signals, steps, endNs, filteredRows.length, treeFilter]);
+  }, [kdb, activeTarget, signals, steps, endNs, displayedWaveRows.length, treeFilter]);
 
   const handleDownloadPdfReport = () => {
     const pdfContent = generateResearchPaperPdfBytes(paperReportData);
@@ -342,7 +449,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
     );
   };
 
-  // Compute vertical layout of rows (accounting for bus bit expansion, analog height, and active regex filter)
+  // Compute vertical layout of rows (accounting for bus bit expansion, analog height, and active regex/type filter)
   const layoutItems = useMemo(() => {
     const out: {
       row: WaveRowItem;
@@ -352,7 +459,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       h: number;
     }[] = [];
     let y = 28; // top ruler height
-    for (const r of filteredRows) {
+    for (const r of displayedWaveRows) {
       const sig = signals[r.si];
       if (!sig) continue;
       const h = r.analog && sig.w >= 4 ? 54 : 26;
@@ -367,7 +474,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       }
     }
     return { items: out, totalHeight: Math.max(y + 20, 420) };
-  }, [filteredRows, signals]);
+  }, [displayedWaveRows, signals]);
 
   const [viewportSize, setViewportSize] = useState<{ w: number; h: number }>({ w: 960, h: 640 });
 
@@ -725,6 +832,32 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       ctx.fillText(label, pillX + 9, 61);
     }
 
+    // Iteration 11: Render Simulation Time-Point Bookmark Vertical Flags & Markers
+    for (const bm of bookmarks) {
+      if (bm.timeA !== null && bm.timeA >= t0 && bm.timeA <= t0 + tspan) {
+        const bx = timeToX(bm.timeA);
+        ctx.strokeStyle = bm.color || '#f59e0b';
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(bx, 24);
+        ctx.lineTo(bx, H);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Bookmark Flag Pin Tag
+        const tagText = `★ ${bm.name}`;
+        ctx.font = '700 9px JetBrains Mono, monospace';
+        const tagW = Math.min(130, ctx.measureText(tagText).width + 10);
+        ctx.fillStyle = bm.color || '#f59e0b';
+        ctx.beginPath();
+        ctx.roundRect(Math.max(x0 + 2, bx - 2), 4, tagW, 18, 3);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(tagText.slice(0, 16), Math.max(x0 + 5, bx + 2), 16);
+      }
+    }
+
     // WV-08: Draw What-If Counterfactual Patched Signal Delta Overlay
     if (whatIfPatch) {
       for (const aff of whatIfPatch.affectedSignals) {
@@ -842,6 +975,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
     whatIfPatch,
     showSvaHighlights,
     svaMatches,
+    bookmarks,
   ]);
 
   // Draw minimap navigator
@@ -893,6 +1027,19 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
       ctx.fillRect(i * ribW, 1, Math.max(1, ribW - 0.5), 4);
     }
 
+    // Iteration 11: Bookmark ticks on minimap
+    for (const bm of bookmarks) {
+      if (bm.timeA !== null) {
+        const mx = (bm.timeA / maxEnd) * W;
+        ctx.strokeStyle = bm.color || '#f59e0b';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(mx, 0);
+        ctx.lineTo(mx, H);
+        ctx.stroke();
+      }
+    }
+
     // Current viewport box
     const vx0 = (t0 / maxEnd) * W;
     const vw = Math.max(12, (tspan / maxEnd) * W);
@@ -901,7 +1048,7 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
     ctx.lineWidth = 1.5;
     ctx.fillRect(vx0, 2, vw, H - 4);
     ctx.strokeRect(vx0, 2, vw, H - 4);
-  }, [steps, endNs, t0, tspan, viewportSize, heatRibbon]);
+  }, [steps, endNs, t0, tspan, viewportSize, heatRibbon, bookmarks]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const cv = canvasRef.current;
@@ -1281,6 +1428,24 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
           PDF Report (IEEE)
         </button>
 
+        <button
+          type="button"
+          data-testid="toggle-bookmarks-panel-btn"
+          onClick={() => {
+            setActiveRightDockTab('BOOKMARKS');
+            setShowAddBookmarkDialog(true);
+          }}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs border font-mono font-semibold cursor-pointer transition-colors ${
+            activeRightDockTab === 'BOOKMARKS'
+              ? 'bg-amber-950/70 hover:bg-amber-900/80 border-amber-500/60 text-amber-200 shadow-xs'
+              : 'bg-[var(--panel2)] hover:bg-[var(--raised)] border-[var(--edge)] text-[var(--txt)]'
+          }`}
+          title="Bookmark simulation time-points using Cursors A & B and open Bookmarks navigation panel"
+        >
+          <Bookmark className="w-3.5 h-3.5 text-amber-400" />
+          <span>Bookmarks ({bookmarks.length})</span>
+        </button>
+
         {/* Search & Temporal Query Box */}
         <div className="flex items-center bg-[var(--bg2)] border border-[var(--edge2)] rounded px-2 py-0.5 ml-1 flex-1 max-w-md">
           <Search className="w-3.5 h-3.5 text-[var(--dim)] mr-1.5 shrink-0" />
@@ -1563,6 +1728,134 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
 
         {/* Center Waveform Canvas + Pipeline Waterfall + Minimap */}
         <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg)] relative">
+          {/* Iteration 11: Dedicated Visible Signal Search & Type Filter Bar */}
+          <div className="px-3 py-1.5 bg-[#0b101d] border-b border-[var(--edge)] flex flex-wrap items-center gap-2 font-mono text-xs shrink-0 z-10 shadow-xs">
+            {/* Search Input Field */}
+            <div className="flex items-center gap-1.5 bg-[var(--bg2)] border border-[var(--edge2)] rounded px-2.5 py-1 flex-1 min-w-[220px] max-w-md focus-within:border-[var(--accent)] transition-all">
+              <Search className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <input
+                data-testid="visible-signal-search-input"
+                aria-label="Filter visible signals by name or type"
+                value={visibleSignalFilter}
+                onChange={(e) => setVisibleSignalFilter(e.target.value)}
+                placeholder="Filter visible signals by name (e.g. clk, pc, alu, uart)..."
+                className="w-full bg-transparent text-xs font-mono text-[var(--txt)] outline-none min-w-0 placeholder:text-slate-500"
+              />
+              {visibleSignalFilter && (
+                <button
+                  type="button"
+                  data-testid="clear-visible-signal-search-btn"
+                  onClick={() => setVisibleSignalFilter('')}
+                  aria-label="Clear visible signal search"
+                  className="text-[var(--dim)] hover:text-[var(--txt)] p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Type Filter Selectors */}
+            <div className="flex items-center gap-1 overflow-x-auto text-[11px]">
+              <span className="text-[var(--dim)] text-[10px] uppercase font-bold tracking-wider mr-1 flex items-center gap-1">
+                <Filter className="w-3 h-3 text-[var(--accent)]" />
+                Type:
+              </span>
+              {(
+                [
+                  { key: 'ALL', label: 'All' },
+                  { key: 'CLOCK', label: 'Clock' },
+                  { key: 'RESET', label: 'Reset' },
+                  { key: 'BUS', label: 'Bus (>1b)' },
+                  { key: 'SCALAR', label: 'Scalar (1b)' },
+                  { key: 'DATA', label: 'Data' },
+                  { key: 'CONTROL', label: 'Control' },
+                  { key: 'ANALOG', label: 'Analog' },
+                ] as const
+              ).map((typeItem) => {
+                const active = visibleTypeFilter === typeItem.key;
+                return (
+                  <button
+                    key={typeItem.key}
+                    type="button"
+                    data-testid={`filter-type-${typeItem.key.toLowerCase()}`}
+                    onClick={() => setVisibleTypeFilter(typeItem.key)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                      active
+                        ? 'bg-[var(--accent)] text-slate-950 font-bold shadow-xs'
+                        : 'bg-[var(--panel2)] hover:bg-[var(--raised)] text-[var(--dim)] hover:text-[var(--txt)] border border-[var(--edge)]'
+                    }`}
+                  >
+                    {typeItem.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Counter badge, quick add, & reset */}
+            <div className="ml-auto flex items-center gap-2 shrink-0">
+              <span
+                data-testid="visible-signals-count-badge"
+                className={`text-[10px] px-2 py-0.5 rounded font-mono border font-semibold ${
+                  visibleSignalFilter || visibleTypeFilter !== 'ALL'
+                    ? 'bg-cyan-950/70 border-cyan-500/50 text-cyan-200'
+                    : 'bg-slate-800/80 border-slate-700/60 text-slate-300'
+                }`}
+              >
+                Showing {displayedWaveRows.length} / {filteredRows.length} signals
+              </span>
+
+              {/* Quick Add matching signals from workspace if search term matches signals not yet added to view */}
+              {visibleSignalFilter.trim() && (() => {
+                const term = visibleSignalFilter.trim().toLowerCase();
+                const matchedWorkspace = signals.filter(
+                  (s, idx) =>
+                    !rows.some((r) => r.si === idx) &&
+                    (s.n.toLowerCase().includes(term) || (s.n.split('.').pop() || '').toLowerCase().includes(term))
+                );
+                if (matchedWorkspace.length === 0) return null;
+                return (
+                  <button
+                    type="button"
+                    data-testid="add-matching-workspace-signals-btn"
+                    onClick={() => {
+                      const newItems: WaveRowItem[] = matchedWorkspace.slice(0, 16).map((s) => {
+                        const si = signals.indexOf(s);
+                        return {
+                          id: `row-find-${Date.now()}-${si}`,
+                          si,
+                          radix: null,
+                          color: null,
+                          expanded: false,
+                          analog: false,
+                        };
+                      });
+                      setRows((prev) => [...prev, ...newItems]);
+                    }}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/50 text-emerald-300 cursor-pointer"
+                    title={`Add ${matchedWorkspace.length} matching un-added signals to the waveform view`}
+                  >
+                    <Plus className="w-3 h-3 text-emerald-400" />
+                    +Add {Math.min(16, matchedWorkspace.length)} matching
+                  </button>
+                );
+              })()}
+
+              {(visibleSignalFilter || visibleTypeFilter !== 'ALL') && (
+                <button
+                  type="button"
+                  data-testid="reset-all-signal-filters-btn"
+                  onClick={() => {
+                    setVisibleSignalFilter('');
+                    setVisibleTypeFilter('ALL');
+                  }}
+                  className="text-[10px] text-amber-400 hover:text-amber-300 underline font-mono cursor-pointer"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* WV-04: Synchronized CPU Instruction Pipeline Waterfall Strip */}
           {showWaterfall && waterfallSlots.length > 0 && (
             <div className="h-9 bg-[#0e1525] border-b border-[var(--edge)] flex items-center px-2 gap-1 overflow-x-auto shrink-0 font-mono text-[10px]">
@@ -1667,6 +1960,34 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
               }}
               className="block cursor-crosshair"
             />
+            {displayedWaveRows.length === 0 && (
+              <div
+                data-testid="no-matching-signals-banner"
+                className="absolute inset-x-0 top-24 flex flex-col items-center justify-center p-8 text-center text-xs font-mono space-y-2 pointer-events-auto"
+              >
+                <div className="p-3 rounded-full bg-slate-800 text-slate-400">
+                  <Search className="w-6 h-6" />
+                </div>
+                <div className="text-slate-200 font-semibold">
+                  No signals match filter &quot;{visibleSignalFilter}&quot;
+                  {visibleTypeFilter !== 'ALL' ? ` with type ${visibleTypeFilter}` : ''}
+                </div>
+                <div className="text-[11px] text-slate-400 max-w-sm">
+                  Try adjusting the name query or type filter pill, or reset filters to display all visible signals.
+                </div>
+                <button
+                  type="button"
+                  data-testid="empty-state-reset-filter-btn"
+                  onClick={() => {
+                    setVisibleSignalFilter('');
+                    setVisibleTypeFilter('ALL');
+                  }}
+                  className="px-3 py-1.5 rounded bg-[var(--accent)] text-slate-950 font-bold text-xs cursor-pointer shadow-xs"
+                >
+                  Reset Signal Filter
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Minimap Navigator */}
@@ -1712,19 +2033,46 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
           )}
         </div>
 
-        {/* Right Signal Properties & Cross-Probe Dock */}
-        <aside className="w-72 bg-[var(--panel)] border-l border-[var(--edge)] flex flex-col min-h-0 shrink-0">
-          <div className="px-3 py-1.5 border-b border-[var(--edge)] text-[11px] font-bold tracking-wider uppercase text-[var(--dim)]">
-            Signal Inspector
+        {/* Right Dock: Signal Properties & Simulation Time-Point Bookmarks */}
+        <aside className="w-80 bg-[var(--panel)] border-l border-[var(--edge)] flex flex-col min-h-0 shrink-0">
+          {/* Dock Navigation Tabs */}
+          <div className="flex border-b border-[var(--edge)] bg-[var(--bg2)]/60 text-xs font-mono shrink-0">
+            <button
+              type="button"
+              data-testid="tab-signal-inspector"
+              onClick={() => setActiveRightDockTab('INSPECTOR')}
+              className={`flex-1 py-2 px-3 font-semibold text-center border-b-2 cursor-pointer transition-colors ${
+                activeRightDockTab === 'INSPECTOR'
+                  ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--panel)]'
+                  : 'border-transparent text-[var(--dim)] hover:text-[var(--txt)]'
+              }`}
+            >
+              Signal Inspector
+            </button>
+            <button
+              type="button"
+              data-testid="tab-simulation-bookmarks"
+              onClick={() => setActiveRightDockTab('BOOKMARKS')}
+              className={`flex-1 py-2 px-3 font-semibold text-center border-b-2 cursor-pointer transition-colors flex items-center justify-center gap-1.5 ${
+                activeRightDockTab === 'BOOKMARKS'
+                  ? 'border-amber-400 text-amber-300 bg-[var(--panel)]'
+                  : 'border-transparent text-[var(--dim)] hover:text-[var(--txt)]'
+              }`}
+            >
+              <Bookmark className="w-3.5 h-3.5 text-amber-400" />
+              <span>Bookmarks ({bookmarks.length})</span>
+            </button>
           </div>
-          <div className="p-3 space-y-4 overflow-y-auto text-xs flex-1">
-            {selectedRow && signals[selectedRow.si] ? (
-              (() => {
-                const sig = signals[selectedRow.si];
-                const st = steps[selectedRow.si];
-                const rdx = selectedRow.radix || defRadix;
-                const valA = curA !== null ? formatSignalValue(valAtTime(st, sig.w, curA), sig.w, rdx) : '—';
-                const valB = curB !== null ? formatSignalValue(valAtTime(st, sig.w, curB), sig.w, rdx) : '—';
+
+          {activeRightDockTab === 'INSPECTOR' ? (
+            <div className="p-3 space-y-4 overflow-y-auto text-xs flex-1">
+              {selectedRow && signals[selectedRow.si] ? (
+                (() => {
+                  const sig = signals[selectedRow.si];
+                  const st = steps[selectedRow.si];
+                  const rdx = selectedRow.radix || defRadix;
+                  const valA = curA !== null ? formatSignalValue(valAtTime(st, sig.w, curA), sig.w, rdx) : '—';
+                  const valB = curB !== null ? formatSignalValue(valAtTime(st, sig.w, curB), sig.w, rdx) : '—';
                 return (
                   <>
                     <div className="space-y-1.5">
@@ -1993,7 +2341,238 @@ export const WaveformStudioTab: React.FC<WaveformStudioTabProps> = ({
               </div>
             )}
           </div>
-        </aside>
+        ) : (
+          /* Dedicated Simulation Time-Point Bookmarks Side-Panel */
+          <div className="p-3 space-y-3 overflow-y-auto text-xs flex-1 flex flex-col font-mono">
+            {/* Header Info & Quick Capture Button */}
+            <div className="p-2.5 rounded-lg bg-amber-950/20 border border-amber-500/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-300 flex items-center gap-1">
+                  <Bookmark className="w-3.5 h-3.5 text-amber-400" />
+                  Time-Point Bookmarks
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {bookmarks.length} saved
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-300">
+                Save critical simulation milestones, glitches, or hazard intervals from Cursor A & B for instant navigation.
+              </div>
+              <button
+                type="button"
+                data-testid="add-current-cursors-bookmark-btn"
+                onClick={() => setShowAddBookmarkDialog((v) => !v)}
+                className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer shadow-xs transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>
+                  {showAddBookmarkDialog
+                    ? 'Close Form'
+                    : `+ Bookmark Cursors (${curA !== null ? `${curA}ns` : '0ns'}${curB !== null ? ` · ${curB}ns` : ''})`}
+                </span>
+              </button>
+            </div>
+
+            {/* Inline Bookmark Creation Form */}
+            {showAddBookmarkDialog && (
+              <div className="p-2.5 rounded-lg bg-[var(--bg2)] border border-[var(--edge2)] space-y-2.5">
+                <div className="flex items-center justify-between text-[11px] font-bold text-amber-300">
+                  <span>Create Milestone Bookmark</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddBookmarkDialog(false)}
+                    className="text-slate-400 hover:text-white p-0.5 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-[var(--dim)] uppercase font-semibold">Name / Label</label>
+                  <input
+                    data-testid="new-bookmark-name-input"
+                    value={newBookmarkName}
+                    onChange={(e) => setNewBookmarkName(e.target.value)}
+                    placeholder={`e.g. DMA Buffer Flush @ ${curA !== null ? curA : 0}ns`}
+                    className="w-full bg-[var(--panel)] border border-[var(--edge)] rounded px-2 py-1 text-xs text-[var(--txt)] outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="bg-[var(--panel)] p-1.5 rounded border border-[var(--edge)]">
+                    <span className="text-[var(--dim)] block">Cursor A</span>
+                    <span className="text-cyan-300 font-bold">{curA !== null ? `${curA} ns` : '0 ns'}</span>
+                  </div>
+                  <div className="bg-[var(--panel)] p-1.5 rounded border border-[var(--edge)]">
+                    <span className="text-[var(--dim)] block">Cursor B</span>
+                    <span className="text-emerald-300 font-bold">{curB !== null ? `${curB} ns` : '—'}</span>
+                  </div>
+                </div>
+
+                {curA !== null && curB !== null && (
+                  <div className="text-[10px] text-emerald-300 bg-emerald-950/40 p-1.5 rounded border border-emerald-500/30">
+                    Δt: {Math.abs(curB - curA)} ns · Freq: {Math.abs(curB - curA) > 0 ? (1000 / Math.abs(curB - curA)).toFixed(2) : '∞'} MHz
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-[var(--dim)] uppercase font-semibold">Flag Color</label>
+                  <div className="flex items-center gap-1.5">
+                    {[
+                      { color: '#f59e0b', name: 'Amber' },
+                      { color: '#38bdf8', name: 'Sky' },
+                      { color: '#34d399', name: 'Emerald' },
+                      { color: '#a855f7', name: 'Purple' },
+                      { color: '#f43f5e', name: 'Rose' },
+                      { color: '#fb923c', name: 'Orange' },
+                    ].map((cp) => (
+                      <button
+                        key={cp.color}
+                        type="button"
+                        onClick={() => setNewBookmarkColor(cp.color)}
+                        style={{ backgroundColor: cp.color }}
+                        className={`w-5 h-5 rounded-full cursor-pointer transition-transform ${
+                          newBookmarkColor === cp.color ? 'ring-2 ring-white scale-110' : 'opacity-80 hover:opacity-100'
+                        }`}
+                        title={cp.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-[var(--dim)] uppercase font-semibold">Notes / Description (Optional)</label>
+                  <textarea
+                    data-testid="new-bookmark-notes-input"
+                    value={newBookmarkNotes}
+                    onChange={(e) => setNewBookmarkNotes(e.target.value)}
+                    placeholder="e.g. Bus grant handshake verified; pipeline hazard flushed."
+                    rows={2}
+                    className="w-full bg-[var(--panel)] border border-[var(--edge)] rounded px-2 py-1 text-xs text-[var(--txt)] outline-none focus:border-amber-400 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    data-testid="save-bookmark-btn"
+                    onClick={handleCreateBookmark}
+                    className="flex-1 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer shadow-xs"
+                  >
+                    Save Milestone
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddBookmarkDialog(false)}
+                    className="px-2 py-1 rounded bg-[var(--raised)] text-[var(--dim)] hover:text-[var(--txt)] text-xs cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Bookmarks List */}
+            <div className="space-y-2 flex-1 overflow-y-auto">
+              {bookmarks.length === 0 ? (
+                <div className="text-center py-8 text-[var(--dim)] space-y-2">
+                  <Bookmark className="w-8 h-8 mx-auto text-slate-600 opacity-60" />
+                  <div>No bookmarks saved yet.</div>
+                  <div className="text-[10px] text-slate-500">
+                    Move Cursors A and B to any point in the waveform and click "+ Bookmark Cursors".
+                  </div>
+                </div>
+              ) : (
+                bookmarks.map((bm) => (
+                  <div
+                    key={bm.id}
+                    data-testid={`bookmark-card-${bm.id}`}
+                    className="p-2.5 rounded-lg bg-[var(--bg2)] border border-[var(--edge)] hover:border-amber-500/50 transition-all space-y-2 relative group"
+                  >
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: bm.color }}
+                        />
+                        <span className="font-bold text-xs text-[var(--txt)] truncate">
+                          {bm.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        data-testid={`delete-bookmark-${bm.id}`}
+                        onClick={() => handleDeleteBookmark(bm.id)}
+                        className="text-[var(--dim)] hover:text-rose-400 p-0.5 cursor-pointer opacity-70 group-hover:opacity-100 transition-opacity"
+                        title="Delete bookmark"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Cursor Time Badges */}
+                    <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                      <span className="px-1.5 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/40 text-cyan-200 font-semibold">
+                        A: {bm.timeA !== null ? `${bm.timeA}ns` : '—'}
+                      </span>
+                      {bm.timeB !== null && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/40 text-emerald-200 font-semibold">
+                          B: {bm.timeB}ns
+                        </span>
+                      )}
+                      {bm.deltaNs !== null && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-950/70 border border-amber-500/40 text-amber-200 font-semibold">
+                          Δt: {bm.deltaNs}ns
+                          {bm.deltaNs > 0 ? ` · ${(1000 / bm.deltaNs).toFixed(1)}MHz` : ''}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Optional Notes */}
+                    {bm.notes && (
+                      <div className="text-[11px] text-slate-400 bg-[var(--panel)] p-1.5 rounded border border-[var(--edge)] italic">
+                        {bm.notes}
+                      </div>
+                    )}
+
+                    {/* Navigation Action Button */}
+                    <div className="flex items-center justify-between pt-1 border-t border-[var(--edge)]">
+                      <span className="text-[9px] text-[var(--faint)]">{bm.createdAt}</span>
+                      <button
+                        type="button"
+                        data-testid={`jump-bookmark-${bm.id}`}
+                        onClick={() => handleJumpToBookmark(bm)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[var(--panel)] hover:bg-[var(--raised)] border border-[var(--edge2)] hover:border-amber-400 text-amber-300 font-semibold text-[11px] cursor-pointer transition-colors shadow-xs"
+                        title="Center waveform viewport and restore Cursors A & B"
+                      >
+                        <Compass className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Jump to Point</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Bottom Actions */}
+            {bookmarks.length > 0 && (
+              <div className="pt-2 border-t border-[var(--edge)] flex items-center justify-between text-[10px]">
+                <button
+                  type="button"
+                  data-testid="clear-all-bookmarks-btn"
+                  onClick={() => setBookmarks([])}
+                  className="text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                >
+                  Clear All ({bookmarks.length})
+                </button>
+                <span className="text-slate-500">
+                  Flag tags pinned to ruler
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </aside>
       </div>
 
       {/* WV-12: Publication Vector Exporter Modal (LaTeX TikZ / Typst CeTZ / WaveDrom / SVG) */}

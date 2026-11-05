@@ -29,8 +29,9 @@ import { AnalysisHubAndSignoffTab } from './components/AnalysisHubAndSignoffTab'
 import { DesignIntelAndPhysicsTab } from './components/DesignIntelAndPhysicsTab';
 import { TerminalAndGithubSyncTab } from './components/TerminalAndGithubSyncTab';
 import { Blueprint2026Tab } from './components/Blueprint2026Tab';
+import { CeremorphicProofTab } from './components/CeremorphicProofTab';
 
-type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'terminal' | 'blueprint';
+type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'terminal' | 'blueprint' | 'proof';
 type ThemeId = 'dark' | 'gold' | 'light' | 'synth';
 
 export function App() {
@@ -456,6 +457,18 @@ export function App() {
             <Zap className="w-3.5 h-3.5" />
             2026 Blueprint (11-Iter · 155/155)
           </button>
+
+          <button
+            onClick={() => setActiveTab('proof')}
+            className={`px-2.5 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              activeTab === 'proof'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                : 'text-cyan-400/90 hover:text-cyan-200'
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+            Ceremorphic Proof (Anna's 4 Qs)
+          </button>
         </nav>
 
         {/* Right Telemetry Chips & Utilities */}
@@ -578,6 +591,13 @@ export function App() {
           />
         ) : activeTab === 'blueprint' ? (
           <Blueprint2026Tab />
+        ) : activeTab === 'proof' ? (
+          <CeremorphicProofTab
+            kdb={kdb}
+            signals={signals}
+            steps={steps}
+            onNavigateToTab={(t) => setActiveTab(t as TabId)}
+          />
         ) : (
           <TerminalAndGithubSyncTab />
         )}
