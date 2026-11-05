@@ -520,7 +520,7 @@ pub mod silicon_ii {
     pub struct AgingEmReport {
         pub delta_vth_mv: f64,
         pub em_mttf_years: f64,
-        pub GuardbandPass: bool,
+        pub guardband_pass: bool,
     }
 
     /// NB-16 / DB-08: 10-Year NBTI / HCI Aging & Black's Law Electromigration MTTF
@@ -542,7 +542,7 @@ pub mod silicon_ii {
         AgingEmReport {
             delta_vth_mv,
             em_mttf_years,
-            GuardbandPass: delta_vth_mv < 45.0 && em_mttf_years >= 10.0,
+            guardband_pass: delta_vth_mv < 45.0 && em_mttf_years >= 10.0,
         }
     }
 }

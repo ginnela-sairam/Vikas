@@ -1,11 +1,7 @@
-██╗   ██╗██╗██╗ ██╗ █████╗ ███████╗   ██╗   ██╗ ██╗
- ██║ ██╔╝██║██║ ██╔╝██╔══██╗██╔════╝   ██║   ██╗███║
-  █████╔╝ ██████╔╝███████║███████╗   ╚██╗ ██╔╝╚██║
-  ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
-  ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
-  100% Rust core (VIKAS-KRONOS kernel) · C++20 mixed-signal twin · zero Python
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  VIKAS v3.0 — Sovereign Next-Gen Linux-Native RTL & Silicon EDA Platform     │
+│  VIKAS-KRONOS v3.0 · Open-KDB · Fortune AI v4.0 · 38-Lang · Silicon Twin     │
+└──────────────────────────────────────────────────────────────────────────────┘
 
 [VIKAS POWER] switching-activity dynamic power (P = Σ ½·C·V²·f_tr)
   model      : Vdd 0.8 V · Cnode 1 fF · window 3000 ns (3.000 µs)

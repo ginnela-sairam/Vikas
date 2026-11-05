@@ -1,5 +1,5 @@
 // ============================================================================
-// VIKAS v1.2 — CORE RTL SIMULATION, OPEN-KDB, PHYSICS, MUTATION & WAVE ENGINE
+// VIKAS v3.0 — CORE RTL SIMULATION, OPEN-KDB, PHYSICS, MUTATION & WAVE ENGINE
 // Pure TypeScript module (zero DOM dependencies) for unit tests, server & UI
 // ============================================================================
 
@@ -5559,11 +5559,11 @@ export interface BlueprintFull125AuditReport {
 
 /**
  * Exhaustive 125 / 125 Blueprint Code-by-Code Verification Ledger:
- * Audits all 18 Baseline v1.2 Breakthroughs + 30 NB + 12 WV + 15 DB + 25 AP + 25 GH = 125 Capabilities.
+ * Audits all 18 Baseline v3.0 Breakthroughs + 30 NB + 12 WV + 15 DB + 25 AP + 25 GH = 125 Capabilities.
  */
 export function auditAll125BlueprintBreakthroughs(): BlueprintFull125AuditReport {
   const entries: BlueprintCapabilityAuditEntry[] = [
-    // === 18 CORE VIKAS v1.2 BASELINE BREAKTHROUGHS ===
+    // === 18 CORE VIKAS v3.0 BASELINE BREAKTHROUGHS ===
     { code: 'CORE-01', category: 'CORE-18', title: 'Sub-Cycle Delta-Step Causality Recorder', mathematicalModelOrSpec: 'IEEE 1800 Active -> Inactive -> NBA -> Postponed delta tracking', engineFunction: 'simulateVerilogSource', iteration: 1, status: 'VERIFIED_PASS' },
     { code: 'CORE-02', category: 'CORE-18', title: 'Counterfactual SAT/Boolean "Why" Solver', mathematicalModelOrSpec: 'Minimal Hamming-distance primary-input intervention solver', engineFunction: 'solveCounterfactual', iteration: 1, status: 'VERIFIED_PASS' },
     { code: 'CORE-03', category: 'CORE-18', title: '64-Bit Causality Taint-Dye Propagation Engine', mathematicalModelOrSpec: 'Bitwise taint-color flow graph across sequential & comb cones', engineFunction: 'propagateTaintDye', iteration: 1, status: 'VERIFIED_PASS' },

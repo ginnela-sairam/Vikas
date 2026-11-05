@@ -490,8 +490,8 @@ fn doctor_env() -> Result<()> {
         println!("  {} {:<22} {}", c("OK  ", GREEN), label, c(&detail, DIM));
     };
     // 1. kernel identity
-    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("1.2.0");
-    ok("binary", format!("vikas {ver} — VIKAS-KRONOS kernel v1.2 (topo-scheduled)"));
+    let ver = option_env!("VIKAS_BUILD_VER").unwrap_or("3.0.0");
+    ok("binary", format!("vikas {ver} — VIKAS-KRONOS kernel v3.0 (topo-scheduled)"));
     checks += 1;
     // 2. host
     let os = std::env::var("OSTYPE").unwrap_or_else(|_| "linux".into());

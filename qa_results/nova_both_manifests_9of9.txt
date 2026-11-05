@@ -1,11 +1,7 @@
-██╗   ██╗██╗██╗ ██╗ █████╗ ███████╗   ██╗   ██╗ ██╗
- ██║ ██╔╝██║██║ ██╔╝██╔══██╗██╔════╝   ██║   ██╗███║
-  █████╔╝ ██████╔╝███████║███████╗   ╚██╗ ██╔╝╚██║
-  ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
-  ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Open Linux-Native RTL Platform — VIKAS-KRONOS Kernel + Open-KDB + Wave Engine
-  100% Rust core · C++20 mixed-signal twin · offline · zero Python
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  VIKAS v3.0 — Sovereign Next-Gen Linux-Native RTL & Silicon EDA Platform     │
+│  VIKAS-KRONOS v3.0 · Open-KDB · Fortune AI v4.0 · 38-Lang · Silicon Twin     │
+└──────────────────────────────────────────────────────────────────────────────┘
 
 NOVA-OK   1 gpio_out  = 005a
 NOVA-OK   2 ram[0x40] = 70

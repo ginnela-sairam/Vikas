@@ -1,4 +1,4 @@
-//! VIKAS v1.2 — `vikas bench`: performance benchmark suite.
+//! VIKAS v3.0 — `vikas bench`: performance benchmark suite.
 //! Generates four stress designs at increasing scale, runs them through the
 //! VIKAS-KRONOS event kernel, and reports throughput (events/s, cycles/s, elaboration
 //! ms) plus an honest VCS-class commercial-kernel reference comparison.
@@ -77,7 +77,7 @@ pub fn cmd_bench(scale: u32, save_dir: Option<PathBuf>) -> Result<()> {
     let out = PathBuf::from("qa_results");
     std::fs::create_dir_all(&out).ok();
     let json = serde_json::json!({
-        "tool": "VIKAS v1 bench",
+        "tool": "VIKAS v3.0 bench",
         "scale": scale,
         "vcpu": num_cpus(),
         "rows": rows.iter().map(|r| serde_json::json!({

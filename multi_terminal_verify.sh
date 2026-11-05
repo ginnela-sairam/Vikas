@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# VIKAS v1.1 — FIVE-TERMINAL PARALLEL STRESS VERIFICATION
+# VIKAS v3.0 — FIVE-TERMINAL PARALLEL STRESS VERIFICATION
 # Simultaneous heavy workloads across independent sessions, exactly like a
 # team of engineers hammering the tool at once. All must pass.
 # ============================================================================

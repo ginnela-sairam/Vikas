@@ -73,7 +73,11 @@ export const TerminalAndGithubSyncTab: React.FC = () => {
       cmd: 'vikas signoff examples/nova_soc/nova.f',
       exitCode: 0,
       ts: 'Ready',
-      output: `[VIKAS SIGNOFF] 7-Pillar Pre-Tapeout Readiness Audit — Top: nova_soc_tb
+      output: `┌──────────────────────────────────────────────────────────────────────────────┐
+│  VIKAS v3.0  ·  Sovereign Linux-Native RTL & Mixed-Signal EDA Platform       │
+│  VIKAS-KRONOS Kernel · Open-KDB · 38-Lang SIMD · IEEE 1800.2 UVM · 64-Core   │
+└──────────────────────────────────────────────────────────────────────────────┘
+[VIKAS SIGNOFF] 7-Pillar Pre-Tapeout Readiness Audit — Top: nova_soc_tb
   [1/7] 3-Layer Inferred Latch Audit  : 25/25 PASS (0 inferred latches across 26 files)
   [2/7] Tarjan SCC Combinational Loops: 15/15 PASS (0 unclocked feedback cycles)
   [3/7] Structural CDC Sync Depth     : 10/15 WARN (2 single-stage CDC paths flagged for 2-FF sync)
@@ -163,18 +167,19 @@ git update-index --chmod=+x ci_local_sim.sh multi_terminal_verify.sh run_all_tes
 chmod +x *.sh scripts/*.sh 2>/dev/null || true
 
 # ==============================================================================
-# 3. BUILD 100% OFFLINE RUST KERNEL + RUN ALL 20 TYPESCRIPT & RUST TEST SUITES
+# 3. INSTALL / BUILD VIKAS v3.0 (ENTERPRISE AIR-GAPPED OR DEVELOPER LAPTOP)
 # ==============================================================================
-cargo build --release --offline
-cargo test --workspace --offline
+bash ./install_linux.sh
+cargo build --release --locked --offline
+cargo test --release --offline
 npx --yes tsx --test src/engine/vikasEngine.test.ts
 npm run build
 
 # ==============================================================================
-# 4. RUN THE 5-TERMINAL PARALLEL STRESS VERIFICATION SUITE (41/41 CHECKS)
+# 4. RUN LOCAL 6-JOB GITHUB CI SIMULATION & 5-TERMINAL PARALLEL STRESS SUITE
 # ==============================================================================
-bash ./multi_terminal_verify.sh
 bash ./ci_local_sim.sh
+bash ./multi_terminal_verify.sh
 
 # ==============================================================================
 # 5. COMMIT & PUSH VIKAS v3.0 INDUSTRIAL RELEASE (185/185 CAPABILITIES + 38 LANGS + 64C)
@@ -387,7 +392,7 @@ git push origin main`;
           <div className="flex items-center gap-2">
             <a
               href="/api/download-bundle"
-              download="vikas-v1.2-linux-airgapped-full.tar.gz"
+              download="vikas-v3.0-linux-airgapped-full.tar.gz"
               className="px-3.5 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-950/50"
             >
               <Download className="w-4 h-4" />

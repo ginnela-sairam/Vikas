@@ -1,4 +1,4 @@
-//! VIKAS v1 — terminal color helpers & shared utils.
+//! VIKAS v3.0 — terminal color helpers & shared utils.
 
 pub const RED: &str = "\x1b[31m";
 pub const GREEN: &str = "\x1b[32m";
@@ -22,15 +22,10 @@ pub fn banner() {
     if std::env::var("VIKAS_NO_BANNER").is_ok() {
         return;
     }
-    let b = r#"
-██╗   ██╗██╗██╗ ██╗ █████╗ ███████╗   ██╗   ██╗ ██╗
- ██║ ██╔╝██║██║ ██╔╝██╔══██╗██╔════╝   ██║   ██╗███║
-  █████╔╝ ██████╔╝███████║███████╗   ╚██╗ ██╔╝╚██║
-  ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
-  ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1.2] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
-  100% Rust core (VIKAS-KRONOS kernel) · C++20 mixed-signal twin · zero Python
-"#;
-    println!("{}", c(b.trim_start_matches('\n'), CYAN));
+    let b = "\
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  VIKAS v3.0 — Sovereign Next-Gen Linux-Native RTL & Silicon EDA Platform     │
+│  VIKAS-KRONOS v3.0 · Open-KDB · Fortune AI v4.0 · 38-Lang · Silicon Twin     │
+└──────────────────────────────────────────────────────────────────────────────┘";
+    println!("{}", c(b, CYAN));
 }

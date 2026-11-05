@@ -277,7 +277,7 @@ impl WaveDump {
         let mut w = std::io::BufWriter::new(std::fs::File::create(path)?);
         let ts = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs();
         write!(w, "$date {} $end\n", ts)?;
-        write!(w, "$version VIKAS v1.2 VIKAS-KRONOS kernel $end\n")?;
+        write!(w, "$version VIKAS v3.0 VIKAS-KRONOS kernel $end\n")?;
         write!(w, "$timescale 1ns $end\n")?;
         let mut ids: Vec<String> = Vec::new();
         for (i, s) in self.signals.iter().enumerate() {

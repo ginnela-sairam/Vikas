@@ -1,11 +1,7 @@
-██╗   ██╗██╗██╗ ██╗ █████╗ ███████╗   ██╗   ██╗ ██╗
- ██║ ██╔╝██║██║ ██╔╝██╔══██╗██╔════╝   ██║   ██╗███║
-  █████╔╝ ██████╔╝███████║███████╗   ╚██╗ ██╔╝╚██║
-  ██╔═██╗ ██╔══██╗██╔══██║╚════██║    ╚████╔╝  ██║
-  ██║  ██╗██║  ██║██║  ██║███████║     ╚═══╝   ██║
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝            ╚═╝
-  [VIKAS v1] Post-Duopoly Linux-Native RTL Simulator + Open-KDB + Wave Engine
-  100% Rust core (VIKAS-KRONOS kernel) · C++20 mixed-signal twin · zero Python
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  VIKAS v3.0 — Sovereign Next-Gen Linux-Native RTL & Silicon EDA Platform     │
+│  VIKAS-KRONOS v3.0 · Open-KDB · Fortune AI v4.0 · 38-Lang · Silicon Twin     │
+└──────────────────────────────────────────────────────────────────────────────┘
 
 [VIKAS MUTANT] mutation testing — top `nova_soc_tb`, DUT 17 module(s), 262 mutable site(s)
   running golden + 25 mutants — 15 killed, 0 hang, 10 survived

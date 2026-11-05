@@ -606,7 +606,7 @@ pub struct MipmapEnvelope {
 /// Build an $O(B)$ sub-pixel mipmap envelope array over `buckets` time intervals for signal `sig_idx`.
 pub fn build_mipmap_envelopes(d: &WaveDump, sig_idx: usize, buckets: usize) -> Vec<MipmapEnvelope> {
     let b_count = buckets.max(1);
-    let end_t = d.end_time.max(1);
+    let end_t = d.end_time().max(1);
     let span = (end_t as f64) / (b_count as f64);
     let mut out = Vec::with_capacity(b_count);
     for b in 0..b_count {
@@ -640,10 +640,10 @@ pub fn build_mipmap_envelopes(d: &WaveDump, sig_idx: usize, buckets: usize) -> V
             }
         }
         last_time = Some(ch.time);
-        if ch.value.has_xz() {
+        if ch.value.is_x() {
             bucket.has_xz = true;
-        }
-        if let Some(num) = ch.value.as_u64() {
+        } else {
+            let num = ch.value.to_u64();
             if num < bucket.v_min {
                 bucket.v_min = num;
             }

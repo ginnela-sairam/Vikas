@@ -426,7 +426,7 @@ pub fn export_tikz_timing(
         while t < t_end {
             let val = st.iter().rev().find(|(ts, _)| *ts <= t).map(|(_, v)| v.clone());
             let ch = match val {
-                Some(v) if v.has_xz() => "U".to_string(),
+                Some(v) if v.is_x() => "U".to_string(),
                 Some(v) if v.width() == 1 => {
                     if v.to_u64() == 1 { "H".to_string() } else { "L".to_string() }
                 }

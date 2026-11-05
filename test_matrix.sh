@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# VIKAS v1 — EXHAUSTIVE PER-FEATURE VERIFICATION MATRIX
+# VIKAS v3.0 — EXHAUSTIVE PER-FEATURE VERIFICATION MATRIX (85 CHECKS)
 # Tests every command individually and captures PASS/FAIL feedback
 # ============================================================================
 cd "$(dirname "$0")"

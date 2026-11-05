@@ -368,7 +368,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
             Ok(())
         }
         Cmd::Version => {
-            println!("vikas 1.2.0 — VIKAS-KRONOS kernel v1.2 (topo-scheduled), Open-KDB, VIKAS Studio, physics twin, 6 native wave formats");
+            println!("vikas 3.0.0 — VIKAS-KRONOS kernel v3.0 (topo-scheduled), Open-KDB, VIKAS Studio, Fortune AI v4.0, physics twin, 6 native wave formats");
             Ok(())
         }
         Cmd::HelpFormats | Cmd::InfoFormats => {

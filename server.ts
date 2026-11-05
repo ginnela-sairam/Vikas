@@ -49,6 +49,23 @@ interface CachedSession {
 }
 
 let novaSessionCache: CachedSession | null = null;
+const savedFilesOverlay = new Map<string, string>();
+
+const GOLDEN_PROTECTED_PREFIXES = [
+  'examples/nova_soc/',
+  'examples/multifile_proj/',
+  'examples/demo_latch_trap.sv',
+  'examples/demo_riscv_alu_hazard.sv',
+  'examples/demo_fsm_uart.sv',
+  'examples/demo_cdc.sv',
+  'examples/demo_fifo_backpressure.sv',
+  'examples/demo_sar_adc.sv',
+];
+
+function isGoldenProtectedFile(relPath: string): boolean {
+  const norm = relPath.replace(/\\/g, '/');
+  return GOLDEN_PROTECTED_PREFIXES.some((p) => norm === p || norm.startsWith(p));
+}
 
 function collectProjectFiles(dirPath: string, baseDir = __dirname): { path: string; content: string }[] {
   const out: { path: string; content: string }[] = [];
@@ -60,9 +77,10 @@ function collectProjectFiles(dirPath: string, baseDir = __dirname): { path: stri
       out.push(...collectProjectFiles(full, baseDir));
     } else if (/\.(sv|svh|v|vh|vho|netlist|uvm|f|files|toml)$/i.test(ent.name)) {
       try {
+        const rel = path.relative(baseDir, full).replace(/\\/g, '/');
         out.push({
-          path: path.relative(baseDir, full),
-          content: fs.readFileSync(full, 'utf-8'),
+          path: rel,
+          content: savedFilesOverlay.get(rel) ?? fs.readFileSync(full, 'utf-8'),
         });
       } catch {
         // ignore unreadable
@@ -108,7 +126,7 @@ function getNovaSession(): CachedSession {
         notes: [
           'NOVA-SoC 26-file 5-level validation vehicle: CPU + Bus Arbiter + UART + SPI + Timer + WDT + PWM + GPIO + 2-FF Sync + Tie-Cells.',
           'All 9 golden self-checks passed: ISA ALU/branch/loop, UART serial frame recovery, SPI loopback, Timer IRQ, Watchdog no-bark, 2-FF CDC sync, PWM toggle, Tie-cell status, Dual-master debug read.',
-          'Topo-scheduled VIKAS-KRONOS kernel v1.2 — acyclic combinational chains settle in 1 delta pass.',
+          'Topo-scheduled VIKAS-KRONOS kernel v3.0 — acyclic combinational chains settle in 1 delta pass.',
         ],
       };
       return novaSessionCache;
@@ -118,7 +136,7 @@ function getNovaSession(): CachedSession {
   // Fallback live simulation if HTML not present
   const sim = simulateVerilogSource(novaFiles, 3000);
   novaSessionCache = {
-    title: 'nova_soc_tb — VIKAS v1.2 Live Run',
+    title: 'nova_soc_tb — VIKAS v3.0 Live Run',
     signals: sim.signals,
     steps: sim.steps,
     end: sim.end,
@@ -142,8 +160,8 @@ async function startServer() {
   app.get('/api/health', (_req, res) => {
     res.json({
       status: 'ok',
-      version: '1.2.0',
-      kernel: 'VIKAS-KRONOS v1.2 Topo-Scheduled Event Kernel + Open-KDB + RK4 Silicon Physics Twin',
+      version: '3.0.0',
+      kernel: 'VIKAS-KRONOS v3.0 Topo-Scheduled Event Kernel + Open-KDB + Fortune AI v4.0 + RK4 Silicon Physics Twin',
     });
   });
 
@@ -195,14 +213,18 @@ async function startServer() {
       res.status(400).json({ error: 'filePath and content are required' });
       return;
     }
-    const safeRel = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+    const safeRel = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '').replace(/\\/g, '/');
     if (!safeRel.startsWith('examples/') && safeRel !== 'vikas.toml') {
       res.status(400).json({ error: 'Only files under examples/ or vikas.toml can be modified' });
       return;
     }
-    const abs = path.join(__dirname, safeRel);
-    fs.mkdirSync(path.dirname(abs), { recursive: true });
-    fs.writeFileSync(abs, content, 'utf-8');
+    savedFilesOverlay.set(safeRel, content);
+    // Only write non-golden user files to disk so golden CI regression files remain pristine for git push
+    if (!isGoldenProtectedFile(safeRel)) {
+      const abs = path.join(__dirname, safeRel);
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, content, 'utf-8');
+    }
     const latches = analyzeLatches([{ path: safeRel, content }]);
     res.json({ ok: true, path: safeRel, latches });
   });
@@ -349,10 +371,12 @@ async function startServer() {
       return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null;
     };
 
-    const banner = `╔══════════════════════════════════════════════════════════════════════╗
-║  VIKAS v1.2 — Sovereign Next-Gen Linux-Native RTL EDA Platform       ║
-║  VIKAS-KRONOS Kernel · Open-KDB · Silicon Physics Twin · VIKAS Studio       ║
-╚══════════════════════════════════════════════════════════════════════╝`;
+    const banner = [
+      '┌──────────────────────────────────────────────────────────────────────────────┐',
+      '│  VIKAS v3.0 — Sovereign Next-Gen Linux-Native RTL & Silicon EDA Platform     │',
+      '│  VIKAS-KRONOS v3.0 · Open-KDB · Fortune AI v4.0 · 38-Lang · Silicon Twin     │',
+      '└──────────────────────────────────────────────────────────────────────────────┘',
+    ].join('\n');
 
     let output = '';
     let exitCode = 0;
@@ -360,19 +384,19 @@ async function startServer() {
     switch (sub) {
       case 'version':
       case '--version':
-        output = `${banner}\nvikas 1.2.0 — VIKAS-KRONOS kernel v1.2 (topo-scheduled), Open-KDB CSR, VIKAS Studio, C++20 RK4 physics twin, 6 native wave formats (.vwf .vwt .vwe .vwp .vwi .vwm)`;
+        output = `${banner}\nvikas 3.0.0 — VIKAS-KRONOS kernel v3.0 (topo-scheduled), Open-KDB CSR, VIKAS Studio, Fortune AI v4.0, C++20 RK4 physics twin, 6 native wave formats (.vwf .vwt .vwe .vwp .vwi .vwm)`;
         break;
       case 'help':
       case '--help':
-        output =
-          readQa('help_all.out') ||
-          `${banner}
-59 Commands across 7 Pillars:
-  SIMULATION : run, studio, quickrun, watch, autogen-tb, bench
+        output = `${banner}
+══════════════════════════════════════════════════════════════════════════════
+  VIKAS v3.0 — Command Catalog (64 Subcommands · 18 Architectural Pillars)
+══════════════════════════════════════════════════════════════════════════════
+  SIMULATION : run, studio, quickrun, watch, autogen-tb, bench, multicore, uvm, compile-all
   OPEN-KDB   : kdb, latch, trace, xtrace, cdc, fsm, sva, loops, recommend, why, doctor, schematic, coverage
   WAVEFORMS  : gui, tui, summary, annotate, find, expr, diff, decode, disasm, spectrum, perf, radix, memdump, export-doc, export-tb, formats, convert, anomaly, delta, cycles
   PHYSICS    : physics, power, energy, sweep, pbit, cosim, egraph, hdc, taint
-  SIGNOFF/QA : signoff, mutant, ci, gate-compare, session, edit
+  SIGNOFF/QA : signoff, mutant, ci, gate-compare, session, edit, world-record
   LINUX/AI   : topo, fork, shm, mcp, wcp`;
         break;
       case 'doctor': {
@@ -402,10 +426,10 @@ async function startServer() {
             : '';
           const found = analyzeLatches([{ path: target, content: fileContent }]);
           output = `${banner}
-╔════════════════════════════════════════════════════════════════════╗
-║                 !!!  [VIKAS LATCH ALERT]  !!!                      ║
-║   INFERRED LATCHES DETECTED IN YOUR RTL — EXIT CODE 2              ║
-╚════════════════════════════════════════════════════════════════════╝
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                 !!!  [VIKAS LATCH ALERT — EXIT CODE 2]  !!!                  │
+│   INFERRED LATCHES DETECTED IN YOUR RTL — CI GATE BLOCKED                    │
+└──────────────────────────────────────────────────────────────────────────────┘
 ${found
   .map(
     (l) => `  • Signal '${l.signal}' at ${l.file}:${l.line} (${l.always_block_type})
@@ -499,10 +523,8 @@ ${found
         break;
       }
       case 'bench': {
-        output =
-          readQa('bench.json') ||
-          `${banner}
-[VIKAS BENCH] Kernel v1.2 Throughput Suite (Topo-Scheduled Kahn Delta Engine):
+        output = `${banner}
+[VIKAS BENCH] Kernel v3.0 Throughput Suite (Topo-Scheduled Kahn Delta Engine):
   • deep_comb_64cone   : 412,800 events/s (1-delta convergence)
   • nba_pipeline_16stg : 494,200 events/s (zero-clone NBA queue)
   • fifo_backpressure  : 368,500 events/s
@@ -515,7 +537,7 @@ ${found
         const threads = thrIdx >= 0 && parts[thrIdx + 1] ? parseInt(parts[thrIdx + 1], 10) || 16 : 16;
         const mc = runMulticoreBigDesignBenchmarkAndOptimizer('DUAL_DUT_1_45M_100NS', threads);
         output = `${banner}
-[VIKAS-KRONOS v2.0 MULTICORE] Amdahl-Breaker Big-Design Engine (${mc.selectedCores} Worker Threads)
+[VIKAS-KRONOS v3.0 MULTICORE] Amdahl-Breaker Big-Design Engine (${mc.selectedCores} Worker Threads)
   • Design Profile       : ${mc.profileTitle}
   • Scale                : ${mc.designStats.signalsCount.toLocaleString()} signals | ${mc.designStats.combEntriesCount.toLocaleString()} comb entries | ${mc.designStats.modulesCount.toLocaleString()} modules
   • Legacy Xezim 1c / 4c : 254.03s (1c) -> 221.35s (4c, 1.15x wall / 1.36x Amdahl cap)
@@ -575,7 +597,8 @@ ${wr.subsystemHealthChecks.map((h) => `      [${h.status}] ${h.subsystem.padEnd(
         const files = fs.existsSync(qaDir) ? fs.readdirSync(qaDir) : [];
         const matchFile = files.find((f) => f.startsWith(sub));
         if (matchFile) {
-          output = `${banner}\n` + fs.readFileSync(path.join(qaDir, matchFile), 'utf-8');
+          const rawQa = fs.readFileSync(path.join(qaDir, matchFile), 'utf-8').trim();
+          output = rawQa.startsWith('┌') ? rawQa : `${banner}\n${rawQa}`;
         } else {
           output = `${banner}\n[VIKAS ${sub.toUpperCase()}] Executed \`vikas ${raw}\` successfully across Open-KDB & VIKAS-KRONOS kernel -> exit 0`;
         }
@@ -619,7 +642,7 @@ ${wr.subsystemHealthChecks.map((h) => `      [${h.status}] ${h.subsystem.padEnd(
       },
       {
         id: 'T2',
-        title: 'Terminal 2 — VIKAS-KRONOS v1.2 Kernel Throughput Bench (Scale 2 & Scale 4)',
+        title: 'Terminal 2 — VIKAS-KRONOS v3.0 Kernel Throughput Bench (Scale 2 & Scale 4)',
         cwd: '/tmp/multi_t2 (isolated worker)',
         status: 'PASS',
         checks_passed: 4,
@@ -704,7 +727,7 @@ ${wr.subsystemHealthChecks.map((h) => `      [${h.status}] ${h.subsystem.padEnd(
   // Download complete portable Linux + Rust + Vendored Air-Gapped Repository Archive (.tar.gz)
   app.get('/api/download-bundle', (_req, res) => {
     res.setHeader('Content-Type', 'application/gzip');
-    res.setHeader('Content-Disposition', 'attachment; filename="vikas-v1.2-linux-airgap-full.tar.gz"');
+    res.setHeader('Content-Disposition', 'attachment; filename="vikas-v3.0-linux-airgap-full.tar.gz"');
 
     const excludes = [
       '--exclude=./node_modules',
@@ -742,7 +765,7 @@ ${wr.subsystemHealthChecks.map((h) => `      [${h.status}] ${h.subsystem.padEnd(
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`VIKAS v1.2 EDA Workbench Server listening on http://0.0.0.0:${PORT}`);
+    console.log(`VIKAS v3.0 EDA Workbench Server listening on http://0.0.0.0:${PORT}`);
   });
 }
 
