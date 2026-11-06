@@ -1,2 +1,1 @@
-[VIKAS CDC] potential CDC hazards:
-  CROSS r_a(clk_a) -> r_b(clk_b) · sync depth 0
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

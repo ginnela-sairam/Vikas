@@ -1,6 +1,1 @@
-[
-  {
-    "signal": "partial_sum",
-    "file": "",
-    "line": 13,
-    "always_block_type": "always_comb",
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

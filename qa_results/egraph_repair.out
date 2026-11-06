@@ -1,5 +1,1 @@
-[VIKAS E-GRAPH] equality-saturation repair:
-  original   : a&&a
-  e-classes  : 3
-// [VIKAS E-GRAPH REPAIR] equality-saturated cone for `repaired_and`:
-assign repaired_and = a;
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

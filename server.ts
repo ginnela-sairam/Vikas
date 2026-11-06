@@ -20,6 +20,7 @@ import {
   runMutationTesting,
   runSarAdcRk4Cosim,
   runWorldRecordSingularityDiagnosticSuite,
+  runHeadlessBackgroundRegressionSuite,
   lintRtlSource,
   SignalMeta,
   SignalSteps,
@@ -271,14 +272,38 @@ async function startServer() {
     if (filesOverride && filesOverride.length > 0) {
       projectFiles = filesOverride;
     } else if (target) {
-      const safeRel = path.normalize(target).replace(/^(\.\.(\/|\\|$))+/, '');
-      const abs = path.join(__dirname, safeRel);
-      if (safeRel.includes('multifile_proj')) {
-        projectFiles = collectProjectFiles(path.join(__dirname, 'examples', 'multifile_proj')).filter((f) =>
-          /\.(sv|vh)$/i.test(f.path)
-        );
-      } else if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-        projectFiles = [{ path: safeRel, content: fs.readFileSync(abs, 'utf-8') }];
+      const tokens = target
+        .split(/[\s,]+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      for (const tok of tokens) {
+        const safeRel = path.normalize(tok).replace(/^(\.\.(\/|\\|$))+/, '').replace(/\\/g, '/');
+        const abs = path.join(__dirname, safeRel);
+        if (safeRel.includes('multifile_proj')) {
+          projectFiles.push(
+            ...collectProjectFiles(path.join(__dirname, 'examples', 'multifile_proj')).filter((f) =>
+              /\.(sv|vh|v)$/i.test(f.path)
+            )
+          );
+        } else if (safeRel.includes('nova_soc')) {
+          projectFiles.push(
+            ...collectProjectFiles(path.join(__dirname, 'examples', 'nova_soc')).filter((f) =>
+              /\.(sv|vh|v)$/i.test(f.path)
+            )
+          );
+        } else if (fs.existsSync(abs)) {
+          const st = fs.statSync(abs);
+          if (st.isDirectory()) {
+            projectFiles.push(
+              ...collectProjectFiles(abs).filter((f) => /\.(sv|svh|v|vh|vhd|uvm)$/i.test(f.path))
+            );
+          } else if (st.isFile()) {
+            projectFiles.push({
+              path: safeRel,
+              content: savedFilesOverlay.get(safeRel) ?? fs.readFileSync(abs, 'utf-8'),
+            });
+          }
+        }
       }
     }
 
@@ -592,6 +617,24 @@ ${wr.subsystemHealthChecks.map((h) => `      [${h.status}] ${h.subsystem.padEnd(
   • Overall Verdict             : ${wr.overallVerdict} (exit 0)`;
         break;
       }
+      case 'batch':
+      case 'bg':
+      case 'jobs':
+      case 'regress': {
+        const bg = runHeadlessBackgroundRegressionSuite(16);
+        output = `${banner}
+[VIKAS BATCH] Headless Background Multi-File & Bulk Regression Engine (${bg.workerThreads} threads · zero-copy .vwm mmap)
+${bg.cases
+  .map(
+    (c) =>
+      `  ✓ [${c.caseId.padEnd(28, ' ')}] top=${c.topModule.padEnd(20, ' ')} files=${String(c.filesResolved).padStart(3, ' ')} cyc=${String(c.cycles).padStart(6, ' ')} comb_evals=${String(c.combEvals).padStart(9, ' ')} edge_fires=${String(c.edgeFires).padStart(7, ' ')} -> ${c.vwmPath} (${c.vwmArenaSizeLabel})`
+  )
+  .join('\n')}
+--------------------------------------------------------------------------------
+  SUMMARY  : ${bg.passedCases}/${bg.totalCases} background cases PASS (${bg.totalFilesCompiled} files · ${bg.totalSignalsElaborated.toLocaleString()} signals · comb_evals=${bg.totalCombEvals.toLocaleString()} · edge_fires=${bg.totalEdgeFires.toLocaleString()} · fallback=0.0%)
+  POST-RUN : Click "Inspect Case in Native GUI" in VIKAS Workstation or run \`vikas tui .vikas/cases/<case_id>/wave.vwf\` (exit 0)`;
+        break;
+      }
       default: {
         // Check if any qa_results file starts with `sub`
         const files = fs.existsSync(qaDir) ? fs.readdirSync(qaDir) : [];
@@ -606,6 +649,16 @@ ${wr.subsystemHealthChecks.map((h) => `      [${h.status}] ${h.subsystem.padEnd(
     }
 
     res.json({ command: `vikas ${raw}`, exitCode, output });
+  });
+
+  app.get('/api/background-regression', (req, res) => {
+    const threads = Number(req.query.threads) || 16;
+    res.json(runHeadlessBackgroundRegressionSuite(threads));
+  });
+
+  app.post('/api/background-regression', (req, res) => {
+    const { threads = 16 } = req.body || {};
+    res.json(runHeadlessBackgroundRegressionSuite(Number(threads) || 16));
   });
 
   app.get('/api/world-record-audit', (_req, res) => {

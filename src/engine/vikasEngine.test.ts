@@ -42,6 +42,7 @@ import {
   runMulticoreBigDesignBenchmarkAndOptimizer,
   generateAnnaTechnicalProofAndUvmSuite,
   runWorldRecordSingularityDiagnosticSuite,
+  runHeadlessBackgroundRegressionSuite,
   evaluateSeuCosmicRaySoftErrorAndLandauer,
   evaluateSiliconAgingAndEm,
   evaluateTemporalSvaSequence,
@@ -1304,6 +1305,22 @@ endmodule`;
     assert.equal(lintRtlSource(synth.code, `${synth.moduleName}.sv`).length, 0, `Synthesized ${synth.moduleName} must have 0 lint issues`);
   }
 });
+
+test('Iteration 17: Headless Background Multi-File/Bulk Regression & Zero-Copy .vwm Case Inspector', () => {
+  const bg = runHeadlessBackgroundRegressionSuite(16);
+  assert.equal(bg.totalCases, 6);
+  assert.equal(bg.passedCases, 6);
+  assert.equal(bg.edgeFallbackPct, 0.0);
+  assert.equal(bg.parallelQualifyPct, 99.84);
+  assert.ok(bg.totalCombEvals > 100_000_000);
+  assert.ok(bg.totalEdgeFires > 1_000_000);
+  for (const c of bg.cases) {
+    assert.equal(c.status, 'PASS');
+    assert.ok(c.vwmPath.endsWith('.vwm'));
+    assert.ok(c.guiTarget.length > 0);
+  }
+});
+
 
 
 

@@ -591,7 +591,12 @@ export function App() {
             onNavigateToTab={(t) => setActiveTab(t as TabId)}
           />
         ) : (
-          <TerminalAndGithubSyncTab />
+          <TerminalAndGithubSyncTab
+            onInspectCaseInGui={(guiTarget) => {
+              handleSelectProject(guiTarget);
+              setActiveTab('waveforms');
+            }}
+          />
         )}
       </main>
 

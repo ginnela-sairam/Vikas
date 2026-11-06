@@ -1,2 +1,1 @@
-[VIKAS MEMDUMP] memory inspector at t=100 ns:
-  sar_tb.dut.approx              = 0x00000BB0
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

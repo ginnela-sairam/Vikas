@@ -86,6 +86,7 @@ enum Cmd {
     Multicore { threads: u32, profile: String },
     Uvm { files: Vec<PathBuf>, threads: u32 },
     CompileAll,
+    Batch { files: Vec<PathBuf>, jobs: u32, json: bool },
 }
 
 fn parse_args(args: &[String]) -> Result<Cmd> {
@@ -167,7 +168,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             top: top_flag(&rest),
             max_ns: numv(&rest, "--max-ns", 100_000),
             out: flagv(&rest, "-o").map(PathBuf::from),
-            open: !rest.contains(&"--no-open".into()),
+            open: rest.contains(&"--open".into()),
         }),
         "quickrun" => Ok(Cmd::Quickrun { files: files(&rest) }),
         "watch" => Ok(Cmd::Watch { files: files(&rest) }),
@@ -291,6 +292,11 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             threads: numv(&rest, "--threads", 16) as u32,
         }),
         "compile-all" | "polyglot" => Ok(Cmd::CompileAll),
+        "batch" | "bg" | "jobs" | "regress" => Ok(Cmd::Batch {
+            files: files(&rest),
+            jobs: numv(&rest, "--jobs", 16) as u32,
+            json: rest.contains(&"--json".into()),
+        }),
         _ => {
             bail!("unknown command `{}` — try `vikas help`", cmd);
         }
@@ -436,6 +442,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::Multicore { threads, profile } => cmds::cmd_multicore(threads, profile),
         Cmd::Uvm { files, threads } => cmds::cmd_uvm(files, threads),
         Cmd::CompileAll => cmds::cmd_compile_all(),
+        Cmd::Batch { files, jobs, json } => cmds::cmd_batch(files, jobs, json),
     }
 }
 

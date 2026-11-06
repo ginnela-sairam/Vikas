@@ -1,5 +1,1 @@
-[VIKAS FORK] silicon time-forking via fork() CoW — 3 branch(es):
-  child pid   4953: fork 55 µs, CoW RSS 1.5 MB
-  child pid   4954: fork 40 µs, CoW RSS 1.5 MB
-  child pid   4955: fork 43 µs, CoW RSS 1.5 MB
-  ► total fork+exec+wait: 534 µs — <50µs/fork target for instant timeline branching
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

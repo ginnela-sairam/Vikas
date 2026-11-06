@@ -17,6 +17,11 @@ pub struct SimResult {
     pub latch_finds: Vec<super::latchsim::LatchFind>,
     /// every $display/$write line the run printed (mutation-test oracle)
     pub printed: Vec<String>,
+    /// hardware performance counters (Xezim-class instrumentation)
+    pub comb_evals: u64,
+    pub edge_fires: u64,
+    pub proc_evals: u64,
+    pub auto_tb_synthesized: bool,
 }
 
 struct Frame {
@@ -919,6 +924,19 @@ impl Vm {
             let _ = i;
             parked.push((0, init.0, init.1.clone(), init.2.clone()));
         }
+
+        // Universal RTL Stimulus Synthesizer: if the elaborated design has NO `initial` blocks
+        // (e.g. raw synthesizable RTL module or bulk directory of RTL modules), automatically
+        // synthesize deterministic clock, reset, and LFSR input vector stimulus so it simulates!
+        let mut auto_tb_synthesized = false;
+        if parked.is_empty() && !self.mods[top_idx].ports.is_empty() {
+            let auto_stmts = Self::synthesize_auto_stimulus(&self.mods[top_idx]);
+            if !auto_stmts.is_empty() {
+                parked.push((0, top_idx, top_prefix.clone(), auto_stmts));
+                auto_tb_synthesized = true;
+            }
+        }
+
         // auto-detect the main clock for cycle counting (feature 45) if unset
         if self.clock_names.is_empty() {
             if let Some(clkq) = self.vals.keys().find(|k| k.rsplit('.').next().unwrap_or("").contains("clk")) {
@@ -928,6 +946,10 @@ impl Vm {
 
         // dump t=0 state
         self.dump_state();
+
+        let mut comb_evals = 0u64;
+        let mut edge_fires = 0u64;
+        let mut proc_evals = 0u64;
 
         let mut out = ExecSide::default();
         // main time loop
@@ -1002,6 +1024,8 @@ impl Vm {
                     }
                     if fired {
                         fired_flags[bi] = true; // KERNEL v1.1: no format! in hot path
+                        edge_fires += 1;
+                        proc_evals += 1;
                         let mut sub = ExecSide::default();
                         let completed = self.exec_seq(body, &f, &mut sub);
                         if !sub.printed.is_empty() { out.printed.extend(sub.printed); }
@@ -1035,6 +1059,7 @@ impl Vm {
                 // assigns (pre-collected with per-module prefixes for correct scope resolution)
                 // KERNEL v1.1: mem::take sweep — zero allocation per delta iteration
                 let assigns_now: Vec<(String, Expr, Expr)> = std::mem::take(&mut self.all_assigns);
+                comb_evals += assigns_now.len() as u64;
                 for (pfx, lhs, rhs) in &assigns_now {
                     let f = Frame { module: 0, prefix: pfx.clone() };
                     let (q, msb, lsb) = self.lhs_target(lhs, &f);
@@ -1055,6 +1080,8 @@ impl Vm {
                     if !is_comb {
                         continue;
                     }
+                    comb_evals += 1;
+                    proc_evals += 1;
                     let f = Frame { module: *mi, prefix: prefix.clone() };
                     let mut sub = ExecSide::default();
                     let body: Vec<Stmt> = match ab.body.first() {
@@ -1296,7 +1323,101 @@ impl Vm {
             energy_fj_total: self.phys_energy,
             latch_finds: std::mem::take(&mut self.latch_finds),
             printed: std::mem::take(&mut self.all_printed),
+            comb_evals,
+            edge_fires,
+            proc_evals,
+            auto_tb_synthesized,
         }
+    }
+
+    /// Synthesize a deterministic 16-cycle clock/reset/LFSR stimulus program for raw RTL modules
+    /// that lack an `initial` testbench block.
+    fn synthesize_auto_stimulus(top_mod: &ModuleDef) -> Vec<Stmt> {
+        let inputs: Vec<&super::parser::Port> = top_mod.ports.iter().filter(|p| p.dir == 1).collect();
+        if inputs.is_empty() {
+            return Vec::new();
+        }
+        let mut clk_port: Option<String> = None;
+        let mut rst_low_port: Option<String> = None;
+        let mut rst_high_port: Option<String> = None;
+        let mut data_ports: Vec<(String, usize)> = Vec::new();
+
+        for p in &inputs {
+            let low = p.name.to_lowercase();
+            if clk_port.is_none() && (low.contains("clk") || low.contains("clock")) {
+                clk_port = Some(p.name.clone());
+            } else if rst_low_port.is_none() && (low.contains("rst_n") || low.contains("reset_n") || low.contains("aresetn") || low.contains("rstn")) {
+                rst_low_port = Some(p.name.clone());
+            } else if rst_high_port.is_none() && (low.contains("rst") || low.contains("reset")) {
+                rst_high_port = Some(p.name.clone());
+            } else {
+                data_ports.push((p.name.clone(), p.width.max(1)));
+            }
+        }
+
+        let mut stmts = Vec::new();
+        if let Some(ref c) = clk_port {
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 });
+        }
+        if let Some(ref rl) = rst_low_port {
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rl.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 });
+        }
+        if let Some(ref rh) = rst_high_port {
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rh.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 });
+        }
+        for (dn, dw) in &data_ports {
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(dn.clone()), rhs: Expr::Num(0, *dw), nonblocking: false, line: 0 });
+        }
+
+        // 2 reset cycles
+        if let Some(ref c) = clk_port {
+            for _ in 0..2 {
+                stmts.push(Stmt::Delay(5, vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 }]));
+                stmts.push(Stmt::Delay(5, vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 }]));
+            }
+        } else {
+            stmts.push(Stmt::Delay(10, vec![]));
+        }
+
+        // Deassert reset
+        if let Some(ref rl) = rst_low_port {
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rl.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 });
+        }
+        if let Some(ref rh) = rst_high_port {
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rh.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 });
+        }
+
+        // 16 active LFSR stimulus cycles
+        let mut lfsr: u64 = 0xACE1_2468_1357_9BDF;
+        for cyc in 0..16u64 {
+            let mut body_before_clk = Vec::new();
+            for (pi, (dn, dw)) in data_ports.iter().enumerate() {
+                lfsr ^= lfsr << 13;
+                lfsr ^= lfsr >> 7;
+                lfsr ^= lfsr << 17;
+                let mask = if *dw >= 64 { u64::MAX } else { (1u64 << *dw) - 1 };
+                let val = if *dw == 1 {
+                    (cyc + pi as u64) & 1
+                } else {
+                    (lfsr.wrapping_add(cyc * 17 + pi as u64 * 3)) & mask
+                };
+                body_before_clk.push(Stmt::Assign {
+                    lhs: Expr::Ident(dn.clone()),
+                    rhs: Expr::Num(val, *dw),
+                    nonblocking: false,
+                    line: 0,
+                });
+            }
+            if let Some(ref c) = clk_port {
+                body_before_clk.push(Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 });
+                stmts.push(Stmt::Delay(5, body_before_clk));
+                stmts.push(Stmt::Delay(5, vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 }]));
+            } else {
+                stmts.push(Stmt::Delay(5, body_before_clk));
+            }
+        }
+        stmts.push(Stmt::Finish);
+        stmts
     }
 
     fn latch_active_by_block(&self, mi: usize, ab: &AlwaysBlock) -> Option<Vec<String>> {

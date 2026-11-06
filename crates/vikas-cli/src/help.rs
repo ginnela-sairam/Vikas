@@ -7,9 +7,10 @@ pub fn catalog() {
     println!("{}", c("  VIKAS v3.0 — command catalog (64 commands, 18 architectural breakthroughs)", CYAN));
     println!("{}", c("══════════════════════════════════════════════════════════════════════════════", BOLD));
     let groups: &[(&str, &[(&str, &str)])] = &[
-        ("SIMULATION (VIKAS-KRONOS kernel — multi-file, filelists, UVM-aware)", &[
-            ("run <files|manifest.f> [--top m] [--max-ns N] [--gui]", "simulate + auto-dump + Open-KDB + telemetry + latch alert"),
-            ("studio <files> [-o out.html] [--no-open]", "one-shot VIKAS Studio: simulate + KDB + latch audit → HTML5 workbench"),
+        ("SIMULATION (VIKAS-KRONOS kernel — multi-file, bulk directories, filelists, 38-lang & UVM-aware)", &[
+            ("run <files|dir|manifest.f> [--top m] [--max-ns N] [--gui]", "simulate + auto-dump (.vwf + zero-copy mmap .vwm) + Open-KDB + perf-cnts"),
+            ("batch [files|dir|manifest.f...] [--jobs N] [--json]", "headless background regression -> per-case .vwm/.vwf/.kdb for post-run inspection"),
+            ("studio <files> [-o out.html] [--open]", "one-shot VIKAS Studio: simulate + KDB + latch audit (no external browser popup)"),
             ("quickrun <files>", "auto-generate testbench stimulus then simulate (feature 2)"),
             ("watch <files>", "inotify live re-simulation on save (feature 3)"),
             ("autogen-tb <rtl.sv>", "write auto-TB to <rtl>_tb.sv without simulating"),

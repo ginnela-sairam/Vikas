@@ -1,6 +1,1 @@
-[VIKAS SPECTRUM] FFT spectral report for `sar_tb.code`:
-  fundamental : 3.9 kHz
-  SNR         : 8.92 dB
-  SINAD       : -0.52 dB
-  THD         : 100.01 %
-  SFDR        : 2.16 dB
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

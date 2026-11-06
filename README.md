@@ -3,7 +3,7 @@
 [![License: MIT / Apache-2.0](https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue.svg)](LICENSE)
 [![Version: VIKAS v3.0.0](https://img.shields.io/badge/Release-VIKAS%20v3.0.0-emerald.svg)](Cargo.toml)
 [![GitHub CI: 6/6 Jobs PASS](https://img.shields.io/badge/GitHub%20Actions%20CI-6%2F6%20Jobs%20GREEN-brightgreen.svg)](.github/workflows/ci.yml)
-[![Verification: 22/22 Test Suites](https://img.shields.io/badge/Unit%20Tests-22%2F22%20Suites%20PASS-emerald.svg)](src/engine/vikasEngine.test.ts)
+[![Verification: 23/23 Test Suites](https://img.shields.io/badge/Unit%20Tests-23%2F23%20Suites%20PASS-emerald.svg)](src/engine/vikasEngine.test.ts)
 [![Capabilities: 185/185 Verified](https://img.shields.io/badge/Capabilities-185%2F185%20Verified-cyan.svg)](src/engine/vikasEngine.ts)
 [![Languages: 38 Hardware DSLs](https://img.shields.io/badge/Polyglot%20Compiler-38%2F38%20Languages%20PASS-purple.svg)](src/engine/vikasEngine.ts)
 
@@ -14,10 +14,10 @@
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**VIKAS v3.0** (`3.0.0`) is a sovereign, ultra-high-speed Linux-native Electronic Design Automation (EDA) platform and full-stack web workstation. Engineered for both **enterprise multi-million-gate ASIC/SoC verification clusters** (air-gapped Linux data centers) and **individual hardware engineers, researchers, and students**, VIKAS unifies:
+**VIKAS v3.0** (`3.0.0`) is a sovereign, ultra-high-speed Linux-native Electronic Design Automation (EDA) platform and full-stack native workstation. Engineered for both **enterprise multi-million-gate ASIC/SoC verification clusters** (air-gapped Linux data centers) and **individual hardware engineers, researchers, and students**, VIKAS unifies:
 
-1. **`VIKAS-KRONOS v3.0` Multicore Simulator**: Lock-free 64-core SystemVerilog (IEEE 1800-2023), Verilog (IEEE 1364-2005), and Accellera UVM 1800.2-2020 simulator with hypergraph island partitioning ($f = 94.5\%$, **$22.4\times$ speedup** on 16 cores, **$54.2\times$** on 64 cores), AVX-512 wide-vector lowering, and 0% clock-edge interpreter fallback.
-2. **`VIKAS-TARANG` $O(1)$ Waveform Engine**: 6 purpose-built binary waveform formats (`.vwf`, `.vwt`, `.vwe`, `.vwp`, `.vwi`, `.vwm`) streaming **20 GB – 10 TB** traces via `/dev/shm` zero-copy `mmap` arenas at **>18.4 GB/s** and 120 FPS.
+1. **`VIKAS-KRONOS v3.0` Multicore Simulator & Bulk Elaboration Engine**: Lock-free 64-core SystemVerilog (IEEE 1800-2023), Verilog (IEEE 1364-2005), and Accellera UVM 1800.2-2020 simulator with hypergraph island partitioning ($f = 94.5\%$, **$22.4\times$ speedup** on 16 cores, **$54.2\times$** on 64 cores), AVX-512 wide-vector lowering, 0% clock-edge interpreter fallback, recursive bulk directory ingestion, `-y` library cell resolution, `$ENV_VAR` filelist expansion, and automatic clock/reset/LFSR stimulus synthesis for raw RTL modules.
+2. **`VIKAS-TARANG` $O(1)$ Waveform Engine & Headless Background Batch Runner (`vikas batch`)**: 6 purpose-built binary waveform formats (`.vwf`, `.vwt`, `.vwe`, `.vwp`, `.vwi`, `.vwm`) streaming **20 GB – 50 GB – 10 TB** traces via `/dev/shm` zero-copy `mmap` arenas at **>38.4 GB/s** and 120 FPS, with headless background regression queuing and 1-click post-run native GUI case inspection (zero external browser HTML popups).
 3. **`Open-KDB` Zero-License CSR Knowledge Base**: Replaces proprietary encrypted `.fsdb`/`.kdb` databases with an open Compressed Sparse Row (CSR) hypergraph, sub-cycle delta causality recorder, counterfactual SAT `"Why"` solver, and 64-bit security taint-dye engine.
 4. **`VIKAS-NADI` Pre-Synthesis Silicon Physics Twin**: Evaluates dynamic switching energy ($E_{\text{sw}}$ in $\text{fJ}$), glitch hazard waste ($E_{\text{glitch}}$), sub-threshold ($0.12\,\text{V}$) & cryogenic ($4\,\text{K}\text{–}77\,\text{K}$) leakage, C++20 4th-order Runge-Kutta mixed-signal SAR ADC + 64-point Hann FFT, and 2D thermal PDE directly during RTL simulation.
 5. **`VIKAS-VED` IDE + `VIKAS-FORTUNE-AI v4.0` Auto-Healer**: Real-time 19-rule syntax & lint engine (`SYN-01..SYN-07` + `SEC-01..SEC-12`) with non-blocking gutter markers, 1-click surgical auto-healing of corrupted tokens/latches/reset branches, and a **38-Language Polyglot SIMD Super-Compiler**.
@@ -52,13 +52,13 @@ cd Vikas
 chmod +x *.sh scripts/*.sh 2>/dev/null || true
 ```
 
-#### 2. Launch the Interactive VIKAS Studio v3.0 Web Workstation (`http://localhost:3000`)
+#### 2. Launch the Interactive VIKAS Studio v3.0 Native Workstation (`http://localhost:3000`)
 Requires **Node.js >= 18**:
 ```bash
 npm install
 npm run dev
 ```
-Open **`http://localhost:3000`** in your browser to access all 6 unified tabs (Waveform Viewer, `VIKAS-VED` RTL Editor with `VIKAS-FORTUNE-AI v4.0` Auto-Healer, 7-Pillar Signoff & Mutation Engine, Open-KDB & Physics Twin, Multicore/UVM Benchmarks, and Interactive 64-Command CLI Runner).
+Open **`http://localhost:3000`** in your browser to access all 6 unified tabs (Waveform Viewer, `VIKAS-VED` RTL Editor with `VIKAS-FORTUNE-AI v4.0` Auto-Healer, 7-Pillar Signoff & Mutation Engine, Open-KDB & Physics Twin, Multicore/UVM Benchmarks, and Headless Background Regression + Interactive 65-Command CLI Runner).
 
 #### 3. Build & Install the Native `vikas` Linux CLI Binary
 If Rust (`cargo >= 1.70`) is already installed:
@@ -96,7 +96,7 @@ PREFIX=/opt/vikas/bin bash ./install_linux.sh
 
 ## 2. Quick-Start Verification & CLI Commands
 
-Once `vikas` is built (`./target/release/vikas` or installed in `$PATH`), run any of the 64 subcommands:
+Once `vikas` is built (`./target/release/vikas` or installed in `$PATH`), run any of the 65 subcommands:
 
 ```bash
 # 1. Version & 6-point Linux environment doctor
@@ -106,32 +106,36 @@ vikas doctor
 # 2. Simulate the 26-file NOVA-SoC RISC-V RV32IM SoC (9/9 self-checking tests)
 vikas run examples/nova_soc/nova.f --max-ns 8000
 
-# 3. Simulate the multi-file project manifest (+incdir+ & .vh headers)
-vikas run examples/multifile_proj/project.f
+# 3. Simulate a multi-file manifest (+incdir+ & .vh headers) OR an entire bulk directory
+vikas run examples/multifile_proj/proj.f
+vikas run examples/nova_soc/
 
-# 4. Run the 7-Pillar Pre-Tapeout Signoff Gate (0-100 readiness score)
+# 4. Run Headless Background Multi-Case Regression (.vwm zero-copy mmap per case + perf counters)
+vikas batch --jobs 16
+
+# 5. Run the 7-Pillar Pre-Tapeout Signoff Gate (0-100 readiness score)
 vikas signoff examples/nova_soc/nova.f --max-ns 8000
 
-# 5. Run the 3-Layer Inferred Latch Guard (returns CI exit code 2 on latches, 0 when clean)
+# 6. Run the 3-Layer Inferred Latch Guard (returns CI exit code 2 on latches, 0 when clean)
 vikas latch examples/demo_latch_trap.sv         # Detects 2 latches -> exit code 2
 vikas latch examples/demo_latch_trap.sv --fix   # Generates SystemVerilog auto-patch
 vikas latch examples/nova_soc/nova.f            # 0 inferred latches -> exit code 0
 
-# 6. Causality, Counterfactual SAT "Why" Solver, and 64-Bit Taint-Dye
+# 7. Causality, Counterfactual SAT "Why" Solver, and 64-Bit Taint-Dye
 vikas why valid_ex 1 --dump .vikas/vikas_wave.vwf
 vikas taint rs1_data alu_out --dump .vikas/vikas_wave.vwf
 vikas delta .vikas/vikas_wave.vwf
 
-# 7. Pre-Synthesis Silicon Physics, Sub-Threshold (0.12V) & C++20 RK4 Mixed-Signal ADC
+# 8. Pre-Synthesis Silicon Physics, Sub-Threshold (0.12V) & C++20 RK4 Mixed-Signal ADC
 vikas power examples/nova_soc/nova.f
 vikas physics .vikas/vikas_wave.vwf --vdd 0.18 --temp 77
 vikas cosim
 
-# 8. DUT-Only RTL Mutation Testing Campaign
+# 9. DUT-Only RTL Mutation Testing Campaign
 vikas mutant examples/nova_soc/nova.f --max-mutants 16 --max-ns 4000
 
-# 9. Export Self-Contained Zero-Dependency HTML5 Studio
-vikas studio examples/nova_soc/nova.f -o /tmp/nova_studio.html --no-open
+# 10. Inspect Waveforms in Terminal UI or VIKAS Native Workstation (no external browser popups)
+vikas tui .vikas/vikas_wave.vwf
 ```
 
 ---

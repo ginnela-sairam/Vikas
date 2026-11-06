@@ -1,2 +1,1 @@
-counterfactual analysis for `alu_result` = ?:
-  no controlling blockers found in fan-in cone (direct input path)
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory

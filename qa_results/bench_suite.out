@@ -1,6 +1,1 @@
-╔════════════════════════════════════════════════════════════════════════════╗
-║          VIKAS BENCH — VIKAS-KRONOS kernel throughput benchmark suite           ║
-╚════════════════════════════════════════════════════════════════════════════╝
-  scale: 1 (N = 100 base units) · host: 2 vCPU
-
-  test          signals     events    cycles   wall(ms)     events/s      cyc/s
+timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
