@@ -244,8 +244,6 @@ impl<'a> Parser<'a> {
 
     pub fn parse_program(&mut self) -> Vec<ModuleDef> {
         let mut mods = Vec::new();
-        let mut pkg_params: Vec<(String, Option<Expr>)> = Vec::new();
-        let mut pkg_enums: Vec<(String, Vec<(String, u64)>)> = Vec::new();
 
         while self.p < self.t.len() {
             // file-scope parameter/localparam: enters the constant table so
@@ -260,7 +258,6 @@ impl<'a> Parser<'a> {
                 }
                 self.eat(";");
                 self.record_const(&pn, &default);
-                pkg_params.push((pn, default));
                 continue;
             }
             if self.peek_ident("package") {
@@ -277,33 +274,31 @@ impl<'a> Parser<'a> {
                         }
                         self.eat(";");
                         self.record_const(&pn, &default);
-                        pkg_params.push((pn, default));
-                    } else if self.eat("typedef") && self.eat("enum") {
-                        self.skip_optional_param_type();
-                        if self.peek_op("{") {
-                            self.expect_op("{");
-                            let mut vals = Vec::new();
-                            let mut cnt = 0u64;
-                            while !self.peek_op("}") && self.p < self.t.len() {
-                                let vn = self.ident();
-                                let v = if self.eat("=") {
-                                    let e = self.parse_expr();
-                                    self.fold(&e).unwrap_or(cnt)
-                                } else {
-                                    cnt
-                                };
-                                cnt = v + 1;
-                                self.consts.insert(vn.clone(), v);
-                                vals.push((vn, v));
-                                if !self.eat(",") {
-                                    break;
+                    } else if self.eat("typedef") {
+                        if self.eat("enum") {
+                            self.skip_optional_param_type();
+                            if self.peek_op("{") {
+                                self.expect_op("{");
+                                let mut cnt = 0u64;
+                                while !self.peek_op("}") && self.p < self.t.len() {
+                                    let vn = self.ident();
+                                    let v = if self.eat("=") {
+                                        let e = self.parse_expr();
+                                        self.fold(&e).unwrap_or(cnt)
+                                    } else {
+                                        cnt
+                                    };
+                                    cnt = v + 1;
+                                    self.consts.insert(vn, v);
+                                    if !self.eat(",") {
+                                        break;
+                                    }
                                 }
+                                self.expect_op("}");
+                                let _tn = self.ident();
                             }
-                            self.expect_op("}");
-                            let tn = self.ident();
-                            pkg_enums.push((tn, vals));
                         }
-                        self.eat(";");
+                        self.skip_until_semi();
                     } else {
                         self.p += 1;
                     }
@@ -312,35 +307,15 @@ impl<'a> Parser<'a> {
                 continue;
             }
             if self.peek_ident("module") {
-                if let Some(mut m) = self.parse_module_like("endmodule") {
-                    for pp in &pkg_params {
-                        if !m.params.iter().any(|(k, _)| k == &pp.0) {
-                            m.params.push(pp.clone());
-                        }
-                    }
-                    for pe in &pkg_enums {
-                        if !m.enums.iter().any(|(k, _)| k == &pe.0) {
-                            m.enums.push(pe.clone());
-                        }
-                    }
+                if let Some(m) = self.parse_module_like("endmodule") {
                     mods.push(m);
                 }
             } else if self.peek_ident("interface") {
-                if let Some(mut m) = self.parse_module_like("endinterface") {
-                    for pp in &pkg_params {
-                        if !m.params.iter().any(|(k, _)| k == &pp.0) {
-                            m.params.push(pp.clone());
-                        }
-                    }
+                if let Some(m) = self.parse_module_like("endinterface") {
                     mods.push(m);
                 }
             } else if self.peek_ident("program") {
-                if let Some(mut m) = self.parse_module_like("endprogram") {
-                    for pp in &pkg_params {
-                        if !m.params.iter().any(|(k, _)| k == &pp.0) {
-                            m.params.push(pp.clone());
-                        }
-                    }
+                if let Some(m) = self.parse_module_like("endprogram") {
                     mods.push(m);
                 }
             } else {
@@ -519,7 +494,7 @@ impl<'a> Parser<'a> {
             self.record_const(&pn, &default);
             m.params.push((pn, default));
             self.eat(";");
-        } else if self.eat("import") || self.eat("modport") || self.eat("timeunit") || self.eat("timeprecision") || self.eat("assert") || self.eat("assume") || self.eat("cover") || self.eat("default") {
+        } else if self.eat("import") || self.eat("modport") || self.eat("timeunit") || self.eat("timeprecision") || self.eat("assert") || self.eat("assume") || self.eat("cover") {
             self.skip_until_semi();
         } else if self.eat("class") {
             self.skip_until_ident("endclass");

@@ -562,7 +562,7 @@ fn is_native_sv_or_verilog(ext: &str) -> bool {
     matches!(
         ext,
         "sv" | "svh" | "svi" | "svp" | "svt" | "sva" | "svlib" | "vams" | "uvm"
-            | "v" | "vh" | "vg" | "vi" | "vo" | "vlog" | "ver" | "vp"
+            | "v" | "vh" | "vg" | "vi" | "vo" | "vho" | "vlog" | "ver" | "vp"
             | "mhdl" | "rtl" | "netlist" | "pkg" | ""
     )
 }
@@ -634,6 +634,18 @@ fn sanitize_ident(raw: &str) -> String {
 fn synthesize_polyglot_file_to_sv(text: &str, path: &Path, ext: &str) -> String {
     if contains_sv_module_or_interface(text) {
         return text.to_string();
+    }
+    let has_active_code = text.lines().any(|l| {
+        let t = l.trim();
+        !t.is_empty()
+            && !t.starts_with("//")
+            && !t.starts_with("--")
+            && !t.starts_with('#')
+            && !t.starts_with("/*")
+            && !t.starts_with('*')
+    });
+    if !has_active_code {
+        return format!("// [VIKAS] comment-only .{} spec tolerated: {}\n", ext, path.display());
     }
     let stem = path
         .file_stem()

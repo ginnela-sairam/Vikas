@@ -224,6 +224,31 @@ mod tests {
         assert!(cert.merkle_root_hex.starts_with("0x"));
         assert!(cert.ed25519_sig_hex.starts_with("ed25519:"));
     }
+
+    #[test]
+    fn raw_rtl_auto_stimulus_and_package_simulates() {
+        let src = r#"
+        package soc_pkg;
+            parameter int W = 8;
+        endpackage
+        module raw_pipe #(parameter int WIDTH = 8) (
+            input logic clk,
+            input logic rst_n,
+            input logic [7:0] d,
+            output logic [7:0] q
+        );
+            import soc_pkg::*;
+            always_ff @(posedge clk) begin
+                if (!rst_n) q <= 8'd0;
+                else q <= d + 8'd1;
+            end
+        endmodule
+        "#;
+        let res = simulate_source(src, None, 500).unwrap();
+        assert!(res.auto_tb_synthesized);
+        assert!(res.cycles >= 16);
+        assert!(res.edge_fires > 0);
+    }
 }
 
 /// [NB-19 / AP-16] Built-In Lockstep RISC-V RV32IMAC Golden Instruction-Set Simulator (ISS)

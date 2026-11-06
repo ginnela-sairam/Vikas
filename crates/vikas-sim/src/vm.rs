@@ -1357,34 +1357,40 @@ impl Vm {
 
         let mut stmts = Vec::new();
         if let Some(ref c) = clk_port {
-            stmts.push(Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 });
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), blocking: true });
         }
         if let Some(ref rl) = rst_low_port {
-            stmts.push(Stmt::Assign { lhs: Expr::Ident(rl.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 });
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rl.clone()), rhs: Expr::Num(0, 1), blocking: true });
         }
         if let Some(ref rh) = rst_high_port {
-            stmts.push(Stmt::Assign { lhs: Expr::Ident(rh.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 });
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rh.clone()), rhs: Expr::Num(1, 1), blocking: true });
         }
         for (dn, dw) in &data_ports {
-            stmts.push(Stmt::Assign { lhs: Expr::Ident(dn.clone()), rhs: Expr::Num(0, *dw), nonblocking: false, line: 0 });
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(dn.clone()), rhs: Expr::Num(0, *dw), blocking: true });
         }
 
         // 2 reset cycles
         if let Some(ref c) = clk_port {
             for _ in 0..2 {
-                stmts.push(Stmt::Delay(5, vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 }]));
-                stmts.push(Stmt::Delay(5, vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 }]));
+                stmts.push(Stmt::Delay {
+                    ns: 5,
+                    body: vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(1, 1), blocking: true }],
+                });
+                stmts.push(Stmt::Delay {
+                    ns: 5,
+                    body: vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), blocking: true }],
+                });
             }
         } else {
-            stmts.push(Stmt::Delay(10, vec![]));
+            stmts.push(Stmt::Delay { ns: 10, body: Vec::new() });
         }
 
         // Deassert reset
         if let Some(ref rl) = rst_low_port {
-            stmts.push(Stmt::Assign { lhs: Expr::Ident(rl.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 });
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rl.clone()), rhs: Expr::Num(1, 1), blocking: true });
         }
         if let Some(ref rh) = rst_high_port {
-            stmts.push(Stmt::Assign { lhs: Expr::Ident(rh.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 });
+            stmts.push(Stmt::Assign { lhs: Expr::Ident(rh.clone()), rhs: Expr::Num(0, 1), blocking: true });
         }
 
         // 16 active LFSR stimulus cycles
@@ -1404,19 +1410,21 @@ impl Vm {
                 body_before_clk.push(Stmt::Assign {
                     lhs: Expr::Ident(dn.clone()),
                     rhs: Expr::Num(val, *dw),
-                    nonblocking: false,
-                    line: 0,
+                    blocking: true,
                 });
             }
             if let Some(ref c) = clk_port {
-                body_before_clk.push(Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(1, 1), nonblocking: false, line: 0 });
-                stmts.push(Stmt::Delay(5, body_before_clk));
-                stmts.push(Stmt::Delay(5, vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), nonblocking: false, line: 0 }]));
+                body_before_clk.push(Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(1, 1), blocking: true });
+                stmts.push(Stmt::Delay { ns: 5, body: body_before_clk });
+                stmts.push(Stmt::Delay {
+                    ns: 5,
+                    body: vec![Stmt::Assign { lhs: Expr::Ident(c.clone()), rhs: Expr::Num(0, 1), blocking: true }],
+                });
             } else {
-                stmts.push(Stmt::Delay(5, body_before_clk));
+                stmts.push(Stmt::Delay { ns: 5, body: body_before_clk });
             }
         }
-        stmts.push(Stmt::Finish);
+        stmts.push(Stmt::SysTask("$finish".to_string(), Vec::new()));
         stmts
     }
 

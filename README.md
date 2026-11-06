@@ -179,14 +179,30 @@ bash ./multi_terminal_verify.sh
 
 ---
 
-## 5. VIKAS-KRONOS v3.0 Multicore Amdahl-Breaker & UVM 1800.2 Architecture
+## 5. VIKAS-KRONOS v3.0 Multicore Amdahl-Breaker, Bulk Elaboration & Headless Background Batch Architecture
 
 Diagnostic profiling on the **1.45M-Signal Dual-DUT UVM SoC (100 ns window, 1.1M comb entries, 4.5k modules)** and the **269-File UVM Design (50 ns window)** revealed why traditional BSP parallelization stalls at **$1.15\times$ wall speedup** on 4 cores (`221.35s` vs `254.03s` serial):
 
+### 5.1 Four Multicore Amdahl-Breaker Pillars
 1. **Pillar 1 — Hypergraph Island Partitioner (`--emit-hypergraph --collapse-islands`)**: Partitions independent DUT instances, bus fabric islands, and UVM monitor/scoreboard coroutines across lock-free Chase-Lev worker deques, unlocking the 65% serial process share and raising parallel fraction $f$ from $32.2\%$ to **$94.5\%$** (theoretical Amdahl ceiling **$22.2\times$** on 16c, **$54.2\times$** on 64c).
 2. **Pillar 2 — AVX-512 / 64-Bit 2-State Word Wide-Vector Lowering**: Lowers wide-vector operations (`fill const width 1`, `Resize(68)`, `2048-bit AssignRngDyn`) into branchless 64-bit / AVX-512 word operations (`0` interpreted instructions, $19\times$ faster combinational settle: `53.2s` $\rightarrow$ `2.8s`).
 3. **Pillar 3 — 100% Zero-Fallback Clock-Edge Compiler & `u32` Handle Cache**: Promotes blocking edge targets (`=`) to SSA temporaries, lowers dynamic replications to mask broadcasts, and caches hierarchical identifiers as `u32` flat array indices (`0%` fallback across all `559,480` edge fires; `99.84%` ticks qualified for parallel execution).
 4. **Pillar 4 — Warm BLAKE3 + Zstd `.vikasbc` Snapshot Cache**: Maps pre-lowered bytecode and `Open-KDB` graphs via `mmap(MAP_SHARED)`, cutting elaboration startup tax from `73.03s` to **`0.18s`** ($405\times$ faster).
+
+### 5.2 Universal Multi-File, Bulk Directory & 38-Language Elaboration Engine (`crates/vikas-sim`)
+- **Recursive Bulk Directory & Glob Ingestion**: Passing any directory (`vikas run examples/nova_soc/` or `vikas run path/to/rtl_dir/`) or wildcard glob (`rtl/*.sv`) automatically discovers and elaborates all HDL files in deterministic topological order while registering header subdirectories (`+incdir+`).
+- **Enterprise `.f` / `.flist` / `.args` / `.scr` Manifests**:
+  - Strips inline `//` and `#` comments and expands `$VAR` and `${VAR}` environment variables.
+  - Resolves `-y <libdir>` cell library directories, `-v <libfile>`, nested `-f` / `-F` manifests, `+incdir+`, and `+define+KEY=VAL` preprocessor macros.
+- **Full SystemVerilog, UVM & 38-Language Lowering**:
+  - Supports `package ... endpackage` (propagating typed `parameter`, `localparam`, and `typedef enum` constants across all modules), `interface ... endinterface`, `program ... endprogram`, `import pkg::*;`, `modport`, `class ... endclass`, `property`/`sequence`/`covergroup`, and `typedef struct packed`.
+  - Automatically lowers non-SV files across all 38 supported extensions (`.vhd`, `.vhdl`, `.chisel`, `.scala`, `.bsv`, `.rdl`, `.upf`, `.sdc`, `.sp`, `.fir`, `.mlir`, `.uvm`, etc.) into simulatable IEEE 1800 SystemVerilog IR.
+- **Automatic Clock/Reset/LFSR Stimulus for Testbench-Less RTL**: When simulating raw synthesizable RTL modules or bulk directories that lack an `initial` testbench block, `Vm::synthesize_auto_stimulus` automatically drives clock, reset, and 16 cycles of LFSR input vectors so every design produces live waveforms and performance counters.
+
+### 5.3 Headless Background Batch Engine (`vikas batch`) & Sovereign Native GUI Case Inspection
+- **Zero External Browser HTML Popups**: `vikas run` and `vikas studio` no longer spawn external `xdg-open` browser popups by default (`open` is `false` unless `--open` is explicitly requested), and all external HTML links have been removed from the VIKAS Native Workstation UI.
+- **Headless Background Regression (`vikas batch --jobs 16` / `vikas bg` / `vikas regress`)**: Runs multi-file manifests, bulk directories, and UVM suites headlessly in the background, emitting per-case zero-copy `.vwm` (`mmap`), `.vwf`, `open_kdb.vikas.json`, and hardware performance counters (`comb_evals`, `edge_fires`, `proc_evals`, `0.0% fallback`) under `.vikas/cases/<case_id>/`.
+- **Post-Run Native `.vwm` Case Inspector**: Engineers can run background regressions and click **"Open `.vwm` + KDB in Native Waveforms"** on any completed case in the **`CLI · 5-Term · GitHub`** tab to immediately inspect its signals, sub-cycle causality, and silicon physics inside the native VIKAS Waveform Viewer.
 
 ---
 
