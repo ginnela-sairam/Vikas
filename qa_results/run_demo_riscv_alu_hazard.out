@@ -1,1 +1,6 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+alu_result=57005 valid_ex=0 partial_sum=0
+[VIKAS RUN] simulated top `alu_tb`: 7 cycles, 65 ns, wall 0 ms
+  project      : 1 input(s) -> 1 resolved source file(s)
+  dump         : .vikas/vikas_wave.vwf (.vwf) + .vikas/vikas_wave.vwm (zero-copy mmap .vwm) + .vikas/vikas_wave.vcd (VCD)
+  perf-cnts    : comb_evals=182 · edge_fires=14 · proc_evals=40 · fallback=0.0% · parallel_qualify=99.84%
+  startup      : .vikas/auto_startup.sucl (clocks/resets/IO/telemetry pre-loaded)

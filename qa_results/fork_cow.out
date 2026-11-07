@@ -1,1 +1,5 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+[VIKAS FORK] silicon time-forking via fork() CoW — 3 branch(es):
+  child pid   7516: fork 216 µs, CoW RSS 3.4 MB
+  child pid   7517: fork 247 µs, CoW RSS 3.7 MB
+  child pid   7518: fork 277 µs, CoW RSS 3.7 MB
+  ► total fork+exec+wait: 2981 µs — <50µs/fork target for instant timeline branching

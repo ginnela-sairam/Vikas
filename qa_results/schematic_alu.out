@@ -1,1 +1,2 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+[VIKAS SCHEMATIC] fan-in schematic -> .vikas/cone.dot
+  mermaid variant -> .vikas/cone.mmd

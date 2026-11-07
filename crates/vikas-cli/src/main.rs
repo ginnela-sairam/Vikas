@@ -117,7 +117,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             "--top", "-top", "-s", "--max-ns", "-o", "--time", "--from", "--to", "--array",
             "--dump", "--addr", "--vdd", "--temp-k", "--bus",
             "--max-mutants", "--min-score", "--cnode", "--freq-mhz",
-            "--threads", "--profile",
+            "--threads", "--jobs", "--profile",
             "-y", "-l", "-do",
         ];
         let mut out = Vec::new();
@@ -304,6 +304,14 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
 }
 
 fn main() {
+    let default_panic = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let msg = info.to_string();
+        if msg.contains("Broken pipe") || msg.contains("os error 32") {
+            std::process::exit(0);
+        }
+        default_panic(info);
+    }));
     let args: Vec<String> = std::env::args().skip(1).collect();
     let cmd = match parse_args(&args) {
         Ok(c) => c,

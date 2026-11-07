@@ -1,1 +1,2 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+[VIKAS SHM] arena: /dev/shm/vikas_arena_0_demo (tmpfs RAM — zero disk wear, >20 GB/s)
+  probe readback   : PASS ✓ (RAM-speed arena verified)

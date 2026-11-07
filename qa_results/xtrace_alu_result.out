@@ -1,1 +1,2 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+[VIKAS XTRACE] IDE cross-probe links for `alu_result`:
+  alu_pipeline.sv:53  [always_ff] alu_result <= (valid_r ? ex_result : 57005)

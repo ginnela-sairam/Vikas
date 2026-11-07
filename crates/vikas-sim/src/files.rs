@@ -484,7 +484,7 @@ impl Loader {
             if let Some(rest) = t.strip_prefix("`include") {
                 let rest = rest.trim();
                 let fname = rest
-                    .split('//')
+                    .split("//")
                     .next()
                     .unwrap_or(rest)
                     .trim()

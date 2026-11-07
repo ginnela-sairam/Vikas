@@ -1,1 +1,5 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+[VIKAS PBIT] p-bit / stochastic analysis of `sar_tb.clk`:
+  samples          : 40
+  mean P(s=1)      : 0.4
+  mean Shannon H    : 1.000 bits
+  Glauber verdict  : healthy entropy source (TRNG-grade)

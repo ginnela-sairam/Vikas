@@ -1,1 +1,6 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+[VIKAS CI] CI regression gatekeeper:
+| check                     | result |
+|---------------------------|--------|
+| inferred latches = 0      | PASS ✓ |
+| combinational loops = 0   | PASS ✓ |
+| peak FO4 < 24             | PASS ✓ |

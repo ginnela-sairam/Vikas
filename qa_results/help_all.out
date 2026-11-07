@@ -1,1 +1,6 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+══════════════════════════════════════════════════════════════════════════════
+  VIKAS v3.0 — command catalog (64 commands, 18 architectural breakthroughs)
+══════════════════════════════════════════════════════════════════════════════
+
+■ SIMULATION (VIKAS-KRONOS kernel — multi-file, bulk directories, filelists, 38-lang & UVM-aware)
+  run <files|dir|manifest.f> [--top m] [--max-ns N] [--gui]  simulate + auto-dump (.vwf + zero-copy mmap .vwm) + Open-KDB + perf-cnts

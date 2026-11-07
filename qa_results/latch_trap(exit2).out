@@ -1,1 +1,6 @@
-timeout: failed to run command ‘/app/applet/target/release/vikas’: No such file or directory
+╔════════════════════════════════════════════════════════════════════╗
+║                 !!!  [VIKAS LATCH ALERT]  !!!                      ║
+╚════════════════════════════════════════════════════════════════════╝
+  inferred latches found: 2
+
+[1] partial_sum in always_comb (, line 13)

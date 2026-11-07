@@ -76,7 +76,7 @@ impl VVal {
     pub fn from_u64(v: u64, width: usize) -> VVal {
         let mut bits = Vec::with_capacity(width);
         for i in (0..width).rev() {
-            bits.push(if (v >> i) & 1 == 1 { Bit::One } else { Bit::Zero });
+            bits.push(if i < 64 && ((v >> i) & 1 == 1) { Bit::One } else { Bit::Zero });
         }
         VVal { bits }
     }
