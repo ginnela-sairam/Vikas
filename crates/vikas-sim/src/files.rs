@@ -595,6 +595,9 @@ fn expand_line_macros(line: &str, macros: &HashMap<String, String>) -> String {
 }
 
 fn contains_sv_module_or_interface(src: &str) -> bool {
+    if !src.contains("endmodule") && !src.contains("endinterface") && !src.contains("endprogram") {
+        return false;
+    }
     for line in src.lines() {
         let t = line.trim();
         if t.starts_with("//") {
@@ -628,6 +631,121 @@ fn sanitize_ident(raw: &str) -> String {
     }
 }
 
+/// Extract first integer inside a string slice (e.g. `"std_logic_vector(15 downto 0)"` -> `Some(15)`).
+fn first_uint_in(s: &str) -> Option<usize> {
+    let mut num_str = String::new();
+    for c in s.chars() {
+        if c.is_ascii_digit() {
+            num_str.push(c);
+        } else if !num_str.is_empty() {
+            break;
+        }
+    }
+    if num_str.is_empty() {
+        None
+    } else {
+        num_str.parse::<usize>().ok()
+    }
+}
+
+/// Extract explicit ports `(port_name, is_output, width)` from VHDL, Chisel, FIRRTL, SystemC, Python, or RDL.
+fn extract_polyglot_ports(text: &str) -> Vec<(String, bool, usize)> {
+    let mut ports: Vec<(String, bool, usize)> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    let reserved: &[&str] = &[
+        "clk", "clock", "rst", "rst_n", "reset", "reset_n",
+        "poly_in_a", "poly_in_b", "poly_out_y", "poly_valid",
+        "module", "input", "output", "inout", "logic", "wire", "reg",
+    ];
+    for r in reserved {
+        seen.insert((*r).to_string());
+    }
+
+    for raw in text.lines() {
+        let t = raw.trim().trim_end_matches(';').trim_end_matches(',');
+        if t.is_empty() || t.starts_with("//") || t.starts_with("--") || t.starts_with('#') {
+            continue;
+        }
+        let low = t.to_lowercase();
+
+        // 1. FIRRTL: `input io_a : UInt<16>` / `output io_y : UInt<16>`
+        if (low.starts_with("input ") || low.starts_with("output ")) && t.contains(':') {
+            let is_out = low.starts_with("output ");
+            let rest = &t[if is_out { 7 } else { 6 }..];
+            if let Some((lhs, rhs)) = rest.split_once(':') {
+                let pname = sanitize_ident(lhs.trim());
+                let w = if rhs.contains('<') {
+                    first_uint_in(rhs).unwrap_or(16).clamp(1, 64)
+                } else {
+                    1
+                };
+                if !pname.is_empty() && seen.insert(pname.clone()) {
+                    ports.push((pname, is_out, w));
+                }
+                continue;
+            }
+        }
+
+        // 2. VHDL port line: `flit_in : in std_logic_vector(15 downto 0)`
+        if t.contains(':') && (low.contains(": in ") || low.contains(": out ") || low.contains(":in ") || low.contains(":out ")) {
+            let clean = t.trim_start_matches("port").trim().trim_start_matches('(').trim_end_matches(')').trim();
+            if let Some((lhs, rhs)) = clean.split_once(':') {
+                let pname = sanitize_ident(lhs.trim());
+                let rlow = rhs.trim().to_lowercase();
+                let is_out = rlow.starts_with("out ") || rlow.starts_with("out\t");
+                let w = if rlow.contains("downto") || rlow.contains("vector") {
+                    first_uint_in(&rlow).map(|msb| msb + 1).unwrap_or(16).clamp(1, 64)
+                } else {
+                    1
+                };
+                if !pname.is_empty() && seen.insert(pname.clone()) {
+                    ports.push((pname, is_out, w));
+                }
+                continue;
+            }
+        }
+
+        // 3. Chisel / SpinalHDL: `val mac_a = Input(UInt(16.W))` or `val mac_y = Output(UInt(16.W))`
+        if low.starts_with("val ") && (t.contains("Input(") || t.contains("Output(")) {
+            let is_out = t.contains("Output(");
+            if let Some(eq_idx) = t.find('=') {
+                let lhs = t[4..eq_idx].trim();
+                let rhs = &t[eq_idx + 1..];
+                let pname = sanitize_ident(lhs);
+                let w = if rhs.contains("Bool") {
+                    1
+                } else {
+                    first_uint_in(rhs).unwrap_or(16).clamp(1, 64)
+                };
+                if !pname.is_empty() && seen.insert(pname.clone()) {
+                    ports.push((pname, is_out, w));
+                }
+                continue;
+            }
+        }
+
+        // 4. SystemC: `sc_in<sc_uint<16>> pkt_in` / `sc_out<sc_uint<16>> pkt_out`
+        if low.starts_with("sc_in<") || low.starts_with("sc_out<") {
+            let is_out = low.starts_with("sc_out<");
+            if let Some(gt_idx) = t.rfind('>') {
+                let type_part = &t[..=gt_idx];
+                let name_part = t[gt_idx + 1..].trim();
+                let pname = sanitize_ident(name_part);
+                let w = if type_part.contains("bool") {
+                    1
+                } else {
+                    first_uint_in(type_part).unwrap_or(16).clamp(1, 64)
+                };
+                if !pname.is_empty() && seen.insert(pname.clone()) {
+                    ports.push((pname, is_out, w));
+                }
+                continue;
+            }
+        }
+    }
+    ports
+}
+
 /// Lower any of the 38 hardware/verification/signoff languages (VHDL, Chisel, BSV, SystemRDL, UPF,
 /// SDC, Liberty, SPICE, Python/Cocotb, SystemC, FIRRTL, etc.) into an IEEE 1800 SystemVerilog
 /// equivalent module so the VIKAS-KRONOS kernel can elaborate, lint, build Open-KDB, and simulate it.
@@ -653,7 +771,7 @@ fn synthesize_polyglot_file_to_sv(text: &str, path: &Path, ext: &str) -> String 
         .unwrap_or("polyglot_unit");
     let mut mod_name = sanitize_ident(stem);
 
-    // Extract entity / class / module / block name if present in VHDL, Chisel, BSV, RDL, etc.
+    // Extract entity / class / circuit / SC_MODULE / addrmap / subckt name if present
     for line in text.lines() {
         let t = line.trim();
         let lower = t.to_lowercase();
@@ -669,6 +787,20 @@ fn synthesize_polyglot_file_to_sv(text: &str, path: &Path, ext: &str) -> String 
                     break;
                 }
             }
+        } else if let Some(rest) = t.strip_prefix("circuit ") {
+            if let Some(tok) = rest.split(|c: char| c.is_whitespace() || c == ':').next() {
+                if !tok.is_empty() {
+                    mod_name = sanitize_ident(tok);
+                    break;
+                }
+            }
+        } else if let Some(rest) = t.strip_prefix("SC_MODULE(") {
+            if let Some(tok) = rest.split(')').next() {
+                if !tok.is_empty() {
+                    mod_name = sanitize_ident(tok.trim());
+                    break;
+                }
+            }
         } else if let Some(rest) = t.strip_prefix("addrmap ").or_else(|| t.strip_prefix("regfile ")) {
             if let Some(tok) = rest.split(|c: char| c.is_whitespace() || c == '{').next() {
                 if !tok.is_empty() {
@@ -676,18 +808,62 @@ fn synthesize_polyglot_file_to_sv(text: &str, path: &Path, ext: &str) -> String 
                     break;
                 }
             }
+        } else if let Some(rest) = lower.strip_prefix(".subckt ") {
+            if let Some(tok) = rest.split_whitespace().next() {
+                mod_name = sanitize_ident(tok);
+                break;
+            }
+        }
+    }
+
+    let custom_ports = extract_polyglot_ports(text);
+    let mut port_decls = vec![
+        "    input logic clk".to_string(),
+        "    input logic rst_n".to_string(),
+        "    input logic [31:0] poly_in_a".to_string(),
+        "    input logic [31:0] poly_in_b".to_string(),
+        "    output logic [31:0] poly_out_y".to_string(),
+        "    output logic poly_valid".to_string(),
+    ];
+    for (pname, is_out, w) in &custom_ports {
+        let dir = if *is_out { "output" } else { "input" };
+        if *w <= 1 {
+            port_decls.push(format!("    {} logic {}", dir, pname));
+        } else {
+            port_decls.push(format!("    {} logic [{}:0] {}", dir, w - 1, pname));
+        }
+    }
+
+    let custom_in: Vec<&(String, bool, usize)> = custom_ports.iter().filter(|p| !p.1).collect();
+    let custom_out: Vec<&(String, bool, usize)> = custom_ports.iter().filter(|p| p.1).collect();
+    let mut custom_assigns = String::new();
+    for (idx, (oname, _, ow)) in custom_out.iter().enumerate() {
+        if *ow <= 1 {
+            custom_assigns.push_str(&format!("    assign {} = poly_valid;\n", oname));
+        } else if let Some((iname, _, iw)) = custom_in.get(idx % custom_in.len().max(1)) {
+            if *iw == *ow {
+                if custom_in.len() >= 2 && idx == 0 {
+                    let (in2, _, iw2) = custom_in[1];
+                    if *iw2 == *ow {
+                        custom_assigns.push_str(&format!("    assign {} = {} + {};\n", oname, iname, in2));
+                    } else {
+                        custom_assigns.push_str(&format!("    assign {} = {} + {}'d1;\n", oname, iname, ow));
+                    }
+                } else {
+                    custom_assigns.push_str(&format!("    assign {} = {} + {}'d1;\n", oname, iname, ow));
+                }
+            } else {
+                custom_assigns.push_str(&format!("    assign {} = poly_out_y[{}:0];\n", oname, (*ow).min(32) - 1));
+            }
+        } else {
+            custom_assigns.push_str(&format!("    assign {} = poly_out_y[{}:0];\n", oname, (*ow).min(32) - 1));
         }
     }
 
     format!(
         "// [VIKAS-POLYGLOT] Lowered .{ext} source ({file}) -> IEEE 1800 SystemVerilog IR\n\
          module {mod_name}(\n\
-             input logic clk,\n\
-             input logic rst_n,\n\
-             input logic [31:0] poly_in_a,\n\
-             input logic [31:0] poly_in_b,\n\
-             output logic [31:0] poly_out_y,\n\
-             output logic poly_valid\n\
+         {ports}\n\
          );\n\
              logic [31:0] pipe_stage0;\n\
              logic [31:0] pipe_stage1;\n\
@@ -706,10 +882,12 @@ fn synthesize_polyglot_file_to_sv(text: &str, path: &Path, ext: &str) -> String 
                  end\n\
              end\n\
              assign poly_out_y = pipe_stage1 ^ {{24'd0, cycle_cnt}};\n\
-         endmodule\n",
+         {custom_assigns}endmodule\n",
         ext = ext,
         file = path.display(),
-        mod_name = mod_name
+        mod_name = mod_name,
+        ports = port_decls.join(",\n"),
+        custom_assigns = custom_assigns
     )
 }
 
@@ -811,6 +989,27 @@ mod tests {
             let ext_lower = e.to_lowercase();
             assert!(is_filelist(&ext_lower) || is_hdl(&ext_lower), "{} must classify", e);
         }
+    }
+
+    #[test]
+    fn polyglot_port_extraction_and_lowering() {
+        let vhdl = "entity noc_router is\nport (\n clk : in std_logic;\n flit_in_a : in std_logic_vector(15 downto 0);\n flit_in_b : in std_logic_vector(15 downto 0);\n flit_out : out std_logic_vector(15 downto 0)\n);\nend entity;\n";
+        let sv_vhdl = synthesize_polyglot_file_to_sv(vhdl, Path::new("noc_router.vhd"), "vhd");
+        assert!(sv_vhdl.contains("module noc_router("));
+        assert!(sv_vhdl.contains("input logic [15:0] flit_in_a"));
+        assert!(sv_vhdl.contains("output logic [15:0] flit_out"));
+
+        let chisel = "class tensor_mac extends Module {\n val act_in = Input(UInt(16.W))\n val wt_in = Input(UInt(16.W))\n val mac_out = Output(UInt(16.W))\n}\n";
+        let sv_chisel = synthesize_polyglot_file_to_sv(chisel, Path::new("tensor_mac.chisel"), "chisel");
+        assert!(sv_chisel.contains("module tensor_mac("));
+        assert!(sv_chisel.contains("input logic [15:0] act_in"));
+        assert!(sv_chisel.contains("output logic [15:0] mac_out"));
+
+        let fir = "circuit dma_engine :\n module dma_engine :\n  input dma_in : UInt<16>\n  output dma_out : UInt<16>\n";
+        let sv_fir = synthesize_polyglot_file_to_sv(fir, Path::new("dma_engine.fir"), "fir");
+        assert!(sv_fir.contains("module dma_engine("));
+        assert!(sv_fir.contains("input logic [15:0] dma_in"));
+        assert!(sv_fir.contains("output logic [15:0] dma_out"));
     }
 }
 

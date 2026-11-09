@@ -1,0 +1,13 @@
+// =====================================================================
+// Chisel 6 Systolic Tensor MAC Unit (lowered by VIKAS-POLYGLOT to IEEE 1800 SV)
+// =====================================================================
+package cluster.tensor
+import chisel3._
+
+class tensor_mac extends Module {
+  val io = IO(new Bundle {
+    val mac_a = Input(UInt(16.W))
+    val mac_b = Input(UInt(16.W))
+    val mac_y = Output(UInt(16.W))
+  })
+}

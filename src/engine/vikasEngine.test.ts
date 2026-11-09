@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   analyzeCrosstalkMillerGlitches,
   analyzeHardwareSecurityTaintIft,
@@ -9,6 +11,7 @@ import {
   auditAll125BlueprintBreakthroughs,
   auditCdcAndRdcMetastability,
   buildOpenKdb,
+  lowerPolyglotFileToSv,
   buildSugiyamaRtlSchematic,
   compute3dTimeBitPowerSurface,
   computeEyeDiagram,
@@ -1321,10 +1324,46 @@ test('Iteration 17: Headless Background Multi-File/Bulk Regression & Zero-Copy .
   }
 });
 
+test('Iteration 18: Port-Accurate Multi-Language Polyglot AI Cluster Lowering & Simulation (SV + VHDL + Chisel + FIRRTL + SystemRDL + UPF + SDC)', () => {
+  const clusterDir = path.resolve(process.cwd(), 'examples', 'polyglot_ai_cluster');
+  const vhdlRaw = fs.readFileSync(path.join(clusterDir, 'rtl', 'noc_router.vhd'), 'utf-8');
+  const chiselRaw = fs.readFileSync(path.join(clusterDir, 'rtl', 'tensor_mac.chisel'), 'utf-8');
+  const firRaw = fs.readFileSync(path.join(clusterDir, 'rtl', 'dma_engine.fir'), 'utf-8');
+  const rdlRaw = fs.readFileSync(path.join(clusterDir, 'rtl', 'csr_map.rdl'), 'utf-8');
+  const upfRaw = fs.readFileSync(path.join(clusterDir, 'rtl', 'cluster_power.upf'), 'utf-8');
+  const sdcRaw = fs.readFileSync(path.join(clusterDir, 'rtl', 'cluster_timing.sdc'), 'utf-8');
+  const topSv = fs.readFileSync(path.join(clusterDir, 'rtl', 'ai_cluster_top.sv'), 'utf-8');
+  const tbSv = fs.readFileSync(path.join(clusterDir, 'tb', 'ai_cluster_tb.sv'), 'utf-8');
 
+  const vhdlSv = lowerPolyglotFileToSv('noc_router.vhd', vhdlRaw);
+  assert.ok(vhdlSv.includes('module noc_router'));
+  assert.ok(vhdlSv.includes('flit_in'));
+  assert.ok(vhdlSv.includes('flit_out'));
 
+  const chiselSv = lowerPolyglotFileToSv('tensor_mac.chisel', chiselRaw);
+  assert.ok(chiselSv.includes('module tensor_mac'));
+  assert.ok(chiselSv.includes('mac_a'));
+  assert.ok(chiselSv.includes('mac_y'));
 
+  const firSv = lowerPolyglotFileToSv('dma_engine.fir', firRaw);
+  assert.ok(firSv.includes('module dma_engine'));
+  assert.ok(firSv.includes('dma_src'));
+  assert.ok(firSv.includes('dma_dst'));
 
-
-
-
+  const sim = simulateVerilogSource(
+    [
+      { path: 'examples/polyglot_ai_cluster/rtl/noc_router.vhd', content: vhdlRaw },
+      { path: 'examples/polyglot_ai_cluster/rtl/tensor_mac.chisel', content: chiselRaw },
+      { path: 'examples/polyglot_ai_cluster/rtl/dma_engine.fir', content: firRaw },
+      { path: 'examples/polyglot_ai_cluster/rtl/csr_map.rdl', content: rdlRaw },
+      { path: 'examples/polyglot_ai_cluster/rtl/cluster_power.upf', content: upfRaw },
+      { path: 'examples/polyglot_ai_cluster/rtl/cluster_timing.sdc', content: sdcRaw },
+      { path: 'examples/polyglot_ai_cluster/rtl/ai_cluster_top.sv', content: topSv },
+      { path: 'examples/polyglot_ai_cluster/tb/ai_cluster_tb.sv', content: tbSv },
+    ],
+    600
+  );
+  assert.equal(sim.top, 'ai_cluster_tb');
+  assert.equal(sim.latches.length, 0);
+  assert.ok(sim.signals.length >= 12);
+});

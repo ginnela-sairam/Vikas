@@ -6,7 +6,6 @@ import {
   Command,
   Cpu,
   Download,
-  ExternalLink,
   Gauge,
   HelpCircle,
   Palette,
@@ -330,6 +329,8 @@ export function App() {
 
   const paletteActions = [
     { label: 'Simulate NOVA-SoC (26 files · 455 signals · NOVA-PASS 9/9)', run: () => handleSelectProject('examples/nova_soc/nova.f') },
+    { label: 'Simulate Polyglot AI Tensor Cluster (SV + VHDL + Chisel + FIRRTL + RDL)', run: () => handleSelectProject('examples/polyglot_ai_cluster/cluster.f') },
+    { label: 'Simulate Multifile SoC Project (examples/multifile_proj/project.f)', run: () => handleSelectProject('examples/multifile_proj/project.f') },
     { label: 'Simulate Inferred Latch Trap Demo (3-Layer Latch Guard)', run: () => handleSelectProject('examples/demo_latch_trap.sv') },
     { label: 'Simulate 12-Bit SAR ADC Mixed-Signal Demo', run: () => handleSelectProject('examples/demo_sar_adc.sv') },
     { label: 'Simulate RISC-V ALU Pipeline Hazard Demo', run: () => handleSelectProject('examples/demo_riscv_alu_hazard.sv') },
@@ -672,14 +673,7 @@ export function App() {
             </div>
             <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Sovereign Next-Gen Open-Source Linux RTL Platform</span>
-              <a
-                href="/studio-standalone"
-                target="_blank"
-                rel="noreferrer"
-                className="text-cyan-400 hover:underline flex items-center gap-1"
-              >
-                <ExternalLink className="w-3 h-3" /> Raw HTML5 Studio
-              </a>
+              <span className="text-cyan-400">Native Zero-Copy .vwm Workstation</span>
             </div>
           </div>
         </div>

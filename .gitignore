@@ -5,4 +5,10 @@
 /dist/
 /.playwright-cli/
 /server.js
-
+/public/assets/aistudio/
+/qa_screenshots/
+/sar_tb_tb.sv
+/vikas_ci_report.md
+/vikas_export.svg
+/vikas_export.wavedrom.json
+/vikas_replay_tb.sv

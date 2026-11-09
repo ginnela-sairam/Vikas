@@ -102,6 +102,7 @@ const KIND_COLORS: Record<SigKind, string> = {
 
 const PRESET_PROJECTS = [
   { label: 'NOVA-SoC (26 files · 5 levels · 455 sigs)', target: 'examples/nova_soc/nova.f' },
+  { label: 'Polyglot AI Cluster (SV+VHDL+Chisel+FIRRTL)', target: 'examples/polyglot_ai_cluster/cluster.f' },
   { label: 'Multifile SoC Project (.f manifest)', target: 'examples/multifile_proj/project.f' },
   { label: 'Breakthrough 13: Latch Trap Demo', target: 'examples/demo_latch_trap.sv' },
   { label: 'RISC-V Pipelined ALU Hazard', target: 'examples/demo_riscv_alu_hazard.sv' },

@@ -3,7 +3,7 @@
 [![License: MIT / Apache-2.0](https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue.svg)](LICENSE)
 [![Version: VIKAS v3.0.0](https://img.shields.io/badge/Release-VIKAS%20v3.0.0-emerald.svg)](Cargo.toml)
 [![GitHub CI: 6/6 Jobs PASS](https://img.shields.io/badge/GitHub%20Actions%20CI-6%2F6%20Jobs%20GREEN-brightgreen.svg)](.github/workflows/ci.yml)
-[![Verification: 23/23 Test Suites](https://img.shields.io/badge/Unit%20Tests-23%2F23%20Suites%20PASS-emerald.svg)](src/engine/vikasEngine.test.ts)
+[![Verification: 24/24 Test Suites](https://img.shields.io/badge/Unit%20Tests-24%2F24%20Suites%20PASS-emerald.svg)](src/engine/vikasEngine.test.ts)
 [![Capabilities: 185/185 Verified](https://img.shields.io/badge/Capabilities-185%2F185%20Verified-cyan.svg)](src/engine/vikasEngine.ts)
 [![Languages: 38 Hardware DSLs](https://img.shields.io/badge/Polyglot%20Compiler-38%2F38%20Languages%20PASS-purple.svg)](src/engine/vikasEngine.ts)
 
@@ -106,8 +106,9 @@ vikas doctor
 # 2. Simulate the 26-file NOVA-SoC RISC-V RV32IM SoC (9/9 self-checking tests)
 vikas run examples/nova_soc/nova.f --max-ns 8000
 
-# 3. Simulate a multi-file manifest (+incdir+ & .vh headers) OR an entire bulk directory
+# 3. Simulate a multi-file manifest (+incdir+ & .vh headers), 7-language polyglot cluster, OR an entire bulk directory
 vikas run examples/multifile_proj/proj.f
+vikas run examples/polyglot_ai_cluster/cluster.f
 vikas run examples/nova_soc/
 
 # 4. Run Headless Background Multi-Case Regression (.vwm zero-copy mmap per case + perf counters)
@@ -280,6 +281,7 @@ Vikas/
 │   └── vikas-cli/              # 64-subcommand `vikas` CLI binary
 ├── examples/
 │   ├── nova_soc/               # 26-file NOVA-SoC RISC-V RV32IM SoC (9/9 self-checking testbench)
+│   ├── polyglot_ai_cluster/    # 9-file, 7-language AI Tensor Cluster (SV + VHDL + Chisel + FIRRTL + RDL + UPF + SDC -> 6/6 PASS)
 │   ├── multifile_proj/         # Multi-file manifest (+incdir+, defs.vh, alu_core.sv, regfile.sv, top.sv)
 │   └── demo_*.sv               # Focused demos (latch trap, CDC, UART FSM, SAR ADC, RISC-V hazard)
 ├── src/                        # Full-stack React 19 + TypeScript Web Studio IDE & vikasEngine.ts

@@ -1706,6 +1706,7 @@ pub fn cmd_batch(files: Vec<PathBuf>, jobs: u32, json: bool) -> Result<()> {
     } else {
         let defaults = [
             "examples/nova_soc/nova.f",
+            "examples/polyglot_ai_cluster/cluster.f",
             "examples/multifile_proj/proj.f",
             "examples/demo_fsm_uart.sv",
             "examples/demo_riscv_alu_hazard.sv",

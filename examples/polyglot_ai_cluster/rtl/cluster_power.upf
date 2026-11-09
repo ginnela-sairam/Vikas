@@ -1,0 +1,5 @@
+# =====================================================================
+# IEEE 1801 UPF 3.1 Power Intent Specification (tolerated signoff spec)
+# =====================================================================
+# create_power_domain PD_TENSOR_CORE -include_scope
+# create_supply_net VDD_0P75 -domain PD_TENSOR_CORE

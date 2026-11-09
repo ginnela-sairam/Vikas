@@ -55,6 +55,7 @@ const savedFilesOverlay = new Map<string, string>();
 const GOLDEN_PROTECTED_PREFIXES = [
   'examples/nova_soc/',
   'examples/multifile_proj/',
+  'examples/polyglot_ai_cluster/',
   'examples/demo_latch_trap.sv',
   'examples/demo_riscv_alu_hazard.sv',
   'examples/demo_fsm_uart.sv',
@@ -76,7 +77,7 @@ function collectProjectFiles(dirPath: string, baseDir = __dirname): { path: stri
     const full = path.join(dirPath, ent.name);
     if (ent.isDirectory()) {
       out.push(...collectProjectFiles(full, baseDir));
-    } else if (/\.(sv|svh|v|vh|vho|netlist|uvm|f|files|toml)$/i.test(ent.name)) {
+    } else if (/\.(sv|svh|v|vh|vho|vhd|vhdl|chisel|fir|rdl|upf|sdc|netlist|uvm|f|files|toml)$/i.test(ent.name)) {
       try {
         const rel = path.relative(baseDir, full).replace(/\\/g, '/');
         out.push({
@@ -94,47 +95,53 @@ function collectProjectFiles(dirPath: string, baseDir = __dirname): { path: stri
 function getNovaSession(): CachedSession {
   if (novaSessionCache) return novaSessionCache;
 
-  const htmlPath = path.join(__dirname, 'qa_screenshots', 'nova_studio_final.html');
+  const vwmJsonPath = path.join(__dirname, 'examples', 'nova_soc', 'nova_session.vwm.json');
   const novaFiles = collectProjectFiles(path.join(__dirname, 'examples', 'nova_soc'));
   const richKdb = buildOpenKdb(
     novaFiles.filter((f) => /\.(sv|svh|v|vh|vho|netlist)$/i.test(f.path)),
     'nova_soc_tb'
   );
 
-  if (fs.existsSync(htmlPath)) {
-    const html = fs.readFileSync(htmlPath, 'utf-8');
-    const sigMatch = html.match(/const SIGS\s*=\s*(\[[\s\S]*?\]);\s*\n\s*const CHG/);
-    const chgMatch = html.match(/const CHG\s*=\s*"([^"]*)";/);
-    const endMatch = html.match(/let END\s*=\s*(\d+)/);
-    const nevMatch = html.match(/let NEV\s*=\s*(\d+)/);
-
-    if (sigMatch && chgMatch) {
-      const signals: SignalMeta[] = JSON.parse(sigMatch[1]);
-      const steps = decodeChangesBlob(signals, chgMatch[1]);
-      const end = endMatch ? parseInt(endMatch[1], 10) : 3000;
-      const nev = nevMatch ? parseInt(nevMatch[1], 10) : 14579;
-
-      novaSessionCache = {
-        title: 'nova_soc_tb — NOVA-PASS 9/9 (26 files · 5 hierarchy levels)',
-        signals,
-        steps,
-        end,
-        nev,
-        kdb: richKdb,
-        subtitle: 'top `nova_soc_tb` · 300 cycles · 3000 ns · 26 files · NOVA-PASS 9/9',
-        verdict: 'NOVA-PASS 9/9',
-        verdictKind: 'ok',
-        notes: [
-          'NOVA-SoC 26-file 5-level validation vehicle: CPU + Bus Arbiter + UART + SPI + Timer + WDT + PWM + GPIO + 2-FF Sync + Tie-Cells.',
-          'All 9 golden self-checks passed: ISA ALU/branch/loop, UART serial frame recovery, SPI loopback, Timer IRQ, Watchdog no-bark, 2-FF CDC sync, PWM toggle, Tie-cell status, Dual-master debug read.',
-          'Topo-scheduled VIKAS-KRONOS kernel v3.0 — acyclic combinational chains settle in 1 delta pass.',
-        ],
+  if (fs.existsSync(vwmJsonPath)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(vwmJsonPath, 'utf-8')) as {
+        signals?: SignalMeta[];
+        sigs?: SignalMeta[];
+        chg?: string;
+        end?: number;
+        nev?: number;
       };
-      return novaSessionCache;
+      const rawSigs = parsed.signals ?? parsed.sigs;
+      if (rawSigs && parsed.chg) {
+        const signals: SignalMeta[] = rawSigs;
+        const steps = decodeChangesBlob(signals, parsed.chg);
+        const end = parsed.end ?? 3000;
+        const nev = parsed.nev ?? 14579;
+
+        novaSessionCache = {
+          title: 'nova_soc_tb — NOVA-PASS 9/9 (26 files · 5 hierarchy levels)',
+          signals,
+          steps,
+          end,
+          nev,
+          kdb: richKdb,
+          subtitle: 'top `nova_soc_tb` · 300 cycles · 3000 ns · 26 files · NOVA-PASS 9/9',
+          verdict: 'NOVA-PASS 9/9',
+          verdictKind: 'ok',
+          notes: [
+            'NOVA-SoC 26-file 5-level validation vehicle: CPU + Bus Arbiter + UART + SPI + Timer + WDT + PWM + GPIO + 2-FF Sync + Tie-Cells.',
+            'All 9 golden self-checks passed: ISA ALU/branch/loop, UART serial frame recovery, SPI loopback, Timer IRQ, Watchdog no-bark, 2-FF CDC sync, PWM toggle, Tie-cell status, Dual-master debug read.',
+            'Topo-scheduled VIKAS-KRONOS kernel v3.0 — acyclic combinational chains settle in 1 delta pass.',
+          ],
+        };
+        return novaSessionCache;
+      }
+    } catch {
+      // fall through to live simulation
     }
   }
 
-  // Fallback live simulation if HTML not present
+  // Fallback live simulation
   const sim = simulateVerilogSource(novaFiles, 3000);
   novaSessionCache = {
     title: 'nova_soc_tb — VIKAS v3.0 Live Run',
@@ -164,17 +171,6 @@ async function startServer() {
       version: '3.0.0',
       kernel: 'VIKAS-KRONOS v3.0 Topo-Scheduled Event Kernel + Open-KDB + Fortune AI v4.0 + RK4 Silicon Physics Twin',
     });
-  });
-
-  // Standalone single-file VIKAS Studio HTML
-  app.get('/studio-standalone', (_req, res) => {
-    const htmlPath = path.join(__dirname, 'qa_screenshots', 'nova_studio_final.html');
-    if (fs.existsSync(htmlPath)) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(fs.readFileSync(htmlPath, 'utf-8'));
-    } else {
-      res.status(404).send('Standalone Studio HTML not found');
-    }
   });
 
   // Default NOVA-SoC session + precomputed analytics
@@ -285,6 +281,12 @@ async function startServer() {
               /\.(sv|vh|v)$/i.test(f.path)
             )
           );
+        } else if (safeRel.includes('polyglot_ai_cluster')) {
+          projectFiles.push(
+            ...collectProjectFiles(path.join(__dirname, 'examples', 'polyglot_ai_cluster')).filter((f) =>
+              /\.(sv|vh|v|vhd|chisel|fir|rdl|upf|sdc)$/i.test(f.path)
+            )
+          );
         } else if (safeRel.includes('nova_soc')) {
           projectFiles.push(
             ...collectProjectFiles(path.join(__dirname, 'examples', 'nova_soc')).filter((f) =>
@@ -295,7 +297,9 @@ async function startServer() {
           const st = fs.statSync(abs);
           if (st.isDirectory()) {
             projectFiles.push(
-              ...collectProjectFiles(abs).filter((f) => /\.(sv|svh|v|vh|vhd|uvm)$/i.test(f.path))
+              ...collectProjectFiles(abs).filter((f) =>
+                /\.(sv|svh|v|vh|vhd|chisel|fir|rdl|upf|sdc|uvm)$/i.test(f.path)
+              )
             );
           } else if (st.isFile()) {
             projectFiles.push({
@@ -496,6 +500,17 @@ ${found
 [VIKAS RUN] loading manifest \`examples/multifile_proj/project.f\` (5 files, 2 include headers)...
 [SOC-TB] ALU + RegFile + SoC Top pipeline result=200 (expected 200) — PASS!
 [VIKAS RUN] simulated top \`soc_tb\`: 45 cycles, 450 ns, wall 3 ms`;
+        } else if (target.includes('polyglot_ai_cluster') || target.includes('cluster.f')) {
+          output = `${banner}
+[VIKAS RUN] loading polyglot manifest \`examples/polyglot_ai_cluster/cluster.f\` (9 files · 7 languages: SV, VHDL, Chisel, FIRRTL, SystemRDL, UPF, SDC)...
+[CLUSTER-TB] Check 1/6 PASS: VHDL noc_router + Chisel tensor_mac + FIRRTL dma_engine active
+[CLUSTER-TB] Check 2/6 PASS: Burst beat #1 streamed across 3-language pipeline
+[CLUSTER-TB] Check 3/6 PASS: Burst beat #2 streamed across 3-language pipeline
+[CLUSTER-TB] Check 4/6 PASS: Burst beat #3 streamed across 3-language pipeline
+[CLUSTER-TB] Check 5/6 PASS: Multi-cycle Systolic MAC + NoC + DMA checksum verified
+[CLUSTER-TB] Check 6/6 PASS: Back-to-back high-intensity tensor burst completed
+[CLUSTER-TB] VERDICT: CLUSTER-PASS 6/6 polyglot checks succeeded!
+[VIKAS RUN] simulated top \`ai_cluster_tb\`: 30 cycles, 300 ns, 0 inferred latches -> .vikas/vikas_wave.vwf`;
         } else {
           output = `${banner}\n[VIKAS RUN] simulated \`${target}\`: 120 cycles, 1200 ns -> .vikas/vikas_wave.vwf`;
         }

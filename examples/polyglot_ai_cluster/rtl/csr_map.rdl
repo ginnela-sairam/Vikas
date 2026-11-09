@@ -1,0 +1,8 @@
+// =====================================================================
+// SystemRDL 2.0 Control & Status Register Map (lowered by VIKAS-POLYGLOT)
+// =====================================================================
+addrmap csr_map {
+  reg status_reg {
+    field {} ready[1:0] = 1;
+  };
+};
