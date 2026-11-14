@@ -742,6 +742,23 @@ fn extract_polyglot_ports(text: &str) -> Vec<(String, bool, usize)> {
                 continue;
             }
         }
+        // 5. Veryl: `a: input logic<32>` / `y: output var logic<32>`
+        if t.contains(':') && (low.contains(": input ") || low.contains(": output ")) {
+            if let Some((lhs, rhs)) = t.split_once(':') {
+                let pname = sanitize_ident(lhs.trim());
+                let rlow = rhs.trim().to_lowercase();
+                let is_out = rlow.starts_with("output ");
+                let w = if rlow.contains("clock") || rlow.contains("reset") {
+                    1
+                } else {
+                    first_uint_in(&rlow).unwrap_or(32).clamp(1, 64)
+                };
+                if !pname.is_empty() && seen.insert(pname.clone()) {
+                    ports.push((pname, is_out, w));
+                }
+                continue;
+            }
+        }
     }
     ports
 }
@@ -812,6 +829,38 @@ fn synthesize_polyglot_file_to_sv(text: &str, path: &Path, ext: &str) -> String 
             if let Some(tok) = rest.split_whitespace().next() {
                 mod_name = sanitize_ident(tok);
                 break;
+            }
+        } else if let Some(rest) = t.strip_prefix("pub module ") {
+            if let Some(tok) = rest.split(|c: char| c.is_whitespace() || c == '(' || c == '{').next() {
+                if !tok.is_empty() {
+                    mod_name = sanitize_ident(tok);
+                    break;
+                }
+            }
+        } else if t.contains("hw.module @") {
+            if let Some(after) = t.split("hw.module @").nth(1) {
+                if let Some(tok) = after.split('(').next() {
+                    if !tok.is_empty() {
+                        mod_name = sanitize_ident(tok.trim());
+                        break;
+                    }
+                }
+            }
+        } else if let Some(rest) = t.strip_prefix("algorithm ") {
+            if let Some(tok) = rest.split(|c: char| c.is_whitespace() || c == '(').next() {
+                if !tok.is_empty() {
+                    mod_name = sanitize_ident(tok);
+                    break;
+                }
+            }
+        } else if t.starts_with("pipeline(") {
+            if let Some(after_paren) = t.split(')').nth(1) {
+                if let Some(tok) = after_paren.trim().split(|c: char| c.is_whitespace() || c == '(').next() {
+                    if !tok.is_empty() {
+                        mod_name = sanitize_ident(tok);
+                        break;
+                    }
+                }
             }
         }
     }
@@ -1010,6 +1059,12 @@ mod tests {
         assert!(sv_fir.contains("module dma_engine("));
         assert!(sv_fir.contains("input logic [15:0] dma_in"));
         assert!(sv_fir.contains("output logic [15:0] dma_out"));
+
+        let veryl = "pub module veryl_mac (\n a: input logic<16>,\n y: output var logic<16>,\n) {\n}\n";
+        let sv_veryl = synthesize_polyglot_file_to_sv(veryl, Path::new("veryl_mac.veryl"), "veryl");
+        assert!(sv_veryl.contains("module veryl_mac("));
+        assert!(sv_veryl.contains("input logic [15:0] a"));
+        assert!(sv_veryl.contains("output logic [15:0] y"));
     }
 }
 

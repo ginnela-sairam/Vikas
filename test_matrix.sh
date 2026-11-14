@@ -154,11 +154,15 @@ check "help_all" 0 $VIKAS help
 check "help_formats" 0 $VIKAS formats
 check "version" 0 $VIKAS version
 
-# ---- VIKAS v3.0: Multicore Amdahl-Breaker, UVM 1800.2, 38-Lang Compiler, Batch & Studio ----
+# ---- VIKAS v3.0: Multicore Amdahl-Breaker, UVM 1800.2, 42-Lang CIRCT, Agentic-IQ, Horizon & Batch ----
 check "bench_suite" 0 $VIKAS bench --scale 1
 check "multicore_16c" 0 $VIKAS multicore --threads 16
 check "uvm_1800_2" 0 $VIKAS uvm --threads 16
 check "compile_all_38" 0 $VIKAS compile-all
+check "agentic_iq" 0 $VIKAS agentic examples/nova_soc/nova.f --epochs 5
+check "circt_42" 0 $VIKAS circt examples/polyglot_ai_cluster/cluster.f
+check "horizon_2030" 0 $VIKAS horizon --vdd 0.7 --tiers 3 --cpo 16
+check "audit_7x" 0 $VIKAS audit-7x
 check "batch_headless" 0 $VIKAS batch examples/demo_fsm_uart.sv --jobs 4
 check_grep "gui_studio" "VIKAS STUDIO" $VIKAS gui .vikas/vikas_wave.vwf -o /dev/shm/studio_check.bundle
 check_grep "studio_app-complete" "openPalette" bash -c "cat /dev/shm/studio_check.bundle"

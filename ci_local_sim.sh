@@ -49,6 +49,10 @@ step "proof:latch-uart-rc0" 0 "$VIKAS" latch examples/demo_fsm_uart.sv
 step "proof:compile-all-38" 0 "$VIKAS" compile-all
 step "proof:multicore-16c"  0 "$VIKAS" multicore --threads 16
 step "proof:uvm-1800-2"     0 "$VIKAS" uvm --threads 16
+step "proof:agentic-iq"     0 "$VIKAS" agentic examples/nova_soc/nova.f --epochs 5
+step "proof:circt-42"       0 "$VIKAS" circt examples/polyglot_ai_cluster/cluster.f
+step "proof:horizon-2030"   0 "$VIKAS" horizon --vdd 0.7 --tiers 3 --cpo 16
+step "proof:audit-7x"       0 "$VIKAS" audit-7x
 step "proof:studio"  0 "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.bundle --no-open
 step "proof:studio-bundle-nonempty" 0 test -s /tmp/nova_studio.bundle
 

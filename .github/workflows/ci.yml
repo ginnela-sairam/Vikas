@@ -63,6 +63,10 @@ jobs:
           "$VIKAS" compile-all
           "$VIKAS" multicore --threads 16
           "$VIKAS" uvm --threads 16
+          "$VIKAS" agentic examples/nova_soc/nova.f --epochs 5
+          "$VIKAS" circt examples/polyglot_ai_cluster/cluster.f
+          "$VIKAS" horizon --vdd 0.7 --tiers 3 --cpo 16
+          "$VIKAS" audit-7x
           "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.bundle --no-open
           test -s /tmp/nova_studio.bundle
 

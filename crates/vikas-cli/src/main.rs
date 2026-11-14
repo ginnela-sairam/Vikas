@@ -87,6 +87,44 @@ enum Cmd {
     Uvm { files: Vec<PathBuf>, threads: u32 },
     CompileAll,
     Batch { files: Vec<PathBuf>, jobs: u32, json: bool },
+    Agentic { files: Vec<PathBuf>, epochs: u32 },
+    Circt { files: Vec<PathBuf> },
+    Horizon { vdd: f64, tiers: u32, cpo: u32 },
+    Audit7x,
+    Emul { target: String, clock_mhz: u32 },
+    Hls { target: String, unroll: u32 },
+    DsoPpa { gates_m: f64, freq_ghz: f64, retiming_stages: u32 },
+    PqcSec { glitch_mv: u32 },
+    Rdma1024c { nodes: u32 },
+    Audit14x,
+    Hyperscale { arena_gb: u32, gates_b: f64 },
+    EuvIlt { na: f64, power_w: u32 },
+    MaxwellEm { power_w: u32 },
+    ChipArch { mesh_dim: u32 },
+    Analog6Sigma { sigma: u32 },
+    FuzzIsa { mesh_dim: u32 },
+    Audit21x { arena_gb: u32 },
+    TcadNegf { lg_nm: f64 },
+    QecFtqc { distance: u32 },
+    WaferCxl { cxl_tb: f64 },
+    PhotonicPic { lambdas: u32 },
+    NeuromorphicCim,
+    ZeroTrustSec,
+    Audit28x { arena_gb: u32, cxl_tb: f64 },
+    FusaRad { let_mev: u32 },
+    GlassWarp { pitch_um: f64 },
+    Lean4Prove,
+    AqfpLandauer,
+    Subthz6g { freq_ghz: u32 },
+    OpticalRack { optical_tb: u32 },
+    Audit35x { arena_gb: u32, cxl_tb: f64, optical_tb: u32 },
+    SpintronicSot { alpha: f64 },
+    DiamondIvr { power_w: u32 },
+    BioOrganoid { channels: u32 },
+    FheZkp,
+    FabYieldTwin,
+    Exascale4pb { exascale_pb: u32 },
+    Audit42x { arena_gb: u32, cxl_tb: f64, optical_tb: u32, exascale_pb: u32 },
 }
 
 fn parse_args(args: &[String]) -> Result<Cmd> {
@@ -117,7 +155,12 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             "--top", "-top", "-s", "--max-ns", "-o", "--time", "--from", "--to", "--array",
             "--dump", "--addr", "--vdd", "--temp-k", "--bus",
             "--max-mutants", "--min-score", "--cnode", "--freq-mhz",
-            "--threads", "--jobs", "--profile",
+            "--threads", "--jobs", "--profile", "--epochs", "--tiers", "--cpo",
+            "--target", "--clock-mhz", "--unroll", "--gates-m", "--freq-ghz", "--retiming-stages",
+            "--glitch-mv", "--nodes", "--arena-gb", "--gates-b", "--na", "--power-w", "--mesh-dim", "--sigma",
+            "--lg-nm", "--distance", "--cxl-tb", "--lambdas",
+            "--let", "--pitch-um", "--optical-tb",
+            "--alpha", "--channels", "--exascale-pb",
             "-y", "-l", "-do",
         ];
         let mut out = Vec::new();
@@ -191,7 +234,7 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         "tui" => Ok(Cmd::Tui { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "gui" | "html-report" => Ok(Cmd::Gui {
             dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")),
-            out: flagv(&rest, "-o").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("vikas_gui.html")),
+            out: flagv(&rest, "-o").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("vikas_gui.bundle")),
         }),
         "summary" => Ok(Cmd::Summary { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "annotate" => Ok(Cmd::Annotate {
@@ -296,6 +339,119 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             files: files(&rest),
             jobs: numv(&rest, "--jobs", 16) as u32,
             json: rest.contains(&"--json".into()),
+        }),
+        "agentic" | "agentic-iq" => Ok(Cmd::Agentic {
+            files: files(&rest),
+            epochs: numv(&rest, "--epochs", 5) as u32,
+        }),
+        "circt" | "mlir" => Ok(Cmd::Circt {
+            files: files(&rest),
+        }),
+        "horizon" | "bspdn" => Ok(Cmd::Horizon {
+            vdd: flagv(&rest, "--vdd").and_then(|v| v.parse().ok()).unwrap_or(0.7),
+            tiers: numv(&rest, "--tiers", 3) as u32,
+            cpo: numv(&rest, "--cpo", 16) as u32,
+        }),
+        "audit-7x" | "iterations" => Ok(Cmd::Audit7x),
+        "emul" | "veloce-emul" => Ok(Cmd::Emul {
+            target: flagv(&rest, "--target").unwrap_or_else(|| "nova_tensor_attention_hls_core".into()),
+            clock_mhz: numv(&rest, "--clock-mhz", 1200) as u32,
+        }),
+        "hls" | "catapult-hls" => Ok(Cmd::Hls {
+            target: flagv(&rest, "--target").unwrap_or_else(|| "nova_tensor_attention_hls_core".into()),
+            unroll: numv(&rest, "--unroll", 8) as u32,
+        }),
+        "dso-ppa" | "conformal-lec" => Ok(Cmd::DsoPpa {
+            gates_m: flagv(&rest, "--gates-m").and_then(|v| v.parse().ok()).unwrap_or(12.5),
+            freq_ghz: flagv(&rest, "--freq-ghz").and_then(|v| v.parse().ok()).unwrap_or(2.4),
+            retiming_stages: numv(&rest, "--retiming-stages", 4) as u32,
+        }),
+        "pqc-sec" | "pqc" => Ok(Cmd::PqcSec {
+            glitch_mv: numv(&rest, "--glitch-mv", 220) as u32,
+        }),
+        "rdma-1024c" | "rdma" => Ok(Cmd::Rdma1024c {
+            nodes: numv(&rest, "--nodes", 16) as u32,
+        }),
+        "audit-14x" | "wave2" => Ok(Cmd::Audit14x),
+        "hyperscale" | "unlock-40gb" => Ok(Cmd::Hyperscale {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+            gates_b: flagv(&rest, "--gates-b").and_then(|v| v.parse().ok()).unwrap_or(25.0),
+        }),
+        "euv-ilt" | "culitho" => Ok(Cmd::EuvIlt {
+            na: flagv(&rest, "--na").and_then(|v| v.parse().ok()).unwrap_or(0.55),
+            power_w: numv(&rest, "--power-w", 1800) as u32,
+        }),
+        "maxwell-em" | "microfluidic" => Ok(Cmd::MaxwellEm {
+            power_w: numv(&rest, "--power-w", 1800) as u32,
+        }),
+        "chip-arch" | "alphachip" => Ok(Cmd::ChipArch {
+            mesh_dim: numv(&rest, "--mesh-dim", 8) as u32,
+        }),
+        "analog-6sigma" | "harmonic" => Ok(Cmd::Analog6Sigma {
+            sigma: numv(&rest, "--sigma", 6) as u32,
+        }),
+        "fuzz-isa" | "concolic" => Ok(Cmd::FuzzIsa {
+            mesh_dim: numv(&rest, "--mesh-dim", 8) as u32,
+        }),
+        "audit-21x" | "wave3" => Ok(Cmd::Audit21x {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+        }),
+        "tcad-negf" | "negf" | "cfet-tcad" => Ok(Cmd::TcadNegf {
+            lg_nm: flagv(&rest, "--lg-nm").and_then(|v| v.parse().ok()).unwrap_or(0.8),
+        }),
+        "qec-ftqc" | "quantum-qec" => Ok(Cmd::QecFtqc {
+            distance: numv(&rest, "--distance", 11) as u32,
+        }),
+        "wafer-cxl" | "cxl-4tb" => Ok(Cmd::WaferCxl {
+            cxl_tb: flagv(&rest, "--cxl-tb").and_then(|v| v.parse().ok()).unwrap_or(4.0),
+        }),
+        "photonic-pic" | "kerr-comb" => Ok(Cmd::PhotonicPic {
+            lambdas: numv(&rest, "--lambdas", 64) as u32,
+        }),
+        "neuromorphic-cim" | "fefet-cim" => Ok(Cmd::NeuromorphicCim),
+        "zero-trust-sec" | "trojan-scan" => Ok(Cmd::ZeroTrustSec),
+        "audit-28x" | "wave4" => Ok(Cmd::Audit28x {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+            cxl_tb: flagv(&rest, "--cxl-tb").and_then(|v| v.parse().ok()).unwrap_or(4.0),
+        }),
+        "fusa-rad" | "iso26262" | "rad-hard" => Ok(Cmd::FusaRad {
+            let_mev: numv(&rest, "--let", 100) as u32,
+        }),
+        "glass-warp" | "tgv-warp" => Ok(Cmd::GlassWarp {
+            pitch_um: flagv(&rest, "--pitch-um").and_then(|v| v.parse().ok()).unwrap_or(3.0),
+        }),
+        "lean4-prove" | "lean4" | "hol4" => Ok(Cmd::Lean4Prove),
+        "aqfp-landauer" | "aqfp" | "rsfq" => Ok(Cmd::AqfpLandauer),
+        "subthz-6g" | "6g-dpd" => Ok(Cmd::Subthz6g {
+            freq_ghz: numv(&rest, "--freq-ghz", 140) as u32,
+        }),
+        "optical-rack" | "ocs-64tb" => Ok(Cmd::OpticalRack {
+            optical_tb: numv(&rest, "--optical-tb", 64) as u32,
+        }),
+        "audit-35x" | "wave5" => Ok(Cmd::Audit35x {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+            cxl_tb: flagv(&rest, "--cxl-tb").and_then(|v| v.parse().ok()).unwrap_or(4.0),
+            optical_tb: numv(&rest, "--optical-tb", 64) as u32,
+        }),
+        "spintronic-sot" | "sot-mram" | "skyrmion" => Ok(Cmd::SpintronicSot {
+            alpha: flagv(&rest, "--alpha").and_then(|v| v.parse().ok()).unwrap_or(0.012),
+        }),
+        "diamond-ivr" | "gan-ivr" => Ok(Cmd::DiamondIvr {
+            power_w: numv(&rest, "--power-w", 3200) as u32,
+        }),
+        "bio-organoid" | "hd-mea" | "bci" => Ok(Cmd::BioOrganoid {
+            channels: numv(&rest, "--channels", 65536) as u32,
+        }),
+        "fhe-zkp" | "zk-snark" | "tfhe" => Ok(Cmd::FheZkp),
+        "fab-yield-twin" | "inline-apc" => Ok(Cmd::FabYieldTwin),
+        "exascale-4pb" | "petabyte-arena" => Ok(Cmd::Exascale4pb {
+            exascale_pb: numv(&rest, "--exascale-pb", 4) as u32,
+        }),
+        "audit-42x" | "wave6" => Ok(Cmd::Audit42x {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+            cxl_tb: flagv(&rest, "--cxl-tb").and_then(|v| v.parse().ok()).unwrap_or(4.0),
+            optical_tb: numv(&rest, "--optical-tb", 64) as u32,
+            exascale_pb: numv(&rest, "--exascale-pb", 4) as u32,
         }),
         _ => {
             bail!("unknown command `{}` — try `vikas help`", cmd);
@@ -451,6 +607,44 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::Uvm { files, threads } => cmds::cmd_uvm(files, threads),
         Cmd::CompileAll => cmds::cmd_compile_all(),
         Cmd::Batch { files, jobs, json } => cmds::cmd_batch(files, jobs, json),
+        Cmd::Agentic { files, epochs } => cmds::cmd_agentic(files, epochs),
+        Cmd::Circt { files } => cmds::cmd_circt(files),
+        Cmd::Horizon { vdd, tiers, cpo } => cmds::cmd_horizon(vdd, tiers, cpo),
+        Cmd::Audit7x => cmds::cmd_audit_7x(),
+        Cmd::Emul { target, clock_mhz } => cmds::cmd_emul(target, clock_mhz),
+        Cmd::Hls { target, unroll } => cmds::cmd_hls(target, unroll),
+        Cmd::DsoPpa { gates_m, freq_ghz, retiming_stages } => cmds::cmd_dso_ppa(gates_m, freq_ghz, retiming_stages),
+        Cmd::PqcSec { glitch_mv } => cmds::cmd_pqc_sec(glitch_mv),
+        Cmd::Rdma1024c { nodes } => cmds::cmd_rdma_1024c(nodes),
+        Cmd::Audit14x => cmds::cmd_audit_14x(),
+        Cmd::Hyperscale { arena_gb, gates_b } => cmds::cmd_hyperscale(arena_gb, gates_b),
+        Cmd::EuvIlt { na, power_w } => cmds::cmd_euv_ilt(na, power_w),
+        Cmd::MaxwellEm { power_w } => cmds::cmd_maxwell_em(power_w),
+        Cmd::ChipArch { mesh_dim } => cmds::cmd_chip_arch(mesh_dim),
+        Cmd::Analog6Sigma { sigma } => cmds::cmd_analog_6sigma(sigma),
+        Cmd::FuzzIsa { mesh_dim } => cmds::cmd_fuzz_isa(mesh_dim),
+        Cmd::Audit21x { arena_gb } => cmds::cmd_audit_21x(arena_gb),
+        Cmd::TcadNegf { lg_nm } => cmds::cmd_tcad_negf(lg_nm),
+        Cmd::QecFtqc { distance } => cmds::cmd_qec_ftqc(distance),
+        Cmd::WaferCxl { cxl_tb } => cmds::cmd_wafer_cxl(cxl_tb),
+        Cmd::PhotonicPic { lambdas } => cmds::cmd_photonic_pic(lambdas),
+        Cmd::NeuromorphicCim => cmds::cmd_neuromorphic_cim(),
+        Cmd::ZeroTrustSec => cmds::cmd_zero_trust_sec(),
+        Cmd::Audit28x { arena_gb, cxl_tb } => cmds::cmd_audit_28x(arena_gb, cxl_tb),
+        Cmd::FusaRad { let_mev } => cmds::cmd_fusa_rad(let_mev),
+        Cmd::GlassWarp { pitch_um } => cmds::cmd_glass_warp(pitch_um),
+        Cmd::Lean4Prove => cmds::cmd_lean4_prove(),
+        Cmd::AqfpLandauer => cmds::cmd_aqfp_landauer(),
+        Cmd::Subthz6g { freq_ghz } => cmds::cmd_subthz_6g(freq_ghz),
+        Cmd::OpticalRack { optical_tb } => cmds::cmd_optical_rack(optical_tb),
+        Cmd::Audit35x { arena_gb, cxl_tb, optical_tb } => cmds::cmd_audit_35x(arena_gb, cxl_tb, optical_tb),
+        Cmd::SpintronicSot { alpha } => cmds::cmd_spintronic_sot(alpha),
+        Cmd::DiamondIvr { power_w } => cmds::cmd_diamond_ivr(power_w),
+        Cmd::BioOrganoid { channels } => cmds::cmd_bio_organoid(channels),
+        Cmd::FheZkp => cmds::cmd_fhe_zkp(),
+        Cmd::FabYieldTwin => cmds::cmd_fab_yield_twin(),
+        Cmd::Exascale4pb { exascale_pb } => cmds::cmd_exascale_4pb(exascale_pb),
+        Cmd::Audit42x { arena_gb, cxl_tb, optical_tb, exascale_pb } => cmds::cmd_audit_42x(arena_gb, cxl_tb, optical_tb, exascale_pb),
     }
 }
 
