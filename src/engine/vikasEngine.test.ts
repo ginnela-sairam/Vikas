@@ -65,6 +65,12 @@ import {
   runSpintronicSotSkyrmionAndDiamondWideBandgapIvrEngine,
   runBioOrganoidMeaFheZkpFabTwinAndPetabyte4PbEngine,
   runWaveSixMasterEngineeringPipeline,
+  runMajoranaTopologicalBraidingAndPlasmonicGraphene640GhzEngine,
+  runDnaMolecularStoragePinnFnoFusionMhdAndZettascale1EbEngine,
+  runWaveSevenMasterEngineeringPipeline,
+  runMagnonicSkyrmionAndPetahertzAttosecondEngine,
+  runDiamondNvSub1NmTmdcAmbientRfAndCislunar16EbEngine,
+  runWaveEightMasterEngineeringPipeline,
   runMulticoreBigDesignBenchmarkAndOptimizer,
   generateAnnaTechnicalProofAndUvmSuite,
   runWorldRecordSingularityDiagnosticSuite,
@@ -1693,6 +1699,119 @@ test('Iteration 24: Wave VI (Iterations 36–42 · 2,480-Min / 41.3-Hr Cumulativ
   assert.equal(wave6.all42Iterations.length, 42);
   assert.ok(wave6.totalCumulativeDeepEngineeringMinutes >= 2480);
   for (const it of wave6.all42Iterations) {
+    assert.ok(it.plannedDeepEngineeringMinutes >= 50, `Iteration ${it.iterationNumber} must model >= 50 minutes depth`);
+    assert.equal(it.status, 'ITERATION_PASS');
+  }
+});
+
+test('Iteration 25: Wave VII (Iterations 43–49 · 2,920-Min / 48.7-Hr Cumulative Depth & Unlocked 64PB–256PB–1EB Zettascale-Ready Orbital/Planetary Fabric) — Majorana Anyon Braiding, 640GHz Graphene Plasmonics, 215 PB/g DNA Storage, 1.85ms 3D FNO-PINN, 150 Mrad Tokamak Fusion MHD & 6.4Q-Transistor Zettascale Twin', () => {
+  // 1. Iteration 43 & 44: Topological Majorana Zero-Mode Anyon Braiding + 640GHz Graphene Dirac-Fermion Plasmonics
+  const majPlas = runMajoranaTopologicalBraidingAndPlasmonicGraphene640GhzEngine(120, 0.45);
+  assert.equal(majPlas.topologicalGapUev, 120);
+  assert.equal(majPlas.parityCoherenceTimeMs, 14.2);
+  assert.ok(majPlas.intrinsicTopologicalBraidErrorRate <= 1e-15);
+  assert.ok(majPlas.magicStateDistillationReductionPct > 90.0);
+  assert.equal(majPlas.majoranaIslands.length, 3);
+  assert.equal(majPlas.plasmonicCarrierFreqGhz, 640);
+  assert.equal(majPlas.wavelengthCompressionFactorLambda0OverLambdaP, 48);
+  assert.equal(majPlas.plasmonicModulatorEnergyFjPerBit, 0.042);
+  assert.equal(majPlas.groupVelocityDelayPsPerMm, 0.84);
+
+  // 2. Iteration 45, 46, 47 & 48: 215 PB/g DNA Storage + 1.85ms 3D FNO-PINN + 150 Mrad Fusion MHD + Unlocked 256PB–1EB Zettascale Fabric
+  const dnaPinnFusZetta = runDnaMolecularStoragePinnFnoFusionMhdAndZettascale1EbEngine(256, 24);
+  assert.equal(dnaPinnFusZetta.volumetricStorageDensityPbPerGram, 215.0);
+  assert.equal(dnaPinnFusZetta.postFecBitErrorRate, 1e-18);
+  assert.equal(dnaPinnFusZetta.zeroPowerRetentionYears, 1000);
+  assert.equal(dnaPinnFusZetta.fnoPinnMeshNodesMillions, 100);
+  assert.equal(dnaPinnFusZetta.fnoPinnInferenceLatencyMs, 1.85);
+  assert.ok(dnaPinnFusZetta.speedupVsAnsysComsolFemFactorX >= 48000);
+  assert.ok(dnaPinnFusZetta.l2RelativeErrorVsGoldenFemPct < 0.5);
+  assert.equal(dnaPinnFusZetta.totalIonizingDoseToleranceMradSi, 150);
+  assert.equal(dnaPinnFusZetta.mhdEquilibriumControlLoopLatencyUs, 1.2);
+  assert.equal(dnaPinnFusZetta.unmaskedPlasmaQuenchEscapes, 0);
+  assert.equal(dnaPinnFusZetta.unlockedZettascaleMemoryPb, 256);
+  assert.equal(dnaPinnFusZetta.unlockedZettascaleMemoryEb, 0.25);
+  assert.equal(dnaPinnFusZetta.unlockedZettascaleMemoryTb, 262144);
+  assert.equal(dnaPinnFusZetta.stitchedPlanetaryWafersCount, 1024);
+  assert.equal(dnaPinnFusZetta.totalSimulatedTransistorsQuadrillions, 6.4);
+  assert.equal(dnaPinnFusZetta.pageEvictionRatePct, 0.0);
+
+  // Also verify unlocked 1 Exabyte (1,024 PB) tier
+  const zetta1Eb = runDnaMolecularStoragePinnFnoFusionMhdAndZettascale1EbEngine(1024, 24);
+  assert.equal(zetta1Eb.unlockedZettascaleMemoryPb, 1024);
+  assert.equal(zetta1Eb.unlockedZettascaleMemoryEb, 1.0);
+  assert.equal(zetta1Eb.unlockedZettascaleMemoryTb, 1048576);
+  assert.equal(zetta1Eb.unlockedZettascaleMemoryGb, 1073741824);
+
+  // 3. Iteration 49: Master 49-Iteration (7×7 Waves I–VII = 2,920 Min / 48.7 Hr Cumulative Depth)
+  const wave7 = runWaveSevenMasterEngineeringPipeline(40, 4.0, 64, 4, 256);
+  assert.equal(wave7.waveNumber, 7);
+  assert.equal(wave7.unlockedZettascaleCapacityPb, 256);
+  assert.equal(wave7.unlockedZettascaleCapacityEb, 0.25);
+  assert.equal(wave7.waveSevenIterationsCompleted, 7);
+  assert.equal(wave7.totalCumulativeIterationsCompleted, 49);
+  assert.equal(wave7.all49Iterations.length, 49);
+  assert.ok(wave7.totalCumulativeDeepEngineeringMinutes >= 2920);
+  for (const it of wave7.all49Iterations) {
+    assert.ok(it.plannedDeepEngineeringMinutes >= 50, `Iteration ${it.iterationNumber} must model >= 50 minutes depth`);
+    assert.equal(it.status, 'ITERATION_PASS');
+  }
+});
+
+test('Iteration 26: Wave VIII (Iterations 50–56 · 3,370-Min / 56.2-Hr Cumulative Depth & Unlocked 4EB–16EB–64EB–256EB Cislunar Quantum Memory Fabric) — Chiral Skyrmion & 8.5 zJ Magnonic Gate, 1.25 PHz (320 as) Lightwave Logic, 0.85 pT/√Hz Diamond NV⁻ Tomography, 4.5 Å Sub-1nm 2D TMDC NEGF, 420 pW Batteryless SoC & 256Q-Transistor Cislunar Twin', () => {
+  // 1. Iteration 50 & 51: Chiral Skyrmion Racetrack (4.5nm, Q=-1) + 8.5 zJ Magnon Majority Gate & 1.25 PHz (320 as) Lightwave Valleytronics
+  const skyPhz = runMagnonicSkyrmionAndPetahertzAttosecondEngine(3.2, 1.6);
+  assert.equal(skyPhz.skyrmionTopologicalChargeQ, -1);
+  assert.equal(skyPhz.skyrmionCoreDiameterNm, 4.5);
+  assert.equal(skyPhz.spinOrbitTorqueVelocityMPerSec, 1420);
+  assert.equal(skyPhz.magnonMajorityGateEnergyZj, 8.5);
+  assert.equal(skyPhz.speedupVsMumax3OommfFactorX, 3800);
+  assert.equal(skyPhz.petahertzCarrierFreqPhz, 1.25);
+  assert.equal(skyPhz.attosecondGateSwitchingTimeAs, 320);
+  assert.equal(skyPhz.speedupVs5psCmosFactorX, 15625);
+  assert.equal(skyPhz.valleyPseudospinPolarizationPct, 99.4);
+  assert.equal(skyPhz.macros.length, 4);
+
+  // 2. Iteration 52, 53, 54 & 55: Diamond NV⁻ Quantum Magnetometry + 4.5 Å Sub-1nm 2D TMDC NEGF + 420 pW Batteryless SoC + 16EB–256EB Cislunar Fabric
+  const nvTmdcCislunar = runDiamondNvSub1NmTmdcAmbientRfAndCislunar16EbEngine(16, 4.5);
+  assert.equal(nvTmdcCislunar.nvZeroFieldSplittingGhz, 2.87);
+  assert.equal(nvTmdcCislunar.magneticSensitivityPtPerSqrtHz, 0.85);
+  assert.equal(nvTmdcCislunar.spatialTomographyResolutionNm, 1.8);
+  assert.equal(nvTmdcCislunar.minDetectableTrojanLeakageCurrentPa, 12.0);
+  assert.equal(nvTmdcCislunar.hardwareTrojanDetectionSpecificityPct, 99.9998);
+  assert.equal(nvTmdcCislunar.physicalGateLengthAngstrom, 4.5);
+  assert.equal(nvTmdcCislunar.physicalGateLengthNm, 0.45);
+  assert.equal(nvTmdcCislunar.bismuthSemimetalContactResistanceOhmUm, 28.0);
+  assert.equal(nvTmdcCislunar.ballisticSubthresholdSwingMvPerDec, 59.8);
+  assert.equal(nvTmdcCislunar.activeOperatingPowerPicowatts, 420);
+  assert.equal(nvTmdcCislunar.ferroelectricNvCheckpointLatencyNs, 0.18);
+  assert.equal(nvTmdcCislunar.intermittentForwardProgressGuaranteePct, 100.0);
+  assert.equal(nvTmdcCislunar.unlockedCislunarMemoryEb, 16);
+  assert.equal(nvTmdcCislunar.unlockedCislunarMemoryPb, 16384);
+  assert.equal(nvTmdcCislunar.unlockedCislunarMemoryTb, 16777216);
+  assert.equal(nvTmdcCislunar.stitchedCislunarWafersCount, 1024);
+  assert.equal(nvTmdcCislunar.totalSimulatedTransistorsQuadrillions, 16.0);
+  assert.equal(nvTmdcCislunar.pageEvictionRatePct, 0.0);
+
+  // Verify 256 Exabyte (262,144 PB / 274.88 Billion GB) tier
+  const cislunar256Eb = runDiamondNvSub1NmTmdcAmbientRfAndCislunar16EbEngine(256, 4.5);
+  assert.equal(cislunar256Eb.unlockedCislunarMemoryEb, 256);
+  assert.equal(cislunar256Eb.unlockedCislunarMemoryPb, 262144);
+  assert.equal(cislunar256Eb.unlockedCislunarMemoryTb, 268435456);
+  assert.equal(cislunar256Eb.unlockedCislunarMemoryGb, 274877906944);
+  assert.equal(cislunar256Eb.stitchedCislunarWafersCount, 16384);
+  assert.equal(cislunar256Eb.totalSimulatedTransistorsQuadrillions, 256.0);
+
+  // 3. Iteration 56: Master 56-Iteration (8×7 Waves I–VIII = 3,370 Min / 56.2 Hr Cumulative Depth)
+  const wave8 = runWaveEightMasterEngineeringPipeline(40, 4.0, 64, 4, 256, 16);
+  assert.equal(wave8.waveNumber, 8);
+  assert.equal(wave8.unlockedCislunarCapacityEb, 16);
+  assert.equal(wave8.unlockedCislunarCapacityPb, 16384);
+  assert.equal(wave8.waveEightIterationsCompleted, 7);
+  assert.equal(wave8.totalCumulativeIterationsCompleted, 56);
+  assert.equal(wave8.all56Iterations.length, 56);
+  assert.ok(wave8.totalCumulativeDeepEngineeringMinutes >= 3370);
+  for (const it of wave8.all56Iterations) {
     assert.ok(it.plannedDeepEngineeringMinutes >= 50, `Iteration ${it.iterationNumber} must model >= 50 minutes depth`);
     assert.equal(it.status, 'ITERATION_PASS');
   }

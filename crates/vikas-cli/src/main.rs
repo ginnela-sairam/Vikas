@@ -125,6 +125,20 @@ enum Cmd {
     FabYieldTwin,
     Exascale4pb { exascale_pb: u32 },
     Audit42x { arena_gb: u32, cxl_tb: f64, optical_tb: u32, exascale_pb: u32 },
+    MajoranaTopo { gap_uev: u32 },
+    PlasmonicThz { ef_ev: f64 },
+    DnaStorage,
+    PinnFno,
+    FusionMhd { fluence: u32 },
+    Zettascale1eb { zettascale_pb: u32 },
+    Audit49x { arena_gb: u32, cxl_tb: f64, optical_tb: u32, exascale_pb: u32, zettascale_pb: u32 },
+    SkyrmionMagnon { dmi: f64 },
+    PetahertzAtto { field: f64 },
+    DiamondNv,
+    TmdcSub1nm { angstrom: f64 },
+    BatterylessSoc,
+    Cislunar16eb { cislunar_eb: u32 },
+    Audit56x { arena_gb: u32, cxl_tb: f64, optical_tb: u32, exascale_pb: u32, zettascale_pb: u32, cislunar_eb: u32 },
 }
 
 fn parse_args(args: &[String]) -> Result<Cmd> {
@@ -161,6 +175,8 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             "--lg-nm", "--distance", "--cxl-tb", "--lambdas",
             "--let", "--pitch-um", "--optical-tb",
             "--alpha", "--channels", "--exascale-pb",
+            "--gap-uev", "--ef-ev", "--fluence", "--zettascale-pb",
+            "--dmi", "--field", "--angstrom", "--eb", "--cislunar-eb",
             "-y", "-l", "-do",
         ];
         let mut out = Vec::new();
@@ -453,6 +469,49 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
             optical_tb: numv(&rest, "--optical-tb", 64) as u32,
             exascale_pb: numv(&rest, "--exascale-pb", 4) as u32,
         }),
+        "majorana-topo" | "majorana" | "kitaev" => Ok(Cmd::MajoranaTopo {
+            gap_uev: numv(&rest, "--gap-uev", 120) as u32,
+        }),
+        "plasmonic-thz" | "graphene-spp" => Ok(Cmd::PlasmonicThz {
+            ef_ev: flagv(&rest, "--ef-ev").and_then(|v| v.parse().ok()).unwrap_or(0.45),
+        }),
+        "dna-storage" | "molecular-dna" => Ok(Cmd::DnaStorage),
+        "pinn-fno" | "fourier-pinn" => Ok(Cmd::PinnFno),
+        "fusion-mhd" | "tokamak-fpga" => Ok(Cmd::FusionMhd {
+            fluence: numv(&rest, "--fluence", 24) as u32,
+        }),
+        "zettascale-1eb" | "orbital-1eb" => Ok(Cmd::Zettascale1eb {
+            zettascale_pb: numv(&rest, "--zettascale-pb", 256) as u32,
+        }),
+        "audit-49x" | "wave7" => Ok(Cmd::Audit49x {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+            cxl_tb: flagv(&rest, "--cxl-tb").and_then(|v| v.parse().ok()).unwrap_or(4.0),
+            optical_tb: numv(&rest, "--optical-tb", 64) as u32,
+            exascale_pb: numv(&rest, "--exascale-pb", 4) as u32,
+            zettascale_pb: numv(&rest, "--zettascale-pb", 256) as u32,
+        }),
+        "skyrmion-magnon" | "magnonic" => Ok(Cmd::SkyrmionMagnon {
+            dmi: flagv(&rest, "--dmi").and_then(|v| v.parse().ok()).unwrap_or(3.2),
+        }),
+        "petahertz-atto" | "attosecond" | "phz-logic" => Ok(Cmd::PetahertzAtto {
+            field: flagv(&rest, "--field").and_then(|v| v.parse().ok()).unwrap_or(1.6),
+        }),
+        "diamond-nv" | "nv-magnetometry" => Ok(Cmd::DiamondNv),
+        "tmdc-sub1nm" | "ws2-negf" => Ok(Cmd::TmdcSub1nm {
+            angstrom: flagv(&rest, "--angstrom").and_then(|v| v.parse().ok()).unwrap_or(4.5),
+        }),
+        "batteryless-soc" | "ambient-rf" => Ok(Cmd::BatterylessSoc),
+        "cislunar-16eb" | "quantum-cislunar" => Ok(Cmd::Cislunar16eb {
+            cislunar_eb: numv(&rest, "--eb", numv(&rest, "--cislunar-eb", 16)) as u32,
+        }),
+        "audit-56x" | "wave8" => Ok(Cmd::Audit56x {
+            arena_gb: numv(&rest, "--arena-gb", 40) as u32,
+            cxl_tb: flagv(&rest, "--cxl-tb").and_then(|v| v.parse().ok()).unwrap_or(4.0),
+            optical_tb: numv(&rest, "--optical-tb", 64) as u32,
+            exascale_pb: numv(&rest, "--exascale-pb", 4) as u32,
+            zettascale_pb: numv(&rest, "--zettascale-pb", 256) as u32,
+            cislunar_eb: numv(&rest, "--eb", numv(&rest, "--cislunar-eb", 16)) as u32,
+        }),
         _ => {
             bail!("unknown command `{}` — try `vikas help`", cmd);
         }
@@ -645,6 +704,20 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::FabYieldTwin => cmds::cmd_fab_yield_twin(),
         Cmd::Exascale4pb { exascale_pb } => cmds::cmd_exascale_4pb(exascale_pb),
         Cmd::Audit42x { arena_gb, cxl_tb, optical_tb, exascale_pb } => cmds::cmd_audit_42x(arena_gb, cxl_tb, optical_tb, exascale_pb),
+        Cmd::MajoranaTopo { gap_uev } => cmds::cmd_majorana_topo(gap_uev),
+        Cmd::PlasmonicThz { ef_ev } => cmds::cmd_plasmonic_thz(ef_ev),
+        Cmd::DnaStorage => cmds::cmd_dna_storage(),
+        Cmd::PinnFno => cmds::cmd_pinn_fno(),
+        Cmd::FusionMhd { fluence } => cmds::cmd_fusion_mhd(fluence),
+        Cmd::Zettascale1eb { zettascale_pb } => cmds::cmd_zettascale_1eb(zettascale_pb),
+        Cmd::Audit49x { arena_gb, cxl_tb, optical_tb, exascale_pb, zettascale_pb } => cmds::cmd_audit_49x(arena_gb, cxl_tb, optical_tb, exascale_pb, zettascale_pb),
+        Cmd::SkyrmionMagnon { dmi } => cmds::cmd_skyrmion_magnon(dmi),
+        Cmd::PetahertzAtto { field } => cmds::cmd_petahertz_atto(field),
+        Cmd::DiamondNv => cmds::cmd_diamond_nv(),
+        Cmd::TmdcSub1nm { angstrom } => cmds::cmd_tmdc_sub1nm(angstrom),
+        Cmd::BatterylessSoc => cmds::cmd_batteryless_soc(),
+        Cmd::Cislunar16eb { cislunar_eb } => cmds::cmd_cislunar_16eb(cislunar_eb),
+        Cmd::Audit56x { arena_gb, cxl_tb, optical_tb, exascale_pb, zettascale_pb, cislunar_eb } => cmds::cmd_audit_56x(arena_gb, cxl_tb, optical_tb, exascale_pb, zettascale_pb, cislunar_eb),
     }
 }
 

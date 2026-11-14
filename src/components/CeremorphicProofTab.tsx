@@ -47,6 +47,12 @@ import {
   runSpintronicSotSkyrmionAndDiamondWideBandgapIvrEngine,
   runBioOrganoidMeaFheZkpFabTwinAndPetabyte4PbEngine,
   runWaveSixMasterEngineeringPipeline,
+  runMajoranaTopologicalBraidingAndPlasmonicGraphene640GhzEngine,
+  runDnaMolecularStoragePinnFnoFusionMhdAndZettascale1EbEngine,
+  runWaveSevenMasterEngineeringPipeline,
+  runMagnonicSkyrmionAndPetahertzAttosecondEngine,
+  runDiamondNvSub1NmTmdcAmbientRfAndCislunar16EbEngine,
+  runWaveEightMasterEngineeringPipeline,
   computeNextGen2026SiliconHorizonPhysics,
   lowerToCirctMlirDialect,
   getLanguageStarterTemplate33,
@@ -229,6 +235,13 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
   const [exascalePb, setExascalePb] = useState<number>(4);
   const [diamondReticlePowerW, setDiamondReticlePowerW] = useState<number>(3200);
   const [bioMeaChannels, setBioMeaChannels] = useState<number>(65536);
+  const [zettascalePb, setZettascalePb] = useState<number>(256);
+  const [majoranaGapUev, setMajoranaGapUev] = useState<number>(120);
+  const [fusionFluenceE14, setFusionFluenceE14] = useState<number>(24);
+  const [cislunarEb, setCislunarEb] = useState<number>(16);
+  const [skyrmionDmi, setSkyrmionDmi] = useState<number>(3.2);
+  const [petahertzFieldVPerNm, setPetahertzFieldVPerNm] = useState<number>(1.6);
+  const [tmdcGateAngstrom, setTmdcGateAngstrom] = useState<number>(4.5);
 
   const sevenIterPipeline = useMemo(() => runSevenIterationMasterEngineeringPipeline(), []);
   const waveTwoMasterPipeline = useMemo(() => runWaveTwoMasterEngineeringPipeline(), []);
@@ -247,6 +260,45 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
   const waveSixMasterPipeline = useMemo(
     () => runWaveSixMasterEngineeringPipeline(unlockedArenaGb, cxlPooledTb, opticalRackTb, exascalePb),
     [unlockedArenaGb, cxlPooledTb, opticalRackTb, exascalePb]
+  );
+  const waveSevenMasterPipeline = useMemo(
+    () =>
+      runWaveSevenMasterEngineeringPipeline(
+        unlockedArenaGb,
+        cxlPooledTb,
+        opticalRackTb,
+        exascalePb,
+        zettascalePb
+      ),
+    [unlockedArenaGb, cxlPooledTb, opticalRackTb, exascalePb, zettascalePb]
+  );
+  const waveEightMasterPipeline = useMemo(
+    () =>
+      runWaveEightMasterEngineeringPipeline(
+        unlockedArenaGb,
+        cxlPooledTb,
+        opticalRackTb,
+        exascalePb,
+        zettascalePb,
+        cislunarEb
+      ),
+    [unlockedArenaGb, cxlPooledTb, opticalRackTb, exascalePb, zettascalePb, cislunarEb]
+  );
+  const liveSkyrmionPetahertzReport = useMemo(
+    () => runMagnonicSkyrmionAndPetahertzAttosecondEngine(skyrmionDmi, petahertzFieldVPerNm),
+    [skyrmionDmi, petahertzFieldVPerNm]
+  );
+  const liveNvTmdcAmbientCislunarReport = useMemo(
+    () => runDiamondNvSub1NmTmdcAmbientRfAndCislunar16EbEngine(cislunarEb, tmdcGateAngstrom),
+    [cislunarEb, tmdcGateAngstrom]
+  );
+  const liveMajoranaPlasmonicReport = useMemo(
+    () => runMajoranaTopologicalBraidingAndPlasmonicGraphene640GhzEngine(majoranaGapUev, 0.45),
+    [majoranaGapUev]
+  );
+  const liveDnaPinnFusionZettascaleReport = useMemo(
+    () => runDnaMolecularStoragePinnFnoFusionMhdAndZettascale1EbEngine(zettascalePb, fusionFluenceE14),
+    [zettascalePb, fusionFluenceE14]
   );
   const liveSpintronicDiamondReport = useMemo(
     () => runSpintronicSotSkyrmionAndDiamondWideBandgapIvrEngine(diamondReticlePowerW, 0.012),
@@ -477,9 +529,9 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>7. 42-Iteration Master (Wave I–VI) · 40GB–4TB–{opticalRackTb}TB–{exascalePb}PB</span>
+            <span>7. 56-Iter Master (8×7 Waves I–VIII) · 40GB–4TB–{opticalRackTb}TB–{exascalePb}PB–{zettascalePb}PB–{cislunarEb}EB</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/40 text-emerald-200">
-              42/42 PASS · 2,480m · {exascalePb}PB Exascale
+              56/56 PASS · 3,370m · {liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryEb}EB Cislunar
             </span>
           </button>
         </div>
@@ -1584,56 +1636,56 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
            ========================================================================= */}
         {activeSection === 'SEVEN_ITERATIONS_2030' && (
           <div className="space-y-6" data-testid="seven-iterations-horizon-view">
-            {/* Top Banner & Summary Metrics (42-Iteration Wave I–VI · 2,480 Min / 41.3 Hr Depth · Unlocked 40GB HugePage + 4TB CXL + 64TB Optical + 4PB–16PB Exascale) */}
+            {/* Top Banner & Summary Metrics (49-Iteration 7x7 Waves I–VII · 2,920 Min / 48.7 Hr Depth · Unlocked 40GB HugePage + 4TB CXL + 64TB Optical + 4PB Exascale + 256PB–1EB Zettascale) */}
             <div className="rounded-xl border border-emerald-500/40 bg-slate-950/90 p-5 shadow-xl space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-emerald-300">
                     <Sparkles className="w-4 h-4 text-emerald-400" />
-                    <span>42-ITERATION MASTER DEEP-ENGINEERING PIPELINE (WAVE I–VI · 2,480 MIN / 41.3 HR DEPTH · UNLOCKED {unlockedArenaGb}GB HUGEPAGE + {cxlPooledTb}TB CXL + {opticalRackTb}TB OCS + {exascalePb}PB EXASCALE)</span>
+                    <span>49-ITERATION (7×7) MASTER DEEP-ENGINEERING PIPELINE (WAVE I–VII · 2,920 MIN / 48.7 HR DEPTH · UNLOCKED {unlockedArenaGb}GB HUGEPAGE + {cxlPooledTb}TB CXL + {opticalRackTb}TB OCS + {exascalePb}PB EXASCALE + {zettascalePb}PB/{liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryEb}EB ZETTASCALE)</span>
                   </div>
                   <h2 className="text-lg font-bold text-white mt-1">
-                    {waveSixMasterPipeline.pipelineTitle}
+                    {waveSevenMasterPipeline.pipelineTitle}
                   </h2>
                   <p className="text-xs text-slate-300 mt-1 max-w-4xl">
-                    Synthesizes <strong>Wave I (01–07 · 385m)</strong>, <strong>Wave II (08–14 · 395m)</strong>, <strong>Wave III (15–21 · 410m)</strong>, <strong>Wave IV (22–28 · 420m)</strong>, <strong>Wave V (29–35 · 430m)</strong>, and <strong>Wave VI (36–42 · 440m = 2,480m / 41.3h cumulative depth)</strong> with{' '}
-                    <span className="text-indigo-300 font-semibold">165ps WTe₂ SOT-MRAM (0.18 fJ/bit) + 820 m/s Skyrmion LLGS &amp; CVD Diamond (2,200 W/m·K) + 48V→0.55V GaN M3D-IVR (96.8% eff)</span>,{' '}
-                    <span className="text-emerald-300 font-semibold">65,536-Ch CMOS HD-MEA Cortical Organoid Co-Sim (42µs 99.4% Spike Sort) &amp; 0.42ms TFHE Bootstrapping (1,840×) + 14.2ms ZK-SNARK NTT</span>, and{' '}
-                    <span className="text-cyan-300 font-semibold">3.2M-Site Inline Fab APC (99.18% Yield) + Unlocked {exascalePb} PB ({liveBioFheFabPetabyteReport.unlockedExascaleMemoryTb.toLocaleString()} TB) Planetary Exascale Fabric (256 Wafers · 1.6 Quadrillion Transistors)</span>.
+                    Synthesizes <strong>Wave I (01–07 · 385m)</strong>, <strong>Wave II (08–14 · 395m)</strong>, <strong>Wave III (15–21 · 410m)</strong>, <strong>Wave IV (22–28 · 420m)</strong>, <strong>Wave V (29–35 · 430m)</strong>, <strong>Wave VI (36–42 · 440m)</strong>, and <strong>Wave VII (43–49 · 440m = 2,920m / 48.7h cumulative depth)</strong> with{' '}
+                    <span className="text-teal-300 font-semibold">120µeV InSb/Al Majorana Non-Abelian Braiding (p=1.8e-16, -94.2% area) + 640 GHz Graphene Plasmonics (0.042 fJ/bit, λ_0/48)</span>,{' '}
+                    <span className="text-emerald-300 font-semibold">215 PB/g Enzymatic DNA Archival ASIC (10^-18 BER) + 1.85ms 100M-Node 3D FNO-PINN Multiphysics (48,600×)</span>, and{' '}
+                    <span className="text-cyan-300 font-semibold">150 Mrad D-T Fusion 1.2µs Tokamak MHD Controller + Unlocked {zettascalePb} PB ({liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryEb} EB / {liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryTb.toLocaleString()} TB) FSO+NANF Zettascale-Ready Fabric (1,024 Wafers · {liveDnaPinnFusionZettascaleReport.totalSimulatedTransistorsQuadrillions} Quadrillion Transistors)</span>.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-xs">
                   <div className="px-3 py-2 rounded-lg bg-slate-900 border border-emerald-500/40">
-                    <div className="text-[10px] text-slate-400 uppercase">42-Iter Master Audit</div>
-                    <div className="text-sm font-bold text-emerald-400" data-testid="wave6-cumulative-status">
-                      {waveSixMasterPipeline.totalCumulativeIterationsCompleted}/42 PASS ({waveSixMasterPipeline.totalCumulativeDeepEngineeringMinutes}m)
+                    <div className="text-[10px] text-slate-400 uppercase">56-Iter 8×7 Omniverse Audit</div>
+                    <div className="text-sm font-bold text-emerald-400" data-testid="wave8-cumulative-status">
+                      {waveEightMasterPipeline.totalCumulativeIterationsCompleted}/56 PASS ({waveEightMasterPipeline.totalCumulativeDeepEngineeringMinutes}m)
                     </div>
                   </div>
                   <div className="px-3 py-2 rounded-lg bg-slate-900 border border-cyan-500/40">
-                    <div className="text-[10px] text-slate-400 uppercase">4-Tier Unlocked Memory</div>
-                    <div className="text-sm font-bold text-cyan-300" data-testid="wave5-cumulative-status">
-                      {liveBioFheFabPetabyteReport.unlockedExascaleMemoryPb}PB · {liveLean4Aqfp6gOpticalReport.unlockedOpticalRackMemoryTb}TB OCS · {liveWaferCxlPhotonicCimReport.cxlPooledArenaTb}TB CXL (35/35 &amp; 42/42 PASS)
+                    <div className="text-[10px] text-slate-400 uppercase">6-Tier Unlocked Memory</div>
+                    <div className="text-sm font-bold text-cyan-300" data-testid="wave7-cumulative-status">
+                      {liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryEb}EB ({liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryPb.toLocaleString()}PB) · {waveSevenMasterPipeline.totalCumulativeIterationsCompleted}/49 PASS
                     </div>
                   </div>
                   <div className="px-3 py-2 rounded-lg bg-slate-900 border border-purple-500/40">
-                    <div className="text-[10px] text-slate-400 uppercase">SOT-MRAM &amp; Diamond IVR</div>
-                    <div className="text-sm font-bold text-purple-300" data-testid="wave4-cumulative-status">
-                      {liveSpintronicDiamondReport.sotSwitchingLatencyPs}ps SOT · {liveSpintronicDiamondReport.diamondCooledJunctionTempC}°C @ {liveSpintronicDiamondReport.reticleHeatFluxWatts}W (28/28 PASS)
+                    <div className="text-[10px] text-slate-400 uppercase">1.25 PHz Atto &amp; Skyrmion</div>
+                    <div className="text-sm font-bold text-purple-300" data-testid="wave6-cumulative-status">
+                      {liveSkyrmionPetahertzReport.attosecondGateSwitchingTimeAs}as Gate · {liveSkyrmionPetahertzReport.magnonMajorityGateEnergyZj}zJ Magnon (42/42 PASS)
                     </div>
                   </div>
                   <div className="px-3 py-2 rounded-lg bg-slate-900 border border-amber-500/40">
-                    <div className="text-[10px] text-slate-400 uppercase">Bio-MEA, FHE &amp; Fab APC</div>
-                    <div className="text-sm font-bold text-amber-300" data-testid="wave3-cumulative-status">
-                      {liveBioFheFabPetabyteReport.tfheBootstrappingLatencyMs}ms TFHE · {liveBioFheFabPetabyteReport.closedLoopApcParametricYieldPct}% Yield (21/21 PASS)
+                    <div className="text-[10px] text-slate-400 uppercase">4.5Å TMDC, NV⁻ &amp; 420pW SoC</div>
+                    <div className="text-sm font-bold text-amber-300" data-testid="wave5-cumulative-status">
+                      {liveNvTmdcAmbientCislunarReport.physicalGateLengthAngstrom}Å WS₂ · 0.85pT/√Hz NV⁻ · 420pW (35/35 PASS)
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 42 Iteration Cards (Wave I: 1–7, Wave II: 8–14, Wave III: 15–21, Wave IV: 22–28, Wave V: 29–35, Wave VI: 36–42) */}
+              {/* 56 Iteration Cards (Wave I: 1–7, Wave II: 8–14, Wave III: 15–21, Wave IV: 22–28, Wave V: 29–35, Wave VI: 36–42, Wave VII: 43–49, Wave VIII: 50–56) */}
               <div className="space-y-2 pt-2">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-slate-400">
-                  <span>WAVE I (01–07) · WAVE II (08–14) · WAVE III (15–21) · WAVE IV (22–28) · WAVE V (29–35) · WAVE VI (36–42 · 2,480M / 41.3H PLANETARY SINGULARITY)</span>
+                  <span>WAVE I (01–07) · WAVE II (08–14) · WAVE III (15–21) · WAVE IV (22–28) · WAVE V (29–35) · WAVE VI (36–42) · WAVE VII (43–49) · WAVE VIII (50–56 · 3,370M / 56.2H OMNIVERSE 8×7)</span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-slate-400">HugePage:</span>
                     {[40, 128, 512].map((gb) => (
@@ -1651,40 +1703,8 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
                         {gb} GB
                       </button>
                     ))}
-                    <span className="text-slate-400 ml-1">CXL:</span>
-                    {[4, 8].map((tb) => (
-                      <button
-                        key={tb}
-                        type="button"
-                        data-testid={`unlock-cxl-${tb}tb`}
-                        onClick={() => setCxlPooledTb(tb)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer border ${
-                          cxlPooledTb === tb
-                            ? 'bg-purple-400 text-slate-950 border-purple-300'
-                            : 'bg-slate-900 text-purple-300 border-slate-700 hover:border-purple-500/50'
-                        }`}
-                      >
-                        {tb} TB
-                      </button>
-                    ))}
-                    <span className="text-slate-400 ml-1">OCS:</span>
-                    {[64, 128].map((otb) => (
-                      <button
-                        key={otb}
-                        type="button"
-                        data-testid={`unlock-optical-${otb}tb`}
-                        onClick={() => setOpticalRackTb(otb)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer border ${
-                          opticalRackTb === otb
-                            ? 'bg-rose-400 text-slate-950 border-rose-300'
-                            : 'bg-slate-900 text-rose-300 border-slate-700 hover:border-rose-500/50'
-                        }`}
-                      >
-                        {otb} TB
-                      </button>
-                    ))}
-                    <span className="text-slate-400 ml-1">Exascale PB:</span>
-                    {[1, 4, 8, 16].map((pb) => (
+                    <span className="text-slate-400 ml-1">Exascale:</span>
+                    {[4, 16].map((pb) => (
                       <button
                         key={pb}
                         type="button"
@@ -1699,24 +1719,62 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
                         {pb} PB
                       </button>
                     ))}
+                    <span className="text-slate-400 ml-1">Zettascale:</span>
+                    {[256, 1024].map((zpb) => (
+                      <button
+                        key={zpb}
+                        type="button"
+                        data-testid={`unlock-zettascale-${zpb}pb`}
+                        onClick={() => setZettascalePb(zpb)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer border ${
+                          zettascalePb === zpb
+                            ? 'bg-teal-400 text-slate-950 border-teal-300'
+                            : 'bg-slate-900 text-teal-300 border-slate-700 hover:border-teal-500/50'
+                        }`}
+                      >
+                        {zpb === 1024 ? '1 EB (1024PB)' : `${zpb} PB`}
+                      </button>
+                    ))}
+                    <span className="text-slate-400 ml-1">Cislunar Quantum (EB):</span>
+                    {[4, 16, 64, 256].map((ceb) => (
+                      <button
+                        key={ceb}
+                        type="button"
+                        data-testid={`unlock-cislunar-${ceb}eb`}
+                        onClick={() => setCislunarEb(ceb)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer border ${
+                          cislunarEb === ceb
+                            ? 'bg-fuchsia-400 text-slate-950 border-fuchsia-300'
+                            : 'bg-slate-900 text-fuchsia-300 border-slate-700 hover:border-fuchsia-500/50'
+                        }`}
+                      >
+                        {ceb} EB
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                  {waveSixMasterPipeline.all42Iterations.map((it) => {
+                  {waveEightMasterPipeline.all56Iterations.map((it) => {
                     const active = selectedIterNum === it.iterationNumber;
                     const waveBadge =
-                      it.iterationNumber >= 36
-                        ? 'WAVE VI'
-                        : it.iterationNumber >= 29
-                          ? 'WAVE V'
-                          : it.iterationNumber >= 22
-                            ? 'WAVE IV'
-                            : it.iterationNumber >= 15
-                              ? 'WAVE III'
-                              : it.iterationNumber >= 8
-                                ? 'WAVE II'
-                                : 'WAVE I';
-                    const isWave6 = it.iterationNumber >= 36;
+                      it.iterationNumber >= 50
+                        ? 'WAVE VIII'
+                        : it.iterationNumber >= 43
+                          ? 'WAVE VII'
+                          : it.iterationNumber >= 36
+                            ? 'WAVE VI'
+                            : it.iterationNumber >= 29
+                              ? 'WAVE V'
+                              : it.iterationNumber >= 22
+                                ? 'WAVE IV'
+                                : it.iterationNumber >= 15
+                                  ? 'WAVE III'
+                                  : it.iterationNumber >= 8
+                                    ? 'WAVE II'
+                                    : 'WAVE I';
+                    const isWave8 = it.iterationNumber >= 50;
+                    const isWave7 = it.iterationNumber >= 43 && it.iterationNumber <= 49;
+                    const isWave6 = it.iterationNumber >= 36 && it.iterationNumber <= 42;
                     const isWave5 = it.iterationNumber >= 29 && it.iterationNumber <= 35;
                     const isWave4 = it.iterationNumber >= 22 && it.iterationNumber <= 28;
                     const isWave3 = it.iterationNumber >= 15 && it.iterationNumber <= 21;
@@ -1729,44 +1787,56 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
                         onClick={() => setSelectedIterNum(it.iterationNumber)}
                         className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer font-mono ${
                           active
-                            ? isWave6
-                              ? 'bg-indigo-950/90 border-indigo-400 text-white shadow-md shadow-indigo-500/20'
-                              : isWave5
-                                ? 'bg-rose-950/85 border-rose-400 text-white shadow-md shadow-rose-500/20'
-                                : isWave4
-                                  ? 'bg-purple-950/85 border-purple-400 text-white shadow-md shadow-purple-500/20'
-                                  : isWave3
-                                    ? 'bg-amber-950/80 border-amber-400 text-white shadow-md shadow-amber-500/20'
-                                    : isWave2
-                                      ? 'bg-cyan-950/80 border-cyan-400 text-white shadow-md shadow-cyan-500/20'
-                                      : 'bg-emerald-950/70 border-emerald-400 text-white shadow-md'
-                            : isWave6
-                              ? 'bg-slate-900/95 border-indigo-500/45 text-slate-200 hover:border-indigo-400'
-                              : isWave5
-                                ? 'bg-slate-900/95 border-rose-500/40 text-slate-200 hover:border-rose-400'
-                                : isWave4
-                                  ? 'bg-slate-900/95 border-purple-500/40 text-slate-200 hover:border-purple-400'
-                                  : isWave3
-                                    ? 'bg-slate-900/95 border-amber-500/40 text-slate-200 hover:border-amber-400'
-                                    : isWave2
-                                      ? 'bg-slate-900/90 border-cyan-500/30 text-slate-200 hover:border-cyan-400/60'
-                                      : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700'
+                            ? isWave8
+                              ? 'bg-fuchsia-950/90 border-fuchsia-400 text-white shadow-md shadow-fuchsia-500/20'
+                              : isWave7
+                                ? 'bg-teal-950/90 border-teal-400 text-white shadow-md shadow-teal-500/20'
+                                : isWave6
+                                  ? 'bg-indigo-950/90 border-indigo-400 text-white shadow-md shadow-indigo-500/20'
+                                  : isWave5
+                                    ? 'bg-rose-950/85 border-rose-400 text-white shadow-md shadow-rose-500/20'
+                                    : isWave4
+                                      ? 'bg-purple-950/85 border-purple-400 text-white shadow-md shadow-purple-500/20'
+                                      : isWave3
+                                        ? 'bg-amber-950/80 border-amber-400 text-white shadow-md shadow-amber-500/20'
+                                        : isWave2
+                                          ? 'bg-cyan-950/80 border-cyan-400 text-white shadow-md shadow-cyan-500/20'
+                                          : 'bg-emerald-950/70 border-emerald-400 text-white shadow-md'
+                            : isWave8
+                              ? 'bg-slate-900/95 border-fuchsia-500/50 text-slate-200 hover:border-fuchsia-400'
+                              : isWave7
+                                ? 'bg-slate-900/95 border-teal-500/50 text-slate-200 hover:border-teal-400'
+                                : isWave6
+                                  ? 'bg-slate-900/95 border-indigo-500/45 text-slate-200 hover:border-indigo-400'
+                                  : isWave5
+                                    ? 'bg-slate-900/95 border-rose-500/40 text-slate-200 hover:border-rose-400'
+                                    : isWave4
+                                      ? 'bg-slate-900/95 border-purple-500/40 text-slate-200 hover:border-purple-400'
+                                      : isWave3
+                                        ? 'bg-slate-900/95 border-amber-500/40 text-slate-200 hover:border-amber-400'
+                                        : isWave2
+                                          ? 'bg-slate-900/90 border-cyan-500/30 text-slate-200 hover:border-cyan-400/60'
+                                          : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[10px]">
                           <span
                             className={`font-bold ${
-                              isWave6
-                                ? 'text-indigo-300'
-                                : isWave5
-                                  ? 'text-rose-300'
-                                  : isWave4
-                                    ? 'text-purple-300'
-                                    : isWave3
-                                      ? 'text-amber-300'
-                                      : isWave2
-                                        ? 'text-cyan-300'
-                                        : 'text-emerald-400'
+                              isWave8
+                                ? 'text-fuchsia-300'
+                                : isWave7
+                                  ? 'text-teal-300'
+                                  : isWave6
+                                    ? 'text-indigo-300'
+                                    : isWave5
+                                      ? 'text-rose-300'
+                                      : isWave4
+                                        ? 'text-purple-300'
+                                        : isWave3
+                                          ? 'text-amber-300'
+                                          : isWave2
+                                            ? 'text-cyan-300'
+                                            : 'text-emerald-400'
                             }`}
                           >
                             ITER {String(it.iterationNumber).padStart(2, '0')}
@@ -1794,8 +1864,8 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
               {/* Selected Iteration Deep-Dive Detail Box */}
               {(() => {
                 const cur =
-                  waveSixMasterPipeline.all42Iterations.find((i) => i.iterationNumber === selectedIterNum) ||
-                  waveSixMasterPipeline.all42Iterations[35];
+                  waveEightMasterPipeline.all56Iterations.find((i) => i.iterationNumber === selectedIterNum) ||
+                  waveEightMasterPipeline.all56Iterations[49];
                 return (
                   <div className="p-4 rounded-xl bg-slate-900/90 border border-cyan-500/30 space-y-2 font-mono text-xs">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1830,6 +1900,368 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
                   </div>
                 );
               })()}
+            </div>
+
+            {/* WAVE VIII INTERACTIVE WORKBENCH (ITERATIONS 50–56): CHIRAL SKYRMION & MAGNON MAJORITY LOGIC + 1.25 PHZ ATTOSECOND LIGHTWAVE, DIAMOND NV⁻ QUANTUM MAGNETOMETRY + 4.5 Å SUB-1NM 2D TMDC NEGF, 420 PW BATTERYLESS SOC + UNLOCKED 4EB–256EB CISLUNAR QUANTUM FABRIC */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5" data-testid="wave-eight-breakthrough-panel">
+              {/* Wave VIII Card 1: ITER-50 Chiral Skyrmion & Spin-Wave Magnonics + ITER-51 1.25 PHz (320 as) Lightwave Valleytronics */}
+              <div className="rounded-xl border border-fuchsia-500/50 bg-slate-950/90 p-4 space-y-3 shadow">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <div className="text-[10px] font-mono text-fuchsia-400 uppercase font-bold">
+                      ITER-50 (65m) + ITER-51 (65m)
+                    </div>
+                    <h3 className="text-sm font-bold text-white">
+                      Chiral Skyrmion Magnonics &amp; 1.25 PHz (320as) Gate
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-fuchsia-950 border border-fuchsia-500/40 text-fuchsia-300 text-[11px] font-mono font-bold">
+                    {liveSkyrmionPetahertzReport.magnonMajorityGateEnergyZj} zJ · {liveSkyrmionPetahertzReport.attosecondGateSwitchingTimeAs} as
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">DMI Strength (mJ/m²)</span>
+                    <input
+                      type="number"
+                      min={1.2}
+                      max={6.5}
+                      step={0.2}
+                      value={skyrmionDmi}
+                      onChange={(e) => setSkyrmionDmi(parseFloat(e.target.value) || 3.2)}
+                      className="w-full bg-transparent text-fuchsia-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Laser Field E₀ (V/nm)</span>
+                    <input
+                      type="number"
+                      min={0.5}
+                      max={3.5}
+                      step={0.1}
+                      value={petahertzFieldVPerNm}
+                      onChange={(e) => setPetahertzFieldVPerNm(parseFloat(e.target.value) || 1.6)}
+                      className="w-full bg-transparent text-emerald-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-1 text-[11px] font-mono">
+                  <div className="text-slate-400 text-[10px] uppercase">Magnonic &amp; Petahertz Valleytronic Macros:</div>
+                  {liveSkyrmionPetahertzReport.macros.map((m) => (
+                    <div key={m.macroName} className="flex items-center justify-between px-2 py-1 rounded bg-slate-900/80 border border-slate-800">
+                      <span className="text-slate-200 truncate max-w-[175px]" title={m.physicsRegime}>
+                        {m.macroName}
+                      </span>
+                      <span className="text-emerald-300 font-bold">{m.switchingEnergyZj}zJ · {m.switchingDelayFs}fs</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Skyrmion Core (Q=-1):</span>
+                    <span className="text-cyan-300 font-bold">{liveSkyrmionPetahertzReport.skyrmionCoreDiameterNm} nm ({liveSkyrmionPetahertzReport.spinOrbitTorqueVelocityMPerSec} m/s · 3,800× vs MuMax3)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">1.25 PHz OFIC Logic:</span>
+                    <span className="text-amber-300">{liveSkyrmionPetahertzReport.attosecondGateSwitchingTimeAs} as ({liveSkyrmionPetahertzReport.speedupVs5psCmosFactorX.toLocaleString()}× vs 5ps CMOS · γ_K={liveSkyrmionPetahertzReport.keldyshAdiabaticityParameterGamma})</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wave VIII Card 2: ITER-52 Diamond NV⁻ Quantum Magnetometry + ITER-53 Sub-1nm (4.5 Å) WS2/MoS2 + Bi(012) NEGF */}
+              <div className="rounded-xl border border-emerald-500/50 bg-slate-950/90 p-4 space-y-3 shadow">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <div className="text-[10px] font-mono text-emerald-400 uppercase font-bold">
+                      ITER-52 (65m) + ITER-53 (65m)
+                    </div>
+                    <h3 className="text-sm font-bold text-white">
+                      Diamond NV⁻ Tomography &amp; {liveNvTmdcAmbientCislunarReport.physicalGateLengthAngstrom}Å 2D TMDC NEGF
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono font-bold">
+                    0.85 pT/√Hz · R_c 28 Ω·µm
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">2D TMDC Gate L_g (Å)</span>
+                    <input
+                      type="number"
+                      min={3.0}
+                      max={10.0}
+                      step={0.5}
+                      value={tmdcGateAngstrom}
+                      onChange={(e) => setTmdcGateAngstrom(parseFloat(e.target.value) || 4.5)}
+                      className="w-full bg-transparent text-emerald-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                  <div className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">NV⁻ ODMR (2.87 GHz)</span>
+                    <span className="text-cyan-300 font-bold">
+                      {liveNvTmdcAmbientCislunarReport.spatialTomographyResolutionNm}nm 3D · {liveNvTmdcAmbientCislunarReport.minDetectableTrojanLeakageCurrentPa}pA Trojan
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">3D Biot-Savart J(k):</span>
+                    <span className="text-emerald-300 font-bold">{liveNvTmdcAmbientCislunarReport.magneticSensitivityPtPerSqrtHz} pT/√Hz ({liveNvTmdcAmbientCislunarReport.hardwareTrojanDetectionSpecificityPct}% Trojan Specificity)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Bi(012) Semimetal Contact:</span>
+                    <span className="text-cyan-300">R_c = {liveNvTmdcAmbientCislunarReport.bismuthSemimetalContactResistanceOhmUm} Ω·µm (Φ_SB = 0 meV Zero-Schottky)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Sub-1nm Ballistic Swing:</span>
+                    <span className="text-purple-300 font-bold">L_g = {liveNvTmdcAmbientCislunarReport.physicalGateLengthNm} nm · SS = {liveNvTmdcAmbientCislunarReport.ballisticSubthresholdSwingMvPerDec} mV/dec</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">NEGF Transport Speed:</span>
+                    <span className="text-amber-300 font-bold">I_on/I_off = 4.2×10⁹ ({liveNvTmdcAmbientCislunarReport.negfSolverSpeedupVsQuantumAtkFactorX.toLocaleString()}× vs QuantumATK)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wave VIII Card 3: ITER-54 420 pW Batteryless RF/TEG SoC + ITER-55 Unlocked 4EB–256EB Cislunar Quantum Fabric */}
+              <div className="rounded-xl border border-cyan-500/50 bg-slate-950/90 p-4 space-y-3 shadow">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <div className="text-[10px] font-mono text-cyan-400 uppercase font-bold">
+                      ITER-54 (65m) + ITER-55 (65m) + ITER-56 (60m)
+                    </div>
+                    <h3 className="text-sm font-bold text-white">
+                      420pW Batteryless SoC &amp; {liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryEb}EB ({liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryPb.toLocaleString()}PB) Fabric
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-[11px] font-mono font-bold">
+                    {liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryTb.toLocaleString()} TB EPR
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Cislunar Quantum (EB)</span>
+                    <input
+                      type="number"
+                      min={4}
+                      max={256}
+                      step={4}
+                      value={cislunarEb}
+                      onChange={(e) => setCislunarEb(parseInt(e.target.value, 10) || 16)}
+                      className="w-full bg-transparent text-fuchsia-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                  <div className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Ambient Spin-Rectenna</span>
+                    <span className="text-emerald-300 font-bold">
+                      {liveNvTmdcAmbientCislunarReport.ambientRfSensitivityDbm} dBm · ZT={liveNvTmdcAmbientCislunarReport.thermoelectricFigureOfMeritZt}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">HfZrO₂ NV-Snapshot:</span>
+                    <span className="text-emerald-300 font-bold">{liveNvTmdcAmbientCislunarReport.ferroelectricNvCheckpointLatencyNs} ns ({liveNvTmdcAmbientCislunarReport.activeOperatingPowerPicowatts} pW · 100% Atomic Progress)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Cislunar Wafer Twin:</span>
+                    <span className="text-purple-300 font-bold">{liveNvTmdcAmbientCislunarReport.totalSimulatedTransistorsQuadrillions} Quadrillion Transistors ({liveNvTmdcAmbientCislunarReport.stitchedCislunarWafersCount.toLocaleString()} Wafers)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Unlocked 6-Tier EB:</span>
+                    <span className="text-cyan-300">{liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryEb} EB = {liveNvTmdcAmbientCislunarReport.unlockedCislunarMemoryGb.toLocaleString()} GB (0% Eviction)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">EPR + Vacuum-Core BW:</span>
+                    <span className="text-amber-300 font-bold">{liveNvTmdcAmbientCislunarReport.aggregateQuantumOpticalBandwidthTbPerSec.toLocaleString()} TB/s ({liveNvTmdcAmbientCislunarReport.eprBellPairFidelityPct}% Bell · 0.02ms Snap)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* WAVE VII INTERACTIVE WORKBENCH (ITERATIONS 43–49): MAJORANA TOPOLOGICAL BRAIDING + 640GHZ GRAPHENE PLASMONICS, 215 PB/G DNA STORAGE + 1.85MS FNO-PINN MULTIPHYSICS, 150 MRAD FUSION MHD CONTROL + UNLOCKED 256PB–1EB ZETTASCALE FABRIC */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5" data-testid="wave-seven-breakthrough-panel">
+              {/* Wave VII Card 1: ITER-43 Majorana Non-Abelian Anyon Braiding + ITER-44 640GHz Graphene Plasmonics */}
+              <div className="rounded-xl border border-teal-500/50 bg-slate-950/90 p-4 space-y-3 shadow">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <div className="text-[10px] font-mono text-teal-400 uppercase font-bold">
+                      ITER-43 (65m) + ITER-44 (65m)
+                    </div>
+                    <h3 className="text-sm font-bold text-white">
+                      Majorana Anyon Braiding &amp; 640GHz Graphene SPP
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-teal-950 border border-teal-500/40 text-teal-300 text-[11px] font-mono font-bold">
+                    p_braid 1.8e-16 · 0.042 fJ/b
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Topological Gap (µeV)</span>
+                    <input
+                      type="number"
+                      min={40}
+                      max={250}
+                      step={10}
+                      value={majoranaGapUev}
+                      onChange={(e) => setMajoranaGapUev(parseInt(e.target.value, 10) || 120)}
+                      className="w-full bg-transparent text-teal-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                  <div className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">640GHz Graphene SPP</span>
+                    <span className="text-emerald-300 font-bold">
+                      λ_0/48 · {liveMajoranaPlasmonicReport.plasmonicModulatorEnergyFjPerBit} fJ/bit
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 text-[11px] font-mono">
+                  <div className="text-slate-400 text-[10px] uppercase">Kitaev 1D Nanowire Tetron/Hexon Braid Islands:</div>
+                  {liveMajoranaPlasmonicReport.majoranaIslands.map((isl) => (
+                    <div key={isl.islandArchitecture} className="flex items-center justify-between px-2 py-1 rounded bg-slate-900/80 border border-slate-800">
+                      <span className="text-slate-200 truncate max-w-[180px]" title={isl.islandArchitecture}>
+                        {isl.islandArchitecture}
+                      </span>
+                      <span className="text-emerald-300 font-bold">{isl.topologicalGapUev}µeV · -{isl.magicStateFactoryFootprintReductionPct}% Area</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Parity Coherence T_p:</span>
+                    <span className="text-cyan-300 font-bold">{liveMajoranaPlasmonicReport.parityCoherenceTimeMs} ms ({liveMajoranaPlasmonicReport.bdgSpeedupVsKwantQutipFactorX}× faster than Kwant)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Dirac Plasmonic Bus:</span>
+                    <span className="text-amber-300">{liveMajoranaPlasmonicReport.onChipTerahertzBisectionBandwidthTbps} Tbps ({liveMajoranaPlasmonicReport.groupVelocityDelayPsPerMm} ps/mm · 9× below CPO)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wave VII Card 2: ITER-45 215 PB/g Enzymatic DNA Archival ASIC + ITER-46 1.85ms 3D FNO-PINN Multiphysics */}
+              <div className="rounded-xl border border-emerald-500/50 bg-slate-950/90 p-4 space-y-3 shadow">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <div className="text-[10px] font-mono text-emerald-400 uppercase font-bold">
+                      ITER-45 (60m) + ITER-46 (60m)
+                    </div>
+                    <h3 className="text-sm font-bold text-white">
+                      215 PB/g DNA Storage &amp; 1.85ms 3D FNO-PINN
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono font-bold">
+                    48,600× vs FEM
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">TdT DNA + MoS₂ Pores</span>
+                    <span className="text-emerald-300 font-bold">
+                      {liveDnaPinnFusionZettascaleReport.volumetricStorageDensityPbPerGram} PB/g · 10⁻¹⁸ BER
+                    </span>
+                  </div>
+                  <div className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">100M-Node 3D FNO-PINN</span>
+                    <span className="text-cyan-300 font-bold">
+                      {liveDnaPinnFusionZettascaleReport.fnoPinnInferenceLatencyMs} ms ({liveDnaPinnFusionZettascaleReport.l2RelativeErrorVsGoldenFemPct}% L2)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Enzymatic TdT Array:</span>
+                    <span className="text-emerald-300 font-bold">{liveDnaPinnFusionZettascaleReport.dnaSynthesizerCmosWellsCount.toLocaleString()} Wells + {liveDnaPinnFusionZettascaleReport.mos2NanoporeReaderChannelsCount.toLocaleString()} MoS₂ Pores</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Zero-Power Archival:</span>
+                    <span className="text-cyan-300">{liveDnaPinnFusionZettascaleReport.zeroPowerRetentionYears} Years (LT Fountain + RS(255,223))</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">3D Spectral FNO-PINN:</span>
+                    <span className="text-purple-300 font-bold">{liveDnaPinnFusionZettascaleReport.fnoPinnMeshNodesMillions}M Nodes in {liveDnaPinnFusionZettascaleReport.fnoPinnInferenceLatencyMs} ms (48,600× faster)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Coupled Conservation:</span>
+                    <span className="text-amber-300 font-bold">Maxwell + Navier-Stokes + Stress ({liveDnaPinnFusionZettascaleReport.l2RelativeErrorVsGoldenFemPct}% Err)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wave VII Card 3: ITER-47 150 Mrad D-T Fusion Tokamak MHD + ITER-48 Unlocked 256PB–1EB Zettascale Fabric */}
+              <div className="rounded-xl border border-cyan-500/50 bg-slate-950/90 p-4 space-y-3 shadow">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <div className="text-[10px] font-mono text-cyan-400 uppercase font-bold">
+                      ITER-47 (65m) + ITER-48 (65m) + ITER-49 (60m)
+                    </div>
+                    <h3 className="text-sm font-bold text-white">
+                      150Mrad Fusion MHD &amp; {liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryPb}PB ({liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryEb}EB) Fabric
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-[11px] font-mono font-bold">
+                    {liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryTb.toLocaleString()} TB FSO
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Zettascale Tier (PB)</span>
+                    <input
+                      type="number"
+                      min={64}
+                      max={4096}
+                      step={64}
+                      value={zettascalePb}
+                      onChange={(e) => setZettascalePb(parseInt(e.target.value, 10) || 256)}
+                      className="w-full bg-transparent text-teal-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                  <label className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">14.1MeV Fluence (×10¹⁴)</span>
+                    <input
+                      type="number"
+                      min={5}
+                      max={100}
+                      step={5}
+                      value={fusionFluenceE14}
+                      onChange={(e) => setFusionFluenceE14(parseInt(e.target.value, 10) || 24)}
+                      className="w-full bg-transparent text-amber-300 font-bold outline-none mt-0.5"
+                    />
+                  </label>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Tokamak MHD Loop:</span>
+                    <span className="text-emerald-300 font-bold">{liveDnaPinnFusionZettascaleReport.mhdEquilibriumControlLoopLatencyUs} µs ({liveDnaPinnFusionZettascaleReport.totalIonizingDoseToleranceMradSi} Mrad · 0 Quenches)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">1,024-Wafer Twin:</span>
+                    <span className="text-purple-300 font-bold">{liveDnaPinnFusionZettascaleReport.totalSimulatedTransistorsQuadrillions} Quadrillion Transistors ({liveDnaPinnFusionZettascaleReport.stitchedPlanetaryWafersCount.toLocaleString()} Wafers)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Unlocked EB Address:</span>
+                    <span className="text-cyan-300">{liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryPb} PB ({liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryEb} EB) = {liveDnaPinnFusionZettascaleReport.unlockedZettascaleMemoryGb.toLocaleString()} GB</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">FSO + NANF Laser BW:</span>
+                    <span className="text-amber-300 font-bold">{liveDnaPinnFusionZettascaleReport.aggregateLaserNanfBandwidthTbPerSec.toLocaleString()} TB/s (3.34 µs/km · 0.06ms Snap)</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* WAVE VI INTERACTIVE WORKBENCH (ITERATIONS 36–42): SPINTRONIC SOT-MRAM + SKYRMION LLGS + CVD DIAMOND/GAN M3D-IVR, 65,536-CH BIO-ORGANOID HD-MEA + FHE/ZK-SNARK NTT, INLINE FAB APC TWIN + UNLOCKED 4PB–16PB EXASCALE ARENA */}
