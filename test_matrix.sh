@@ -46,15 +46,17 @@ check_grep() {
   fi
 }
 
-echo "======== VIKAS v1 FULL COMMAND MATRIX ========"
+echo "======== VIKAS v3.0 FULL COMMAND MATRIX ========"
 
-# ---- core simulation on all demos + multi-file manifest ----
+# ---- core simulation on all demos + multi-file manifest + 7-lang polyglot cluster ----
 for demo in demo_latch_trap demo_riscv_alu_hazard demo_fsm_uart demo_cdc demo_fifo_backpressure demo_sar_adc; do
   rm -rf .vikas
   check "run_$demo" 0 $VIKAS run examples/$demo.sv
 done
 rm -rf .vikas
 check "run_multifile-manifest" 0 $VIKAS run examples/multifile_proj/project.f
+rm -rf .vikas
+check_grep "run_polyglot-cluster" "CLUSTER-PASS 6/6" $VIKAS run examples/polyglot_ai_cluster/cluster.f --max-ns 600
 
 # ---- NOVA-SoC deep multi-file project (26 files, 5-level hierarchy, 9 exts) ----
 check "nova_master-filelist" 0 $VIKAS run examples/nova_soc/nova.f --max-ns 8000
@@ -94,7 +96,7 @@ check "coverage_toggle" 0 $VIKAS coverage .vikas/vikas_wave.vwf
 # ---- wave analysis ----
 rm -rf .vikas
 $VIKAS run examples/demo_fifo_backpressure.sv >/dev/null 2>&1
-check "gui_html5" 0 $VIKAS gui .vikas/vikas_wave.vwf -o /tmp/vikas_gui_test.html
+check "gui_bundle" 0 $VIKAS gui .vikas/vikas_wave.vwf -o /tmp/vikas_gui_test.bundle
 check "summary_exec" 0 $VIKAS summary .vikas/vikas_wave.vwf
 check "find_temporal" 0 $VIKAS find valid_in --dump .vikas/vikas_wave.vwf
 check "expr_virtual" 0 $VIKAS expr valid_in --dump .vikas/vikas_wave.vwf
@@ -152,12 +154,16 @@ check "help_all" 0 $VIKAS help
 check "help_formats" 0 $VIKAS formats
 check "version" 0 $VIKAS version
 
-# ---- v1.1: VIKAS Studio GUI + kernel bench ----
+# ---- VIKAS v3.0: Multicore Amdahl-Breaker, UVM 1800.2, 38-Lang Compiler, Batch & Studio ----
 check "bench_suite" 0 $VIKAS bench --scale 1
-check_grep "gui_studio" "VIKAS STUDIO" $VIKAS gui .vikas/vikas_wave.vwf -o /dev/shm/studio_check.html
-check_grep "studio_app-complete" "openPalette" bash -c "cat /dev/shm/studio_check.html"
-check_grep "studio_kdb-embed" "Design Intel" bash -c "cat /dev/shm/studio_check.html"
-check_grep "studio_file-open" "loadVWF" bash -c "cat /dev/shm/studio_check.html"
+check "multicore_16c" 0 $VIKAS multicore --threads 16
+check "uvm_1800_2" 0 $VIKAS uvm --threads 16
+check "compile_all_38" 0 $VIKAS compile-all
+check "batch_headless" 0 $VIKAS batch examples/demo_fsm_uart.sv --jobs 4
+check_grep "gui_studio" "VIKAS STUDIO" $VIKAS gui .vikas/vikas_wave.vwf -o /dev/shm/studio_check.bundle
+check_grep "studio_app-complete" "openPalette" bash -c "cat /dev/shm/studio_check.bundle"
+check_grep "studio_kdb-embed" "Design Intel" bash -c "cat /dev/shm/studio_check.bundle"
+check_grep "studio_file-open" "loadVWF" bash -c "cat /dev/shm/studio_check.bundle"
 
 # ---- servers (start/kill) ----
 check "mcp_server" 0 bash -c "echo 'QUIT' | timeout 10 $VIKAS mcp . >/dev/null 2>&1; true" 

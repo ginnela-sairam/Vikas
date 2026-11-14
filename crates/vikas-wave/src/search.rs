@@ -1,4 +1,4 @@
-//! VIKAS v1 — SIMD-style bit-parallel temporal query engine (breakthrough 11)
+//! VIKAS v3.0 — SIMD-style bit-parallel temporal query engine (breakthrough 11)
 //! + FFT ENOB spectral engine + bus decoder + disassembler + fixed/float radix.
 
 pub mod radix {

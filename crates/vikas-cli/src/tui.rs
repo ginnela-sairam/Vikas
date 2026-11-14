@@ -239,7 +239,7 @@ pub fn run(dump_path: PathBuf) -> Result<()> {
     }
     let _ = std::process::Command::new("stty").arg("sane").status();
     println!("[VIKAS TUI] session ended. Re-open with: vikas tui {}", dump_path.display());
-    println!("  Full workbench: vikas gui {}  (VIKAS Studio HTML5)", dump_path.display());
+    println!("  Sovereign Native Workstation: vikas batch / vikas summary {}", dump_path.display());
     Ok(())
 }
 

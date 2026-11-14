@@ -1,4 +1,4 @@
-//! VIKAS v1 — six native innovative waveform formats (beyond VCD/FST):
+//! VIKAS v3.0 — six native innovative waveform formats (beyond VCD/FST):
 //!  .vwf  VIKAS Waveform File    — binary, indexed change table + CRC32 checksum
 //!  .vwt  VIKAS Temporal Track   — time-sectioned regions with per-region indexes
 //!  .vwe  VIKAS Encoded          — delta-time + value-RLE compressed stream

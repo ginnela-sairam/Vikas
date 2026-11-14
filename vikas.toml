@@ -1,11 +1,17 @@
-# VIKAS v1 session-as-code (feature 10)
+# VIKAS v3.0 — Sovereign Session-as-Code Manifest (64-Core VIKAS-KRONOS · Zero-Copy .vwm · 38-Lang)
 [project]
 top = "top"
-sources = ["rtl/*.sv", "rtl/*.v", "rtl/*.vh"]   # multi-file globs + filelists supported
+sources = ["rtl/*.sv", "rtl/*.v", "rtl/*.vh", "examples/nova_soc/nova.f", "examples/polyglot_ai_cluster/cluster.f"]
 
 [clock]
 name = "clk"
 period_ns = 10
+
+[multicore]
+threads = 16
+collapse_islands = true
+emit_hypergraph = true
+zero_copy_vwm_mmap = true
 
 [power]
 vdd_corners = [0.12, 0.4, 0.8]    # sweep --vdd list
@@ -15,3 +21,4 @@ temp_k = [77, 300]                # cryo + nominal
 assert_files = ["checks/*.sva"]
 max_energy_fj = 5000
 min_toggle_pct = 60
+

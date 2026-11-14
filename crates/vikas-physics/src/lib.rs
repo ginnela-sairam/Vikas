@@ -1,4 +1,4 @@
-//! VIKAS v1 — physics engines: dynamic energy (b2), sub-threshold & cryo
+//! VIKAS v3.0 — physics engines: dynamic energy (b2), sub-threshold & cryo
 //! CMOS (b3), glitch hazards (b9), P-Bit stochastic (b5), HDC fingerprints,
 //! E-Graph micro-architecture repair (b7), C++20 RK4 mixed-signal twin (b6).
 

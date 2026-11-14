@@ -128,7 +128,7 @@ pub fn export_wavedrom(dump: &WaveDump, from: u64, to: u64) -> serde_json::Value
         }
     }
     let _ = max_bits;
-    serde_json::json!({"signal": arr, "head": {"text": "VIKAS v1 export", "tick": from}})
+    serde_json::json!({"signal": arr, "head": {"text": "VIKAS v3.0 export", "tick": from}})
 }
 
 /// Feature 40: render WaveDrom JSON to a standalone SVG timing diagram.
@@ -143,7 +143,7 @@ pub fn wavedrom_to_svg(wd: &serde_json::Value) -> String {
         svg_h
     ));
     body.push_str("<rect width='920' height='60' fill='#0b1220'/>\n");
-    body.push_str("<text x='12' y='24' fill='#7dd3fc' font-size='15' font-weight='bold'>VIKAS v1 — WaveDrom timing export</text>\n");
+    body.push_str("<text x='12' y='24' fill='#7dd3fc' font-size='15' font-weight='bold'>VIKAS v3.0 — WaveDrom timing export</text>\n");
     for (i, sig) in signals.iter().enumerate() {
         let name = sig.get("name").and_then(|s| s.as_str()).unwrap_or("");
         let y = 48 + i * row_h;

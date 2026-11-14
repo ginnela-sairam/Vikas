@@ -45,12 +45,12 @@ const SIX_INDUSTRY_TABLES = [
     num: 1,
     title: 'MATRIX 1: EDA Workstation GUI & Frontend Runtime Architecture',
     summary:
-      'Compares multi-gigabyte desktop X11/Qt suites against VIKAS Studio (Rust + HTML5 Canvas 2D / WebGPU + WCP 2.0 JSON-RPC, zero external runtime dependencies).',
+      'Compares multi-gigabyte desktop X11/Qt suites against VIKAS Studio v3.0 (Rust + Native GPU Canvas 2D / WebGPU + WCP 2.0 JSON-RPC, zero external runtime dependencies).',
     rows: [
       { tool: 'Commercial Debugger Suite A', gui: 'C++17 + Qt 5/6 Widgets + OpenGL', script: 'Tcl 8.6 + Python', size: '4.5 – 12 GB', startup: '4.5 – 18 s', webReady: 'Desktop X11 / VNC Only' },
       { tool: 'Commercial Debugger Suite B', gui: 'C++ + Qt + Legacy Motif + CEF', script: 'Tcl/Tk + Python', size: '5.0 – 15 GB', startup: '5.0 – 22 s', webReady: 'Partial Embedded CEF' },
       { tool: 'Commercial Debugger Suite C', gui: 'C++17 + Qt 6 + OpenGL', script: 'Tcl + DO scripts', size: '3.8 – 9 GB', startup: '3.5 – 12 s', webReady: 'Desktop Only' },
-      { tool: 'VIKAS Studio v3.0 (Sovereign)', gui: 'Rust + HTML5 Canvas 2D / WebGPU + React 19', script: '64-cmd CLI + WCP 2.0 JSON-RPC', size: '< 28 MB binary', startup: '< 80 ms', webReady: '100% Native Browser + Air-Gapped Linux' },
+      { tool: 'VIKAS Studio v3.0 (Sovereign)', gui: 'Rust + Native GPU Canvas 2D / WebGPU + React 19', script: '65-cmd CLI + WCP 2.0 JSON-RPC', size: '< 28 MB binary', startup: '< 80 ms', webReady: '100% Native Workstation + Air-Gapped Linux' },
     ],
   },
   {
@@ -93,11 +93,11 @@ const SIX_INDUSTRY_TABLES = [
     num: 5,
     title: 'MATRIX 5: Polyglot Systems & Hardware Language Stack Audit',
     summary:
-      'Audits the sovereign implementation stack: Rust 2021 (kernel/CLI/KDB/wave), C++20 (RK4 physics FFI), TypeScript/HTML5 Canvas/WebGPU (Studio GUI), WGSL Compute Shaders, and 38 HDL/HVL Frontends.',
+      'Audits the sovereign implementation stack: Rust 2021 (kernel/CLI/KDB/wave), C++20 (RK4 physics FFI), TypeScript/Native GPU Canvas/WebGPU (Studio GUI), WGSL Compute Shaders, and 38 HDL/HVL Frontends.',
     rows: [
-      { tool: 'Rust 2021 (vikas-sim, vikas-kdb, vikas-wave, vikas-wcp, vikas-cli)', gui: '75% of Core Stack', script: 'Memory-safe topo-DAG kernel & 64-cmd CLI', size: 'MSRV 1.70 Offline', startup: 'Zero external crates', webReady: 'Production' },
+      { tool: 'Rust 2021 (vikas-sim, vikas-kdb, vikas-wave, vikas-wcp, vikas-cli)', gui: '75% of Core Stack', script: 'Memory-safe topo-DAG kernel & 65-cmd CLI', size: 'MSRV 1.70 Offline', startup: 'Zero external crates', webReady: 'Production' },
       { tool: 'C++20 (crates/vikas-physics/csrc/rk4_mixed_signal.cpp)', gui: '10% of Core Stack', script: '4th-order Runge-Kutta SAR ADC + thermal noise', size: 'Static libvikas_rk4.a', startup: 'Sub-microsecond FFI', webReady: 'Production' },
-      { tool: 'TypeScript + React 19 + HTML5 Canvas 2D (VIKAS Studio)', gui: '10% of Core Stack', script: '3-pane RTL IDE, COI Ray-Tracer, VIKAS-VED', size: 'Zero-install Browser UI', startup: 'Port 3000 Full-Stack', webReady: 'Production' },
+      { tool: 'TypeScript + React 19 + Native GPU Canvas 2D (VIKAS Studio)', gui: '10% of Core Stack', script: '3-pane RTL IDE, COI Ray-Tracer, VIKAS-VED', size: 'Sovereign Native Workstation', startup: 'Port 3000 Full-Stack', webReady: 'Production' },
       { tool: 'WebGPU WGSL Compute Shader + 38-Language SIMD Frontend', gui: '5% of Core Stack', script: '@workgroup_size(64) 4-state SIMD + 38 HDLs/HVLs', size: 'Zero Socket Overhead', startup: '4.14 ms Batch Compile', webReady: 'Production' },
     ],
   },

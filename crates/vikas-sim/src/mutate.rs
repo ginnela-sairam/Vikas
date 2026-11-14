@@ -1,4 +1,4 @@
-//! VIKAS v1 — BREAKTHROUGH #14: RTL mutation testing engine.
+//! VIKAS v3.0 — BREAKTHROUGH #14: RTL mutation testing engine.
 //!
 //! Industry-first for a CLI EDA tool: systematically injects single-point
 //! design mutations (operator swaps, constant zeroing, off-by-one) into the

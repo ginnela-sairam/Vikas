@@ -22,6 +22,17 @@
 4. **`VIKAS-NADI` Pre-Synthesis Silicon Physics Twin**: Evaluates dynamic switching energy ($E_{\text{sw}}$ in $\text{fJ}$), glitch hazard waste ($E_{\text{glitch}}$), sub-threshold ($0.12\,\text{V}$) & cryogenic ($4\,\text{K}\text{–}77\,\text{K}$) leakage, C++20 4th-order Runge-Kutta mixed-signal SAR ADC + 64-point Hann FFT, and 2D thermal PDE directly during RTL simulation.
 5. **`VIKAS-VED` IDE + `VIKAS-FORTUNE-AI v4.0` Auto-Healer**: Real-time 19-rule syntax & lint engine (`SYN-01..SYN-07` + `SEC-01..SEC-12`) with non-blocking gutter markers, 1-click surgical auto-healing of corrupted tokens/latches/reset branches, and a **38-Language Polyglot SIMD Super-Compiler**.
 
+> ### Canonical VIKAS v3.0 (`3.0.0`) Reference for Engineers, CI Pipelines & AI Agents
+> - **Current Release**: **VIKAS v3.0 (`3.0.0`)** across all 6 Rust workspace crates (`vikas-cli`, `vikas-sim`, `vikas-wave`, `vikas-kdb`, `vikas-wcp`, `vikas-physics`) and the full-stack **VIKAS Studio v3.0 Sovereign Native Workstation**.
+> - **Sovereign Native GUI & Zero Browser Popups**: VIKAS v3.0 runs as a self-contained native workstation (`npm run dev` on port `3000` + `vikas tui` terminal UI + `.vwm` zero-copy `mmap` waveform sessions). It does **not** spawn external browser `.html` popups during `vikas run` or `vikas batch`.
+> - **Canonical v3.0 CLI Commands**:
+>   - Multi-file `.f` / bulk directory / 38-language simulation: `vikas run examples/nova_soc/nova.f` · `vikas run examples/polyglot_ai_cluster/cluster.f` · `vikas run examples/nova_soc/`
+>   - Headless background multi-case regression (`.vwm` + `.vwf` + `Open-KDB` per case): `vikas batch --jobs 16`
+>   - Multicore 64-core Amdahl-breaker & UVM 1800.2-2020 verification: `vikas multicore --threads 16` · `vikas uvm --threads 16`
+>   - 38-Language SIMD batch compiler: `vikas compile-all`
+>   - 7-Pillar pre-tapeout signoff & 3-layer latch guard: `vikas signoff examples/nova_soc/nova.f` · `vikas latch examples/nova_soc/nova.f`
+>   - Terminal waveform & KDB inspection: `vikas tui .vikas/vikas_wave.vwf` · `vikas kdb .vikas/open_kdb.vikas.json`
+
 ---
 
 ## Table of Contents
@@ -148,15 +159,15 @@ Every push and pull request to `main` is validated by `.github/workflows/ci.yml`
 | CI Job ID | Name | What It Verifies |
 |-----------|------|------------------|
 | **Job 1** | `exec-bits` | Normalizes CRLF line endings, verifies `+x` executable permissions, and runs `bash -n` syntax validation on all `.sh` scripts. |
-| **Job 2** | `kernel` | Compiles all 7 workspace crates (`vikas-wave`, `vikas-sim`, `vikas-kdb`, `vikas-physics`, `vikas-opt`, `vikas-studio`, `vikas-cli`) + C++20 `rk4_adc.cpp` in `--release` mode and executes unit tests. |
-| **Job 3** | `matrix` | Executes `bash test_matrix.sh` — an exhaustive **85-check sweep** covering all CLI subcommands, all 6 waveform formats, Open-KDB, physics, and exit codes. |
-| **Job 4** | `proof` | Runs end-to-end golden verification on the 26-file `NOVA-SoC` (`NOVA-PASS 9/9`), multi-file `project.f` (`result=200`), 7-pillar `signoff`, `latch` exit-code gating (`rc=2` on `demo_latch_trap.sv`, `rc=0` on `demo_fsm_uart.sv`), and `studio` HTML generation. |
+| **Job 2** | `kernel` | Compiles all 6 workspace crates (`vikas-wave`, `vikas-sim`, `vikas-kdb`, `vikas-physics`, `vikas-wcp`, `vikas-cli`) + C++20 `rk4_mixed_signal.cpp` in `--release` mode and executes unit tests. |
+| **Job 3** | `matrix` | Executes `bash test_matrix.sh` — an exhaustive **85+ check sweep** covering all 65 CLI subcommands, all 6 waveform formats, 38-language compiler, multicore, UVM, batch runner, Open-KDB, physics, and exit codes. |
+| **Job 4** | `proof` | Runs end-to-end golden verification on the 26-file `NOVA-SoC` (`NOVA-PASS 9/9`), 7-language `polyglot_ai_cluster/cluster.f` (`CLUSTER-PASS 6/6`), multi-file `proj.f` (`result=200`), 7-pillar `signoff`, `latch` exit-code gating (`rc=2` on `demo_latch_trap.sv`, `rc=0` on `demo_fsm_uart.sv`), `compile-all`, `multicore`, `uvm`, and native session bundle generation. |
 | **Job 5** | `airgap` | Creates an empty isolated `CARGO_HOME` and runs `cargo build --release --locked --offline` to prove **zero network access** is required. |
 | **Job 6** | `msrv` | Compiles and tests VIKAS using **Rust 1.70.0** (`--locked --offline`), guaranteeing compatibility with older enterprise Linux distributions. |
 
 ### Run All Verification Suites Locally
 ```bash
-# 1. Run all 22 TypeScript engine test suites (sim, linter, auto-healer, 38-lang compiler, UVM, multicore):
+# 1. Run all 24 TypeScript engine test suites (sim, linter, auto-healer, 38-lang compiler, polyglot cluster, UVM, multicore):
 npm test
 
 # 2. Verify production frontend + TypeScript typecheck:
@@ -172,11 +183,11 @@ bash ./multi_terminal_verify.sh
 ## 4. Six Unified Workbench Tabs in VIKAS Studio v3.0
 
 1. **`Waveforms`**: $O(1)$ binary mipmap canvas with sub-cycle delta causality drawer, counterfactual SAT `"Why"` solver, 64-bit security taint-dye overlay, protocol transaction swimlanes, time-point bookmarks, and multi-criteria signal filtering.
-2. **`RTL Editor (VIKAS-VED)`**: Modal/modeless hardware IDE with **real-time non-blocking gutter markers**, `VIKAS-FORTUNE-AI v4.0` 1-click **`Fix All` Auto-Healer**, `VIKAS-NEURAL-LM v2.0` local tab-completion (with automatic typo sanitization), and the **38-Language Polyglot Compiler**.
+2. **`RTL Editor (VIKAS-VED)`**: Modal/modeless hardware IDE with **real-time non-blocking gutter markers**, `VIKAS-FORTUNE-AI v4.0` 1-click **`Fix All` Auto-Healer**, `VIKAS-NEURAL-LM v3.0` local tab-completion (with automatic typo sanitization), and the **38-Language Polyglot Compiler**.
 3. **`Signoff & Mutants`**: 7-Pillar pre-tapeout readiness scoreboard (`0–100`), 3-layer inferred latch audit with SystemVerilog auto-patch preview, and DUT-only fault mutation campaign runner.
 4. **`Open-KDB & Physics`**: Interactive CSR netlist driver/load cone explorer, Sugiyama RTL schematic viewer, pre-synthesis switching energy ($E_{\text{sw}}$ in $\text{fJ}$), sub-threshold ($0.12\,\text{V}$) & cryo-CMOS ($77\,\text{K}$) sweeps, C++20 RK4 SAR ADC + FFT spectrum analyzer, 10,000-bit HDC anomaly detector, and E-graph algebraic optimizer.
 5. **`Multicore · UVM · Benchmarks`**: Unified industrial benchmark center with live 1–64 core `VIKAS-KRONOS` scaling runner, IEEE 1800.2-2020 UVM phase & CDCL constraint solver profiler, 20 GB – 10 TB `.vwm` `/dev/shm` throughput analyzer, and the 12-parameter comparative proof table.
-6. **`CLI · 5-Term · GitHub`**: Live 64-command web terminal connected to `/api/cli`, 5-Terminal parallel stress verification runner (`41/41 PASS`), and 1-click air-gapped Linux bundle downloader (`vikas-v3.0-linux-airgapped-full.tar.gz`).
+6. **`CLI · 5-Term · GitHub`**: Live 65-command native workstation terminal connected to `/api/cli`, Headless Background Regression Runner (`vikas batch`) with 1-click `.vwm` post-run waveform loader, 5-Terminal parallel stress verification runner (`41/41 PASS`), and 1-click air-gapped Linux bundle downloader (`vikas-v3.0-linux-airgapped-full.tar.gz`).
 
 ---
 
@@ -267,18 +278,17 @@ The `VIKAS-VED` editor runs a deterministic two-tier syntax and semantic analysi
 
 ```text
 Vikas/
-├── Cargo.toml                  # Workspace manifest (v3.0.0) across 7 Rust crates
+├── Cargo.toml                  # Workspace manifest (v3.0.0) across 6 Rust crates
 ├── Cargo.lock                  # Locked dependency graph (100% offline-ready)
 ├── .cargo/config.toml          # Offline vendored crates.io source replacement
 ├── vendor/                     # All 29 third-party crates vendored with SHA256 checksums
 ├── crates/
 │   ├── vikas-wave/             # 6 native binary waveform formats (.vwf..vwm), VCD/FST, mipmaps
-│   ├── vikas-sim/              # VIKAS-KRONOS SV/Verilog lexer, parser, elaborator, 4-state VM & mutant engine
+│   ├── vikas-sim/              # VIKAS-KRONOS 38-language elaborator, 4-state VM, UVM & mutant engine
 │   ├── vikas-kdb/              # Open-KDB CSR knowledge graph, Tarjan SCC, 3-layer latch guard, CDC & FSM
 │   ├── vikas-physics/          # VIKAS-NADI switching fJ, sub-Vt 0.12V, cryo 77K & C++20 RK4 SAR ADC FFI
-│   ├── vikas-opt/              # E-Graph equality saturation, 10k-bit HDC, p-Bit & POSIX fork() CoW
-│   ├── vikas-studio/           # Self-contained offline HTML5 Studio & VIKAS-VED terminal editor
-│   └── vikas-cli/              # 64-subcommand `vikas` CLI binary
+│   ├── vikas-wcp/              # WCP 2.0 JSON-RPC server & native session bundle generator
+│   └── vikas-cli/              # 65-subcommand `vikas` CLI binary & VIKAS-VED terminal IDE
 ├── examples/
 │   ├── nova_soc/               # 26-file NOVA-SoC RISC-V RV32IM SoC (9/9 self-checking testbench)
 │   ├── polyglot_ai_cluster/    # 9-file, 7-language AI Tensor Cluster (SV + VHDL + Chisel + FIRRTL + RDL + UPF + SDC -> 6/6 PASS)

@@ -36,17 +36,21 @@ step "cargo-test"  0 cargo test --release
 echo "══ JOB 3: matrix (85-check sweep) ══"
 step "test-matrix" 0 bash test_matrix.sh
 
-echo "══ JOB 4: proof (NOVA-SoC + goldens + signoff) ══"
-rm -f /tmp/nova_studio.html
+echo "══ JOB 4: proof (NOVA-SoC + Polyglot AI Cluster + goldens + signoff) ══"
+rm -f /tmp/nova_studio.bundle
 step "proof:version"  0 "$VIKAS" version
 step "proof:doctor"   0 "$VIKAS" doctor
 step_grep "proof:multifile-result200" "result=200" "$VIKAS" run examples/multifile_proj/project.f
+step_grep "proof:polyglot-cluster-6of6" "CLUSTER-PASS 6/6" "$VIKAS" run examples/polyglot_ai_cluster/cluster.f --max-ns 600
 step_grep "proof:nova-9of9" "NOVA-PASS 9/9" "$VIKAS" run examples/nova_soc/nova.f --max-ns 8000
 step "proof:signoff"  0 "$VIKAS" signoff examples/nova_soc/nova.f --max-ns 8000
 step "proof:latch-trap-rc2" 2 "$VIKAS" latch examples/demo_latch_trap.sv
 step "proof:latch-uart-rc0" 0 "$VIKAS" latch examples/demo_fsm_uart.sv
-step "proof:studio"  0 "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.html --no-open
-step "proof:studio-html-nonempty" 0 test -s /tmp/nova_studio.html
+step "proof:compile-all-38" 0 "$VIKAS" compile-all
+step "proof:multicore-16c"  0 "$VIKAS" multicore --threads 16
+step "proof:uvm-1800-2"     0 "$VIKAS" uvm --threads 16
+step "proof:studio"  0 "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.bundle --no-open
+step "proof:studio-bundle-nonempty" 0 test -s /tmp/nova_studio.bundle
 
 echo "══ JOB 5: airgap (offline build — fresh cargo home, zero network) ══"
 export CARGO_HOME="$(mktemp -d /tmp/airgap_home.XXXXXX)"

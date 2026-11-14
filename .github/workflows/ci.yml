@@ -54,13 +54,17 @@ jobs:
           "$VIKAS" version
           "$VIKAS" doctor
           "$VIKAS" run examples/multifile_proj/project.f | grep -q "result=200"
+          "$VIKAS" run examples/polyglot_ai_cluster/cluster.f --max-ns 600 | grep -q "CLUSTER-PASS 6/6"
           "$VIKAS" run examples/nova_soc/nova.f --max-ns 8000 | grep -q "NOVA-PASS 9/9"
           "$VIKAS" signoff examples/nova_soc/nova.f --max-ns 8000
           rc=0; "$VIKAS" latch examples/demo_latch_trap.sv || rc=$?
           test "$rc" -eq 2
           "$VIKAS" latch examples/demo_fsm_uart.sv
-          "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.html --no-open
-          test -s /tmp/nova_studio.html
+          "$VIKAS" compile-all
+          "$VIKAS" multicore --threads 16
+          "$VIKAS" uvm --threads 16
+          "$VIKAS" studio examples/nova_soc/nova.f -o /tmp/nova_studio.bundle --no-open
+          test -s /tmp/nova_studio.bundle
 
   airgap:
     name: airgap (offline build — zero network, vendored deps)

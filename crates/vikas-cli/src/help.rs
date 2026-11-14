@@ -4,13 +4,16 @@ use crate::util::*;
 
 pub fn catalog() {
     println!("{}", c("══════════════════════════════════════════════════════════════════════════════", BOLD));
-    println!("{}", c("  VIKAS v3.0 — command catalog (64 commands, 18 architectural breakthroughs)", CYAN));
+    println!("{}", c("  VIKAS v3.0 — command catalog (65 commands, 18 architectural breakthroughs)", CYAN));
     println!("{}", c("══════════════════════════════════════════════════════════════════════════════", BOLD));
     let groups: &[(&str, &[(&str, &str)])] = &[
-        ("SIMULATION (VIKAS-KRONOS kernel — multi-file, bulk directories, filelists, 38-lang & UVM-aware)", &[
+        ("SIMULATION (VIKAS-KRONOS v3.0 kernel — multi-file, bulk directories, filelists, 38-lang & UVM-aware)", &[
             ("run <files|dir|manifest.f> [--top m] [--max-ns N] [--gui]", "simulate + auto-dump (.vwf + zero-copy mmap .vwm) + Open-KDB + perf-cnts"),
             ("batch [files|dir|manifest.f...] [--jobs N] [--json]", "headless background regression -> per-case .vwm/.vwf/.kdb for post-run inspection"),
-            ("studio <files> [-o out.html] [--open]", "one-shot VIKAS Studio: simulate + KDB + latch audit (no external browser popup)"),
+            ("multicore [--threads N] [--profile p]", "VIKAS-KRONOS v3.0 64-core Amdahl-breaker profiler (f=94.5%, 0% edge fallback)"),
+            ("uvm [files] [--threads N]", "IEEE 1800.2-2020 UVM + DPI-C runtime with O(1) uvm_config_db handle cache"),
+            ("compile-all", "VIKAS-POLYGLOT v3.0 38-language SIMD compiler (SV, VHDL, Chisel, FIRRTL, RDL...)"),
+            ("studio <files> [-o out.bundle] [--open]", "one-shot VIKAS Studio session bundle: simulate + KDB + latch audit (headless-safe)"),
             ("quickrun <files>", "auto-generate testbench stimulus then simulate (feature 2)"),
             ("watch <files>", "inotify live re-simulation on save (feature 3)"),
             ("autogen-tb <rtl.sv>", "write auto-TB to <rtl>_tb.sv without simulating"),
@@ -35,8 +38,8 @@ pub fn catalog() {
             ("coverage [dump]", "toggle coverage + dead-silicon list (19)"),
         ]),
         ("WAVE ANALYSIS (features 21-30, 44-46)", &[
-            ("tui [dump]", "terminal UI — j/k select, /filter, q quit (43)"),
-            ("gui [dump] [-o out.html]", "offline single-file HTML5 GUI with hover tooltips (42)"),
+            ("tui [dump]", "native terminal waveform UI — j/k select, /filter, q quit (43)"),
+            ("gui [dump] [-o out.bundle]", "offline VIKAS Studio session bundle generator (42)"),
             ("summary [dump]", "executive telemetry scorecard (36)"),
             ("annotate <file.sv> --time t", "inline live-value RTL source annotator (15)"),
             ("find \"cond\" [--dump d]", "bit-parallel temporal search (b11/32)"),
@@ -98,22 +101,23 @@ pub fn catalog() {
             println!("  {} {}", c(&format!("{:<58}", n), GREEN), c(d, DIM));
         }
     }
-    println!("\n{} supported source types: .sv .svh .v .vh .svi .svp .svt .sva .uvm .vhd .vhdl + filelists (.f .flist .args .scr .q) — `vikas run manifest.f`", c("multi-file:", CYAN));
-    println!("{} F1=help(zoom GUI) · Esc close · +,- zoom · arrows pan · hover-hold=tooltip", c("keys:", CYAN));
+    println!("\n{} supported source types: 38 HDL/verification/physical formats (.sv .v .vh .vhd .chisel .fir .rdl .upf .sdc .uvm ...) + filelists (.f .flist .args .scr) & bulk directories", c("multi-file:", CYAN));
+    println!("{} F1=help · Esc close · +,- zoom · arrows pan · Ctrl+K palette", c("keys:", CYAN));
 }
 
 pub fn formats() {
-    println!("{}", c("VIKAS v1 native innovative waveform formats (6)", BOLD));
+    println!("{}", c("VIKAS v3.0 native innovative waveform formats (6)", BOLD));
     let rows = [
         (".vwf", "VIKAS Waveform File", "binary indexed change table + CRC32 integrity checksum"),
         (".vwt", "VIKAS Temporal Track", "time-sectioned regions with start-time index for partial reads"),
         (".vwe", "VIKAS Encoded", "delta-time + value-RLE compression (removes redundant changes)"),
         (".vwp", "VIKAS Physics", "carries analog f64 lanes for physics/stochastic/taint tracks"),
         (".vwi", "VIKAS Indexed", "per-signal absolute seek index: O(1) random access per signal"),
-        (".vwm", "VIKAS Memorymap", "32-byte aligned records for zero-copy mmap access"),
+        (".vwm", "VIKAS Memorymap", "32-byte aligned records for zero-copy mmap access (20GB–50GB–10TB)"),
         (".vcd", "industry VCD", "full read/write interop (convert with `vikas convert`)"),
     ];
     for (e, n, d) in rows {
         println!("  {} {} — {}", c(&format!("{:<5}", e), GREEN), c(n, CYAN), d);
     }
 }
+

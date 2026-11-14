@@ -1,6 +1,6 @@
-//! # VIKAS STUDIO — professional single-file HTML5 EDA workbench.
+//! # VIKAS STUDIO v3.0 — Sovereign Offline EDA Session & Workbench Bundle.
 //!
-//! Full product-grade UI replacing the old academic viewer:
+//! Full product-grade UI replacing legacy viewers:
 //! menu bar · 40-icon SVG toolbar · dock panels (signal tree, wave canvas,
 //! properties, console) · minimap · 4 themes · multi-cursor · bus expand ·
 //! analog mode · radix switching · context menus · command palette (Ctrl+K)
@@ -8,7 +8,7 @@
 //! · exports (PNG/SVG/CSV/JSON/WaveDrom/layout) · Analysis Hub with
 //! coverage/power/KDB/latch report cards.
 //!
-//! Zero dependencies, fully offline, one self-contained HTML file.
+//! Zero dependencies, fully offline, one self-contained session bundle.
 //! Data is embedded as: JSON signal table + base64 varint change blob
 //! (2 bits per logic bit, identical packing to the native .vwf format).
 

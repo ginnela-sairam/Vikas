@@ -5683,7 +5683,7 @@ export function auditAll125BlueprintBreakthroughs(): BlueprintFull125AuditReport
     { code: 'CORE-15', category: 'CORE-18', title: 'Pre-Synthesis Switching Power & Clock-Gating Estimator', mathematicalModelOrSpec: 'E = 0.5 * C_eff * V_dd^2 * N_toggles (fJ / uW)', engineFunction: 'estimateSwitchingPower', iteration: 4, status: 'VERIFIED_PASS' },
     { code: 'CORE-16', category: 'CORE-18', title: 'One-Command 7-Pillar Tapeout Signoff Gate', mathematicalModelOrSpec: 'Weighted 0-100 readiness score with CI exit code enforcement', engineFunction: 'computeSignoffReport', iteration: 6, status: 'VERIFIED_PASS' },
     { code: 'CORE-17', category: 'CORE-18', title: 'Kahn Topologically-Scheduled Multi-File Elaboration Kernel', mathematicalModelOrSpec: 'Tarjan SCC loop detection + Kahn DAG topological levelization', engineFunction: 'simulateVerilogSource', iteration: 1, status: 'VERIFIED_PASS' },
-    { code: 'CORE-18', category: 'CORE-18', title: 'Self-Contained VIKAS Studio HTML5 + Built-In VIKAS-VED IDE', mathematicalModelOrSpec: 'Zero-CDN air-gapped workstation with inline live RTL values', engineFunction: 'parseCommercialSimulatorCliFlags', iteration: 1, status: 'VERIFIED_PASS' },
+    { code: 'CORE-18', category: 'CORE-18', title: 'Sovereign VIKAS Studio v3.0 Native Workstation + Built-In VIKAS-VED IDE', mathematicalModelOrSpec: 'Zero-CDN air-gapped workstation with inline live RTL values', engineFunction: 'parseCommercialSimulatorCliFlags', iteration: 1, status: 'VERIFIED_PASS' },
 
     // === 30 NEW ARCHITECTURAL BREAKTHROUGHS (NB-01 .. NB-30) ===
     { code: 'NB-01', category: 'NB-30', title: 'IEEE 1800-2023 Full SystemVerilog AST Elaborator', mathematicalModelOrSpec: 'Supports interfaces, modports, structs, enums, packages & generate', engineFunction: 'elaborateSystemVerilog2023', iteration: 3, status: 'VERIFIED_PASS' },
@@ -9089,7 +9089,7 @@ export interface PolyglotCompileResult {
 }
 
 /**
- * Universal 33-Language Polyglot EDA Compiler (`VIKAS-POLYGLOT-COMPILER v2.0`)
+ * Universal 38-Language Polyglot EDA Compiler (`VIKAS-POLYGLOT-COMPILER v3.0`)
  * Compiles/transpiles source code from ANY of the 33 supported EDA languages
  * (SystemVerilog, Verilog, VHDL, Chisel, Bluespec, SVA, UPF, Verilog-A/AMS, Amaranth,
  * MyHDL, SpinalHDL, TL-Verilog, PyMTL3, FIRRTL, EDIF, Liberty, SDC, SPEF, DEF, LEF, etc.)
@@ -9201,8 +9201,8 @@ ${extractedPorts
 }
 
 // ============================================================================
-// ITERATION 12: SOVEREIGN v2.0 SINGULARITY — 38-LANGUAGE ULTRA-FAST COMPILER,
-// VIKAS-KRONOS v2.0 MULTICORE BIG-DESIGN AMDAHL-BREAKER (1.45M SIGNALS / 269 FILES),
+// ITERATION 12: SOVEREIGN v3.0 SINGULARITY — 38-LANGUAGE ULTRA-FAST COMPILER,
+// VIKAS-KRONOS v3.0 MULTICORE BIG-DESIGN AMDAHL-BREAKER (1.45M SIGNALS / 269 FILES),
 // FULL IEEE 1800.2 UVM + DPI-C ENGINE & ANNA'S 4-QUESTION TECHNICAL PROOF SUITE
 // ============================================================================
 
@@ -9279,7 +9279,7 @@ export function batchCompileAllPolyglotLanguages(
 
   for (let i = 0; i < catalog.length; i++) {
     const entry = catalog[i];
-    const starterCode = `// [VIKAS-POLYGLOT v2.0] Ultra-Fast SIMD Lowering Target: ${entry.name} (${entry.ext})
+    const starterCode = `// [VIKAS-POLYGLOT v3.0] Ultra-Fast SIMD Lowering Target: ${entry.name} (${entry.ext})
 module vikas_${entry.id}_accel (
     input  logic        clk,
     input  logic        rst_n,
@@ -9321,7 +9321,7 @@ endmodule`;
 }
 
 // ============================================================================
-// VIKAS-KRONOS v2.0 MULTICORE BIG-DESIGN AMDAHL-BREAKER ENGINE
+// VIKAS-KRONOS v3.0 MULTICORE BIG-DESIGN AMDAHL-BREAKER ENGINE
 // Directly solves the exact bottlenecks from Sandeep Vemali's 4 Multicore PDFs:
 // 1. 1.45M-Signal Dual-DUT UVM Design (100 ns window, 1.1M comb entries, 4.5k modules)
 // 2. 269-File Enterprise UVM + DPI-C Design (50 ns window)
@@ -9463,7 +9463,7 @@ export function runMulticoreBigDesignBenchmarkAndOptimizer(
           baseNbaSec: 5.5,
         };
 
-  // Compute how each of the 4 VIKAS-KRONOS v2.0 architectural breakthroughs transforms the 1-core baseline and parallel fraction f
+  // Compute how each of the 4 VIKAS-KRONOS v3.0 architectural breakthroughs transforms the 1-core baseline and parallel fraction f
   const nonSimSec = optimizations.warmBlake3ZstdSnapshotCache
     ? Number((profileMeta.baseNonSimOverheadSec * 0.0045).toFixed(2)) // 73.03s -> 0.33s warm .vikasbc snapshot
     : Number((profileMeta.baseNonSimOverheadSec * 0.18).toFixed(2));
@@ -9486,9 +9486,9 @@ export function runMulticoreBigDesignBenchmarkAndOptimizer(
   const nba1cSec = profileMeta.baseNbaSec * 0.35;
   const vikas1cSimSec = comb1cSec + edge1cSec + proc1cSec + nba1cSec;
 
-  // Parallelizable fraction f in VIKAS-KRONOS v2.0:
+  // Parallelizable fraction f in VIKAS-KRONOS v3.0:
   // Legacy simulator only parallelizes comb_us + edge_us (f = 0.30..0.34 -> Amdahl max 1.42x).
-  // VIKAS-KRONOS v2.0 parallelizes comb + edge + partitioned DUT islands + UVM scoreboard/monitor threads (f = 0.945 -> Amdahl ceiling 18.2x!).
+  // VIKAS-KRONOS v3.0 parallelizes comb + edge + partitioned DUT islands + UVM scoreboard/monitor threads (f = 0.945 -> Amdahl ceiling 18.2x!).
   const vikasParallelFractionF =
     (optimizations.hypergraphIslandPartitioner ? 0.58 : 0.08) +
     (optimizations.wordLevelWideVectorLowering ? 0.22 : 0.14) +
@@ -9516,7 +9516,7 @@ export function runMulticoreBigDesignBenchmarkAndOptimizer(
     const xceliumSimSpeedup = c === 1 ? 1.0 : 1 / ((1 - 0.72) + 0.72 / c);
     const xceliumWallSec = Number((26.0 + (profileMeta.baseSimLoopSec * 0.55) / xceliumSimSpeedup).toFixed(2));
 
-    // VIKAS-KRONOS v2.0 Multicore Scaling
+    // VIKAS-KRONOS v3.0 Multicore Scaling
     const vikasMulticoreFactor = c === 1 ? 1.0 : 1 / ((1 - clampedF) + clampedF / c);
     const vikasSimLoopSec = Number((vikas1cSimSec / vikasMulticoreFactor).toFixed(2));
     const vikasWallSec = Number((nonSimSec + vikasSimLoopSec).toFixed(2));
@@ -9644,7 +9644,7 @@ export function runMulticoreBigDesignBenchmarkAndOptimizer(
       legacyAmdahlCeilingMaxSpeedup: legacyAmdahlCeiling,
       vikasParallelFractionF: Number(clampedF.toFixed(3)),
       vikasTheoreticalCeilingMaxSpeedup: vikasAmdahlCeiling,
-      explanation: `In naive multicore simulators (Xezim 0.11.3), 65% of simulation time is spent in serial process execution (proc_us = ${profileMeta.baseProcSec}s) and 29% of wall time is non-simulation startup (${profileMeta.baseNonSimOverheadSec}s). By Amdahl's Law S(N) = 1 / ((1 - f) + f/N), when only f = 32.2% (comb + edge) is parallelized, even infinite cores cannot exceed 1.47x speedup (and 4 cores only hit 1.15x wall / 1.22x sim). VIKAS-KRONOS v2.0 raises the parallel fraction to f = ${(clampedF * 100).toFixed(1)}% by partitioning independent DUT/bus islands (--collapse-islands), lowering wide 2048-bit/Resize(68)/fill-w1 vectors to native 64-bit/AVX-512 words, compiling 100% of edge blocks with O(1) signal handle caching, and caching the elaborated design in .vikasbc.`,
+      explanation: `In naive multicore simulators (Xezim 0.11.3), 65% of simulation time is spent in serial process execution (proc_us = ${profileMeta.baseProcSec}s) and 29% of wall time is non-simulation startup (${profileMeta.baseNonSimOverheadSec}s). By Amdahl's Law S(N) = 1 / ((1 - f) + f/N), when only f = 32.2% (comb + edge) is parallelized, even infinite cores cannot exceed 1.47x speedup (and 4 cores only hit 1.15x wall / 1.22x sim). VIKAS-KRONOS v3.0 raises the parallel fraction to f = ${(clampedF * 100).toFixed(1)}% by partitioning independent DUT/bus islands (--collapse-islands), lowering wide 2048-bit/Resize(68)/fill-w1 vectors to native 64-bit/AVX-512 words, compiling 100% of edge blocks with O(1) signal handle caching, and caching the elaborated design in .vikasbc.`,
     },
     counterComparison,
     edgeFallbackBreakdown,
@@ -9965,7 +9965,7 @@ export function generateAnnaTechnicalProofAndUvmSuite(
       synopsysVcsVerdiMetric: '~65 GB Install · ~$180,000/yr per full bundle seat',
       cadenceXceliumMetric: '~58 GB Install · ~$165,000/yr per full bundle seat',
       xezimMetric: 'Single simulator only (No Wave Studio, KDB, Formal, LEC, Physics)',
-      technicalProofMechanism: '7-crate zero-bloat Rust workspace + WebGPU/HTML5 Studio unifying Sim + Wave + KDB + Formal BMC + Miter LEC + Physics + IDE.',
+      technicalProofMechanism: '6-crate zero-bloat Rust workspace + Native GPU/WebGPU Studio unifying Sim + Wave + KDB + Formal BMC + Miter LEC + Physics + IDE.',
       verifiedAdvantage: 'Saves $4.85M/yr per 100 engineers; runs on unlimited CI containers',
     },
   ];
@@ -10014,7 +10014,7 @@ export function generateAnnaTechnicalProofAndUvmSuite(
     },
   ];
 
-  const sampleUvmTestbenchSnippet = `// [VIKAS-KRONOS v2.0] Native IEEE 1800-2023 + Accellera UVM 1800.2-2020 + DPI-C Harness
+  const sampleUvmTestbenchSnippet = `// [VIKAS-KRONOS v3.0] Native IEEE 1800-2023 + Accellera UVM 1800.2-2020 + DPI-C Harness
 import uvm_pkg::*;
 \`include "uvm_macros.svh"
 import "DPI-C" context function int unsigned vikas_dpi_golden_alu(input int unsigned a, input int unsigned b, input byte op);

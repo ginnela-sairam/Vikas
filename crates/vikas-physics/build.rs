@@ -1,4 +1,4 @@
-//! VIKAS v1 — build script: compiles the C++20 mixed-signal twin with
+//! VIKAS v3.0 — build script: compiles the C++20 mixed-signal twin with
 //! -O3 -march=native -std=c++20 (breakthrough 6).
 
 fn main() {

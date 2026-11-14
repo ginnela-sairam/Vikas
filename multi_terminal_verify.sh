@@ -54,16 +54,16 @@ echo "[MULTI] launching 5 parallel verification terminals @ $(date +%T)"
   $VIKAS fsm examples/demo_fsm_uart.sv >/dev/null 2>&1 && echo "T3-FSM PASS" || echo "T3-FSM FAIL"
 ) > $LOG/t3_signoff.log 2>&1 &
 
-# T4 — big-dump stress: 5k-cycle sim -> vwf/vcd roundtrip -> studio with big data
+# T4 — big-dump stress: 5k-cycle sim -> vwf/vcd/vwm roundtrip -> studio bundle with big data
 (
   mkdir -p /dev/shm/t4 && cd /dev/shm/t4
   cp -r "$REPO_DIR/examples" .
   $VIKAS run examples/nova_soc/nova.f >/dev/null 2>&1
   s1=$(stat -c %s .vikas/vikas_wave.vwf 2>/dev/null || echo 0)
   $VIKAS convert .vikas/vikas_wave.vwf /dev/shm/t4/big.vcd >/dev/null 2>&1 && echo "T4-VCD-WRITE PASS" || echo "T4-VCD-WRITE FAIL"
-  $VIKAS gui .vikas/vikas_wave.vwf -o /dev/shm/t4/big_studio.html >/dev/null 2>&1 && echo "T4-STUDIO-BIG PASS" || echo "T4-STUDIO-BIG FAIL"
-  s2=$(stat -c %s /dev/shm/t4/big_studio.html)
-  [ "$s1" -gt 10000 ] && [ "$s2" -gt 200000 ] && echo "T4-SIZES PASS (vwf=$s1 html=$s2)" || echo "T4-SIZES FAIL (vwf=$s1 html=$s2)"
+  $VIKAS gui .vikas/vikas_wave.vwf -o /dev/shm/t4/big_studio.bundle >/dev/null 2>&1 && echo "T4-STUDIO-BIG PASS" || echo "T4-STUDIO-BIG FAIL"
+  s2=$(stat -c %s /dev/shm/t4/big_studio.bundle)
+  [ "$s1" -gt 10000 ] && [ "$s2" -gt 200000 ] && echo "T4-SIZES PASS (vwf=$s1 bundle=$s2)" || echo "T4-SIZES FAIL (vwf=$s1 bundle=$s2)"
   $VIKAS summary /dev/shm/t4/big.vcd >/dev/null 2>&1 && echo "T4-VCD-READBACK PASS" || echo "T4-VCD-READBACK FAIL"
 ) > $LOG/t4_bigdump.log 2>&1 &
 

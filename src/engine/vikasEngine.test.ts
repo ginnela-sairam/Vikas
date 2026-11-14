@@ -870,7 +870,7 @@ endmodule
   assert.ok(svaCompletions.some((c) => c.label === 'property' && c.language === 'SVA'));
 });
 
-test('Iteration 11: Full 33-Language Local AI Model (VIKAS-NEURAL-LM v2.0), Dynamic Workspace Module Auto-Instantiation, Polyglot Compiler & Expanded Linter (SEC-08..SEC-11)', () => {
+test('Iteration 11: Full 33-Language Local AI Model (VIKAS-NEURAL-LM v3.0), Dynamic Workspace Module Auto-Instantiation, Polyglot Compiler & Expanded Linter (SEC-08..SEC-11)', () => {
   // 1. Verify all 33 languages in SUPPORTED_EDA_LANGUAGES_CATALOG_33 have dedicated keywords in LOCAL_AI_KEYWORD_DICTIONARY
   assert.equal(SUPPORTED_EDA_LANGUAGES_CATALOG_33.length, 33);
   for (const lang of SUPPORTED_EDA_LANGUAGES_CATALOG_33) {
@@ -950,7 +950,7 @@ endmodule`;
   assert.ok(fixRes.appliedCount >= 2, 'applyAllLintQuickFixes must remediate multiple violations in one pass');
 });
 
-test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v2.0 Multicore Big-Design Amdahl-Breaker (1.45M Signals / 269 Files), UVM 1800.2 Runtime & Anna 4-Question Technical Proof Suite', () => {
+test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v3.0 Multicore Big-Design Amdahl-Breaker (1.45M Signals / 269 Files), UVM 1800.2 Runtime & Anna 4-Question Technical Proof Suite', () => {
   // 1. Verify all 38 languages (33 baseline + 5 extra: UVM 1800.2, SystemC/TLM-2.0, Hardcaml, SystemRDL 2.0, Cocotb 2.0) compile at ultra-high speed
   assert.equal(SUPPORTED_EDA_LANGUAGES_CATALOG_38.length, 38, 'Must support all 38 EDA languages (33 + 5 extra)');
   const batch38 = batchCompileAllPolyglotLanguages(true);
@@ -970,20 +970,20 @@ test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v2.0
     assert.ok(aiComps.length > 0, `Must provide local AI completions for ${extraId}`);
   }
 
-  // 2. Verify VIKAS-KRONOS v2.0 Multicore Amdahl-Breaker on 1.45M-Signal Dual-DUT (100 ns) & 269-File UVM (50 ns)
+  // 2. Verify VIKAS-KRONOS v3.0 Multicore Amdahl-Breaker on 1.45M-Signal Dual-DUT (100 ns) & 269-File UVM (50 ns)
   const mcDualDut16c = runMulticoreBigDesignBenchmarkAndOptimizer('DUAL_DUT_1_45M_100NS', 16);
   assert.equal(mcDualDut16c.designStats.signalsCount, 1452800);
   assert.equal(mcDualDut16c.designStats.combEntriesCount, 1104200);
   assert.equal(mcDualDut16c.designStats.totalEdgeFires, 559480);
   assert.ok(mcDualDut16c.amdahlAnalysis.legacyAmdahlCeilingMaxSpeedup <= 1.5, 'Legacy Amdahl ceiling must reflect ~1.47x cap');
-  assert.ok(mcDualDut16c.amdahlAnalysis.vikasParallelFractionF >= 0.94, 'VIKAS v2.0 must unlock >= 94% parallel fraction');
-  assert.ok(mcDualDut16c.selectedCorePoint.vikasWallSec < 12.0, '16-core VIKAS v2.0 must finish 1.45M-signal 100ns run in < 12s (vs 254.03s serial)');
+  assert.ok(mcDualDut16c.amdahlAnalysis.vikasParallelFractionF >= 0.94, 'VIKAS v3.0 must unlock >= 94% parallel fraction');
+  assert.ok(mcDualDut16c.selectedCorePoint.vikasWallSec < 12.0, '16-core VIKAS v3.0 must finish 1.45M-signal 100ns run in < 12s (vs 254.03s serial)');
   assert.ok(mcDualDut16c.selectedCorePoint.vikasTotalSpeedupVsXezim1c > 20.0, 'Must achieve > 20x total wall speedup over serial baseline');
   assert.ok(mcDualDut16c.edgeFallbackBreakdown.every((b) => b.vikasFallbackCount === 0), 'Must eliminate 100% of edge interpreter fallbacks');
 
   const mcUvm269 = runMulticoreBigDesignBenchmarkAndOptimizer('UVM_269_FILES_50NS', 8);
   assert.equal(mcUvm269.designStats.filesCount, 269);
-  assert.ok(mcUvm269.selectedCorePoint.vikasWallSec < 8.0, '8-core VIKAS v2.0 must finish 269-file 50ns UVM run in < 8s (vs 121.65s)');
+  assert.ok(mcUvm269.selectedCorePoint.vikasWallSec < 8.0, '8-core VIKAS v3.0 must finish 269-file 50ns UVM run in < 8s (vs 121.65s)');
 
   // 3. Verify Anna's (Sandeep Vemali @ Ceremorphic) 4-Question Technical Proof & UVM 1800.2 Suite
   const rtl = `

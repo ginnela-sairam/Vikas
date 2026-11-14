@@ -1,4 +1,4 @@
-// VIKAS v1 — C++20 Closed-Loop Mixed-Signal Virtual Silicon Twin (breakthrough 6).
+// VIKAS v3.0 — C++20 Closed-Loop Mixed-Signal Virtual Silicon Twin (breakthrough 6).
 // RK4 state-space SAR ADC with thermal noise, solved at digital sim speed.
 #include <cmath>
 #include <cstdint>

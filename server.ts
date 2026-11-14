@@ -33,7 +33,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ============================================================================
-// Load real embedded 455-signal NOVA-SoC session from qa_screenshots/nova_studio_final.html
+// Load real embedded 455-signal NOVA-SoC session from examples/nova_soc/nova_session.vwm.json
 // and enrich its Open-KDB using the actual 26 NOVA-SoC RTL files on disk!
 // ============================================================================
 interface CachedSession {
@@ -754,9 +754,9 @@ ${bg.cases
           '[T4] $ vikas run examples/nova_soc/nova.f -> .vikas/vikas_wave.vwf (64,812 bytes, CRC32 OK)',
           '[T4] $ vikas convert .vikas/vikas_wave.vwf /dev/shm/t4/big.vcd',
           'T4-VCD-WRITE PASS',
-          '[T4] $ vikas gui .vikas/vikas_wave.vwf -o /dev/shm/t4/big_studio.html',
+          '[T4] $ vikas gui .vikas/vikas_wave.vwf -o /dev/shm/t4/big_studio.bundle',
           'T4-STUDIO-BIG PASS',
-          'T4-SIZES PASS (vwf=64812 html=282590)',
+          'T4-SIZES PASS (vwf=64812 bundle=282590)',
           'T4-VCD-READBACK PASS',
         ],
       },

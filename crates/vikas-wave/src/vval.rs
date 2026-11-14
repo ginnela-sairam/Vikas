@@ -1,4 +1,4 @@
-//! VIKAS v1 — 4-state logic value model (0/1/X/Z), arbitrary width.
+//! VIKAS v3.0 — 4-state logic value model (0/1/X/Z), arbitrary width.
 
 use serde::{Deserialize, Serialize};
 use std::fmt;
