@@ -27,7 +27,7 @@ import { ProjectFileItem, RtlEditorIdeTab } from './components/RtlEditorIdeTab';
 import { AnalysisHubAndSignoffTab } from './components/AnalysisHubAndSignoffTab';
 import { DesignIntelAndPhysicsTab } from './components/DesignIntelAndPhysicsTab';
 import { TerminalAndGithubSyncTab } from './components/TerminalAndGithubSyncTab';
-import { CeremorphicProofTab } from './components/CeremorphicProofTab';
+import { DesignProofTab } from './components/DesignProofTab';
 
 type TabId = 'waveforms' | 'editor' | 'analysis' | 'intel' | 'benchmarks' | 'terminal';
 type ThemeId = 'dark' | 'gold' | 'light' | 'synth';
@@ -585,7 +585,7 @@ export function App() {
             onJumpToSourceFile={(fp) => handleJumpToSource(fp)}
           />
         ) : activeTab === 'benchmarks' ? (
-          <CeremorphicProofTab
+          <DesignProofTab
             kdb={kdb}
             signals={signals}
             steps={steps}

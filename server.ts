@@ -14,7 +14,7 @@ import {
   computeSwitchingPower,
   decodeChangesBlob,
   egraphOptimize,
-  generateAnnaTechnicalProofAndUvmSuite,
+  generateMulticoreUvmProofSuite,
   propagateTaintDye,
   runMulticoreBigDesignBenchmarkAndOptimizer,
   runMutationTesting,
@@ -618,7 +618,7 @@ ${found
       }
       case 'uvm': {
         const s = getNovaSession();
-        const proof = generateAnnaTechnicalProofAndUvmSuite(s.kdb, s.signals, s.steps, 16);
+        const proof = generateMulticoreUvmProofSuite(s.kdb, s.signals, s.steps, 16);
         const uvm = proof.q3UvmVerificationProof;
         output = `${banner}
 [VIKAS-UVM 1800.2-2020 + DPI-C] Native IEEE 1800-2023 Verification Engine

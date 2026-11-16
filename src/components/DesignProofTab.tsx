@@ -23,7 +23,7 @@ import {
   batchCompileAllPolyglotLanguages,
   BigDesignProfileId,
   BlueprintCategoryCode,
-  generateAnnaTechnicalProofAndUvmSuite,
+  generateMulticoreUvmProofSuite,
   MulticoreOptimizationFlags,
   OpenKdb,
   parseCommercialCliFlags,
@@ -61,7 +61,7 @@ import {
   SignalSteps,
 } from '../engine/vikasEngine';
 
-interface CeremorphicProofTabProps {
+interface DesignProofTabProps {
   kdb: OpenKdb;
   signals: SignalMeta[];
   steps: SignalSteps[];
@@ -152,7 +152,7 @@ type UnifiedSectionId =
   | 'CAPABILITY_LEDGER'
   | 'SEVEN_ITERATIONS_2030';
 
-export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
+export const DesignProofTab: React.FC<DesignProofTabProps> = ({
   kdb,
   signals,
   steps,
@@ -183,7 +183,7 @@ export const CeremorphicProofTab: React.FC<CeremorphicProofTabProps> = ({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const proofDossier = useMemo(
-    () => generateAnnaTechnicalProofAndUvmSuite(kdb, signals, steps, selectedCores, selectedProfile),
+    () => generateMulticoreUvmProofSuite(kdb, signals, steps, selectedCores, selectedProfile),
     [kdb, signals, steps, selectedCores, selectedProfile]
   );
 

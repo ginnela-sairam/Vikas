@@ -38,6 +38,19 @@
 
 ---
 
+## Project links
+
+- [Open this repository in GitHub Codespaces](https://codespaces.new/ginnela-sairam/Vikas)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+
+The repository includes a composite GitHub Action in [`action.yml`](action.yml),
+a development container in [`.devcontainer/`](.devcontainer/), and workflows
+for building the static workbench and tagged release binaries.
+
+For general questions, contact [sairamginnela@gmail.com](mailto:sairamginnela@gmail.com).
+
 ## Table of Contents
 
 1. [Installation & Compilation Guide (Enterprise Servers & Friends/Developers)](#1-installation--compilation-guide-enterprise-servers--friendsdevelopers)
@@ -88,7 +101,7 @@ vikas version
 
 ---
 
-### Path B: Enterprise / Ceremorphic Air-Gapped Linux Servers (Zero Network Access)
+### Path B: Enterprise / Air-Gapped Linux Servers (Zero Network Access)
 
 On enterprise ASIC verification clusters with strict firewall rules and zero internet access:
 
