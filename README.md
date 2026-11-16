@@ -1,7 +1,7 @@
 # VIKAS v3.0 — Sovereign Linux-Native Multicore RTL Simulation, UVM 1800.2, Open-KDB & Silicon-Physics EDA Platform
 
 [![License: MIT / Apache-2.0](https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue.svg)](LICENSE)
-[![Project version: VIKAS v3.0.0](https://img.shields.io/badge/Project%20version-VIKAS%20v3.0.0-emerald.svg)](Cargo.toml)
+[![Latest release: VIKAS v3.0.0](https://img.shields.io/github/v/release/ginnela-sairam/Vikas)](https://github.com/ginnela-sairam/Vikas/releases/latest)
 [![GitHub CI](https://img.shields.io/github/actions/workflow/status/ginnela-sairam/Vikas/ci.yml?branch=main&label=CI)](.github/workflows/ci.yml)
 [![Tests: 32 passing](https://img.shields.io/badge/tests-32%20passing-brightgreen.svg)](src/engine/vikasEngine.test.ts)
 [![Capabilities: 185/185 Verified](https://img.shields.io/badge/Capabilities-185%2F185%20Verified-cyan.svg)](src/engine/vikasEngine.ts)
@@ -45,6 +45,7 @@ VIKAS brings together:
 ## Project links
 
 - [Open this repository in GitHub Codespaces](https://codespaces.new/ginnela-sairam/Vikas)
+- [Download the VIKAS CLI release](https://github.com/ginnela-sairam/Vikas/releases/latest)
 - [Beginner getting-started guide](docs/GETTING_STARTED.md)
 - [Contributing guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
