@@ -46,8 +46,9 @@
 - [Code of conduct](CODE_OF_CONDUCT.md)
 
 The repository includes a composite GitHub Action in [`action.yml`](action.yml),
-a development container in [`.devcontainer/`](.devcontainer/), and workflows
-for building the static workbench and tagged release binaries.
+a development container in [`.devcontainer/`](.devcontainer/), and a workflow
+for tagged release binaries. The full workbench requires its Node.js server;
+GitHub Pages cannot host its API. Run `npm run dev` to use the complete workbench.
 
 For general questions, contact [sairamginnela@gmail.com](mailto:sairamginnela@gmail.com).
 
