@@ -36,10 +36,15 @@ jobs:
         run: |
           mkdir -p dist-bin
           cp "target/${{ matrix.target }}/release/vikas" dist-bin/
-          cp README.md vikas.toml dist-bin/
+          cp README.md vikas.toml LICENSE LICENSE-MIT LICENSE-APACHE dist-bin/
           tar -czf "vikas-${GITHUB_REF_NAME}-${{ matrix.platform }}.tar.gz" -C dist-bin .
       - name: Upload archive to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: vikas-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz
+          body: |
+            VIKAS 3.0.0 CLI binaries for Linux x86_64 and macOS ARM64.
+
+            The archives include the CLI, example configuration, README, and license texts.
+            The TypeScript workbench is not included; see the README for setup instructions.
