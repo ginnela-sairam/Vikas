@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   retire-stale-deployment:
-    if: contains(github.event.head_commit.message, '[retire-stale-pages-7828514707]')
+    if: contains(github.event.head_commit.message, 'cleanup stale Pages deployment')
     runs-on: ubuntu-latest
     steps:
       - name: Delete obsolete Pages deployment record
