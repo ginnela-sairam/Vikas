@@ -1,0 +1,33 @@
+name: VIKAS CLI
+description: Build the VIKAS CLI and run one command
+author: Ginnela Someswara Sai Ram Prasad
+inputs:
+  command:
+    description: One VIKAS CLI command name, such as version or audit-7x
+    required: false
+    default: version
+  workdir:
+    description: Working directory in the caller repository
+    required: false
+    default: .
+runs:
+  using: composite
+  steps:
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    - name: Build VIKAS CLI
+      shell: bash
+      run: cargo build --release --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml"
+    - name: Run VIKAS command
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      env:
+        VIKAS_COMMAND: ${{ inputs.command }}
+      run: |
+        case "$VIKAS_COMMAND" in
+          ''|*[!a-z0-9-]*)
+            echo "command must be a single lowercase CLI command name" >&2
+            exit 2
+            ;;
+        esac
+        "$GITHUB_ACTION_PATH/target/release/vikas" "$VIKAS_COMMAND"

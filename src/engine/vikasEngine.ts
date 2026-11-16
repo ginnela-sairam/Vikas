@@ -9211,7 +9211,7 @@ ${extractedPorts
 // ============================================================================
 // ITERATION 12: SOVEREIGN v3.0 SINGULARITY — 38-LANGUAGE ULTRA-FAST COMPILER,
 // VIKAS-KRONOS v3.0 MULTICORE BIG-DESIGN AMDAHL-BREAKER (1.45M SIGNALS / 269 FILES),
-// FULL IEEE 1800.2 UVM + DPI-C ENGINE & ANNA'S 4-QUESTION TECHNICAL PROOF SUITE
+// FULL IEEE 1800.2 UVM + DPI-C ENGINE & MULTICORE TECHNICAL PROOF SUITE
 // ============================================================================
 
 export const EXTRA_5_EDA_LANGUAGES_CATALOG = [
@@ -9330,7 +9330,7 @@ endmodule`;
 
 // ============================================================================
 // VIKAS-KRONOS v3.0 MULTICORE BIG-DESIGN AMDAHL-BREAKER ENGINE
-// Directly solves the exact bottlenecks from Sandeep Vemali's 4 Multicore PDFs:
+// Representative large-design workloads used for multicore profiling:
 // 1. 1.45M-Signal Dual-DUT UVM Design (100 ns window, 1.1M comb entries, 4.5k modules)
 // 2. 269-File Enterprise UVM + DPI-C Design (50 ns window)
 // 3. 64-Tile NOVA-SoC Million-Gate Mesh
@@ -9663,12 +9663,8 @@ export function runMulticoreBigDesignBenchmarkAndOptimizer(
 }
 
 // ============================================================================
-// ANNA'S (SANDEEP VEMALI @ CEREMORPHIC) 4-QUESTION TECHNICAL PROOF & UVM SUITE
-// Directly answers Screenshot (456).png with mathematical, empirical & live RTL proof:
-// Q1: "1. What is physics energy there?"
-// Q2: "2. On what parameters you saying it better than others — Can you technically prove?"
-// Q3: "3. Does it can handle the UVM?"
-// Q4: "4. AND multi core to work fast with big designs?"
+// MULTICORE + UVM TECHNICAL PROOF SUITE
+// Summarizes physics energy, parameter evidence, UVM support, and multicore scaling.
 // ============================================================================
 
 export interface UvmPhaseExecutionRecord {
@@ -9714,7 +9710,7 @@ export interface PhysicsEnergyTechnicalProof {
   whyPreSynthPhysicsMattersToArchitects: string[];
 }
 
-export interface AnnaFourQuestionsProofDossier {
+export interface MulticoreUvmProofDossier {
   q1PhysicsEnergyProof: PhysicsEnergyTechnicalProof;
   q2ParameterProofMatrix: TechnicalParameterProofRow[];
   q3UvmVerificationProof: {
@@ -9739,13 +9735,13 @@ export interface AnnaFourQuestionsProofDossier {
   q4MulticoreBigDesignSummary: MulticoreBigDesignReport;
 }
 
-export function generateAnnaTechnicalProofAndUvmSuite(
+export function generateMulticoreUvmProofSuite(
   kdb: OpenKdb,
   signals: SignalMeta[],
   steps: any[],
   selectedCores = 16,
   selectedProfile: BigDesignProfileId = 'DUAL_DUT_1_45M_100NS'
-): AnnaFourQuestionsProofDossier {
+): MulticoreUvmProofDossier {
   const normalizedSteps: SignalSteps[] = (steps || []).map((s) => {
     if (s && Array.isArray(s.t)) return s as SignalSteps;
     const tuples = Array.isArray(s) ? s : [];
@@ -10147,7 +10143,7 @@ export function runWorldRecordSingularityDiagnosticSuite(
   const mcDual64 = runMulticoreBigDesignBenchmarkAndOptimizer('DUAL_DUT_1_45M_100NS', 64);
   const mcUvm269 = runMulticoreBigDesignBenchmarkAndOptimizer('UVM_269_FILES_50NS', 16);
   const mcMesh64 = runMulticoreBigDesignBenchmarkAndOptimizer('NOVA_SOC_64_TILE_MESH', 16);
-  const annaProof = generateAnnaTechnicalProofAndUvmSuite(kdb, signals, steps, 16, 'DUAL_DUT_1_45M_100NS');
+  const uvmProof = generateMulticoreUvmProofSuite(kdb, signals, steps, 16, 'DUAL_DUT_1_45M_100NS');
 
   const worldRecordBreakthroughs30: WorldRecordBreakthroughEntry[] = [
     // Horizon 1: Amdahl-Breaker Exascale Simulation (WR-01 .. WR-06)
@@ -10200,7 +10196,7 @@ export function runWorldRecordSingularityDiagnosticSuite(
       code: 'WR-06',
       horizon: 'AMDAHL_BREAKER_EXASCALE_SIM',
       title: 'Parallel IEEE 1800.2-2020 UVM Phase Kernel & Zero-Copy DPI-C C-ABI Trampolines',
-      worldRecordMetric: `${annaProof.q3UvmVerificationProof.uvmReportServerSummary.totalSequencesDriven.toLocaleString()} UVM sequences · 42.6x faster uvm_config_db`,
+      worldRecordMetric: `${uvmProof.q3UvmVerificationProof.uvmReportServerSummary.totalSequencesDriven.toLocaleString()} UVM sequences · 42.6x faster uvm_config_db`,
       marketComparison: 'Unlocks the 65% serial UVM process bottleneck via lock-free TLM-2.0 analysis ring buffers',
       subsystem: 'VIKAS-KRONOS',
       status: 'WORLD_RECORD_VERIFIED',
@@ -10761,7 +10757,7 @@ export function runHeadlessBackgroundRegressionSuite(
   const cases: HeadlessBackgroundCase[] = [
     {
       caseId: 'case_01_dual_dut_uvm_269f',
-      title: 'Ceremorphic Dual-DUT SoC + UVM 1800.2 Testbench (-f project.f)',
+      title: 'Dual-DUT SoC + UVM 1800.2 Testbench (-f project.f)',
       target: 'project.f (269 files · Dual-DUT + UVM)',
       guiTarget: 'examples/nova_soc/nova.f',
       category: 'MULTI_FILE_UVM',
@@ -10891,7 +10887,7 @@ export function runHeadlessBackgroundRegressionSuite(
       guiTarget: 'examples/demo_fsm_uart.sv',
       category: 'MULTI_FILE_UVM',
       filesResolved: 512,
-      topModule: 'ceremorphic_soak_top',
+      topModule: 'dual_dut_soak_top',
       status: 'PASS',
       signoffScore: 97,
       cycles: 250000,

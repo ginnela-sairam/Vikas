@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an improvement to VIKAS
+title: "[Feature]: "
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project would this affect?
+      placeholder: "For example, CLI, simulator, waveform viewer, or workbench"
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Problem and proposed solution
+      description: Explain what problem this would solve and how you expect it to work.
+    validations:
+      required: true

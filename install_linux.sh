@@ -2,7 +2,7 @@
 # ============================================================================
 # VIKAS v3.0 — Sovereign One-Command Linux Installer
 # Supports:
-#   1. Enterprise / Ceremorphic Air-Gapped Clusters (100% offline via ./vendor,
+#   1. Enterprise Air-Gapped Clusters (100% offline via ./vendor,
 #      custom install prefix via PREFIX=/opt/vikas/bin bash install_linux.sh)
 #   2. Developer / Friend Laptops & Workstations (Ubuntu, RHEL/Rocky, WSL2)
 # Requires: Rust/cargo >= 1.70 (https://rustup.rs)
@@ -37,7 +37,7 @@ else
       bash ./install_linux.sh
       # Or run in one step: AUTO_RUSTUP=1 bash ./install_linux.sh
 
-  Option B — Enterprise / Ceremorphic Air-Gapped Server (ZERO network during build):
+  Option B — Enterprise Air-Gapped Server (ZERO network during build):
       Load your enterprise Rust >= 1.70 module (e.g. `module load rust` or
       `conda install -c conda-forge rust>=1.70`), then run:
       PREFIX=/opt/vikas/bin bash ./install_linux.sh

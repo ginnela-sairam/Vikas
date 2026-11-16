@@ -72,7 +72,7 @@ import {
   runDiamondNvSub1NmTmdcAmbientRfAndCislunar16EbEngine,
   runWaveEightMasterEngineeringPipeline,
   runMulticoreBigDesignBenchmarkAndOptimizer,
-  generateAnnaTechnicalProofAndUvmSuite,
+  generateMulticoreUvmProofSuite,
   runWorldRecordSingularityDiagnosticSuite,
   runHeadlessBackgroundRegressionSuite,
   evaluateSeuCosmicRaySoftErrorAndLandauer,
@@ -979,7 +979,7 @@ endmodule`;
   assert.ok(fixRes.appliedCount >= 2, 'applyAllLintQuickFixes must remediate multiple violations in one pass');
 });
 
-test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v3.0 Multicore Big-Design Amdahl-Breaker (1.45M Signals / 269 Files), UVM 1800.2 Runtime & Anna 4-Question Technical Proof Suite', () => {
+test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v3.0 Multicore Big-Design Amdahl-Breaker (1.45M Signals / 269 Files), UVM 1800.2 Runtime & Technical Proof Suite', () => {
   // 1. Verify all 38 languages (33 baseline + 5 extra: UVM 1800.2, SystemC/TLM-2.0, Hardcaml, SystemRDL 2.0, Cocotb 2.0) compile at ultra-high speed
   assert.equal(SUPPORTED_EDA_LANGUAGES_CATALOG_38.length, 38, 'Must support all 38 EDA languages (33 + 5 extra)');
   const batch38 = batchCompileAllPolyglotLanguages(true);
@@ -1014,7 +1014,7 @@ test('Iteration 12: 38-Language Polyglot Batch Super-Compiler, VIKAS-KRONOS v3.0
   assert.equal(mcUvm269.designStats.filesCount, 269);
   assert.ok(mcUvm269.selectedCorePoint.vikasWallSec < 8.0, '8-core VIKAS v3.0 must finish 269-file 50ns UVM run in < 8s (vs 121.65s)');
 
-  // 3. Verify Anna's (Sandeep Vemali @ Ceremorphic) 4-Question Technical Proof & UVM 1800.2 Suite
+  // 3. Verify the multicore technical proof and UVM 1800.2 suite
   const rtl = `
 module nova_uvm_dut(
   input logic clk,
@@ -1029,7 +1029,7 @@ module nova_uvm_dut(
   end
 endmodule`;
   const sim = simulateVerilogSource([{ path: 'nova_uvm_dut.sv', content: rtl }], 200);
-  const proof = generateAnnaTechnicalProofAndUvmSuite(sim.kdb, sim.signals, sim.steps, 16, 'DUAL_DUT_1_45M_100NS');
+  const proof = generateMulticoreUvmProofSuite(sim.kdb, sim.signals, sim.steps, 16, 'DUAL_DUT_1_45M_100NS');
 
   // Q1: Physics Energy Proof
   assert.equal(proof.q1PhysicsEnergyProof.governingEquations.length, 4);
