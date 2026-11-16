@@ -2,8 +2,8 @@
 
 [![License: MIT / Apache-2.0](https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue.svg)](LICENSE)
 [![Version: VIKAS v3.0.0](https://img.shields.io/badge/Release-VIKAS%20v3.0.0-emerald.svg)](Cargo.toml)
-[![GitHub CI: 6/6 Jobs PASS](https://img.shields.io/badge/GitHub%20Actions%20CI-6%2F6%20Jobs%20GREEN-brightgreen.svg)](.github/workflows/ci.yml)
-[![Verification: 24/24 Test Suites](https://img.shields.io/badge/Unit%20Tests-24%2F24%20Suites%20PASS-emerald.svg)](src/engine/vikasEngine.test.ts)
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ginnela-sairam/Vikas/ci.yml?branch=main&label=CI)](.github/workflows/ci.yml)
+[![Tests: 32 passing](https://img.shields.io/badge/tests-32%20passing-brightgreen.svg)](src/engine/vikasEngine.test.ts)
 [![Capabilities: 185/185 Verified](https://img.shields.io/badge/Capabilities-185%2F185%20Verified-cyan.svg)](src/engine/vikasEngine.ts)
 [![Languages: 38 Hardware DSLs](https://img.shields.io/badge/Polyglot%20Compiler-38%2F38%20Languages%20PASS-purple.svg)](src/engine/vikasEngine.ts)
 
@@ -14,11 +14,15 @@
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**VIKAS v3.0** (`3.0.0`) is a sovereign, ultra-high-speed Linux-native Electronic Design Automation (EDA) platform and full-stack native workstation. Engineered for both **enterprise multi-million-gate ASIC/SoC verification clusters** (air-gapped Linux data centers) and **individual hardware engineers, researchers, and students**, VIKAS unifies:
+**VIKAS v3.0** (`3.0.0`) is a Rust CLI and TypeScript/React workbench for RTL simulation, waveform exploration, and EDA-related workflows. It is intended for hardware engineers, researchers, and students.
+
+Performance, physics, and industry-comparison figures below describe modeled workloads and project test outputs; they are not independent third-party benchmarks or silicon measurements. Reproduce the checks in the CI workflow and validate performance on your own hardware before relying on these figures.
+
+VIKAS brings together:
 
 1. **`VIKAS-KRONOS v3.0` Multicore Simulator & Bulk Elaboration Engine**: Lock-free 64-core SystemVerilog (IEEE 1800-2023), Verilog (IEEE 1364-2005), and Accellera UVM 1800.2-2020 simulator with hypergraph island partitioning ($f = 94.5\%$, **$22.4\times$ speedup** on 16 cores, **$54.2\times$** on 64 cores), AVX-512 wide-vector lowering, 0% clock-edge interpreter fallback, recursive bulk directory ingestion, `-y` library cell resolution, `$ENV_VAR` filelist expansion, and automatic clock/reset/LFSR stimulus synthesis for raw RTL modules.
 2. **`VIKAS-TARANG` $O(1)$ Waveform Engine & Headless Background Batch Runner (`vikas batch`)**: 6 purpose-built binary waveform formats (`.vwf`, `.vwt`, `.vwe`, `.vwp`, `.vwi`, `.vwm`) streaming **20 GB – 50 GB – 10 TB** traces via `/dev/shm` zero-copy `mmap` arenas at **>38.4 GB/s** and 120 FPS, with headless background regression queuing and 1-click post-run native GUI case inspection (zero external browser HTML popups).
-3. **`Open-KDB` Zero-License CSR Knowledge Base**: Replaces proprietary encrypted `.fsdb`/`.kdb` databases with an open Compressed Sparse Row (CSR) hypergraph, sub-cycle delta causality recorder, counterfactual SAT `"Why"` solver, and 64-bit security taint-dye engine.
+3. **`Open-KDB` CSR Knowledge Base**: Provides a Compressed Sparse Row (CSR) hypergraph, sub-cycle delta causality recorder, counterfactual SAT `"Why"` solver, and 64-bit security taint-dye engine.
 4. **`VIKAS-NADI` Pre-Synthesis Silicon Physics Twin**: Evaluates dynamic switching energy ($E_{\text{sw}}$ in $\text{fJ}$), glitch hazard waste ($E_{\text{glitch}}$), sub-threshold ($0.12\,\text{V}$) & cryogenic ($4\,\text{K}\text{–}77\,\text{K}$) leakage, C++20 4th-order Runge-Kutta mixed-signal SAR ADC + 64-point Hann FFT, and 2D thermal PDE directly during RTL simulation.
 5. **`VIKAS-VED` IDE + `VIKAS-FORTUNE-AI v4.0` Auto-Healer**: Real-time 19-rule syntax & lint engine (`SYN-01..SYN-07` + `SEC-01..SEC-12`) with non-blocking gutter markers, 1-click surgical auto-healing of corrupted tokens/latches/reset branches, and a **38-Language Polyglot SIMD Super-Compiler**.
 
@@ -63,7 +67,7 @@ For general questions, contact [sairamginnela@gmail.com](mailto:sairamginnela@gm
 7. [VIKAS-FORTUNE-AI v4.0 Deep-Reasoning Linter (`SYN-01..07` & `SEC-01..12`)](#7-vikas-fortune-ai-v40-deep-reasoning-linter-syn-0107--sec-0112)
 8. [38-Language Polyglot SIMD Super-Compiler](#8-38-language-polyglot-simd-super-compiler)
 9. [Repository Layout & Crate Architecture](#9-repository-layout--crate-architecture)
-10. [License & Trademark Hygiene](#10-license--trademark-hygiene)
+11. [License & Trademark Hygiene](#11-license--trademark-hygiene)
 
 ---
 
@@ -390,5 +394,10 @@ VIKAS v3.0 incorporates **56 sequential deep-engineering iterations (8×7 Waves)
 
 ## 11. License & Trademark Hygiene
 
-VIKAS v3.0 is released under the dual **MIT / Apache-2.0** license. Comparative benchmarks against Synopsys VCS/Verdi, Cadence Xcelium/Verisium, Siemens Questa, and Xezim are provided strictly for nominative scientific and engineering benchmarking.
+VIKAS is dual-licensed under **MIT OR Apache-2.0**, at your option. See
+[`LICENSE-MIT`](LICENSE-MIT) and [`LICENSE-APACHE`](LICENSE-APACHE).
+Third-party components in `vendor/` retain their own license terms.
+
+Comparative benchmarks against Synopsys VCS/Verdi, Cadence Xcelium/Verisium,
+Siemens Questa, and Xezim are provided for nominative engineering comparison.
 

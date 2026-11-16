@@ -4,6 +4,7 @@ type: software
 title: "VIKAS"
 version: 3.0.0
 date-released: 2026-11-16
+license: "MIT OR Apache-2.0"
 repository-code: "https://github.com/ginnela-sairam/Vikas"
 authors:
   - family-names: "Ginnela"
