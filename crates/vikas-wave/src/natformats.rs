@@ -7,7 +7,7 @@
 //!  .vwm  VIKAS Memorymap        — fixed 32-byte aligned records for zero-copy mmap
 
 use crate::{Change, Signal, VVal, WaveDump};
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 fn crc32(data: &[u8]) -> u32 {
     let mut crc: u32 = 0xFFFF_FFFF;
@@ -513,6 +513,206 @@ pub fn read_vwm(path: &std::path::Path) -> Result<WaveDump> {
     Ok(d)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct VcdToVwmStats {
+    pub signals: usize,
+    pub changes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+fn vcd_value_change(line: &str) -> Option<(&str, &str)> {
+    if let Some(value) = line.strip_prefix('b').or_else(|| line.strip_prefix('B')) {
+        let mut tokens = value.split_whitespace();
+        let bits = tokens.next()?;
+        let id = tokens.next()?;
+        return Some((bits, id));
+    }
+
+    let first = line.chars().next()?;
+    if !"01xXzZ".contains(first) {
+        return None;
+    }
+    let id_start = first.len_utf8();
+    let id = line.get(id_start..)?.trim();
+    if id.is_empty() {
+        return None;
+    }
+    Some((&line[..id_start], id))
+}
+
+fn scan_vcd(path: &std::path::Path) -> Result<(Vec<(String, usize)>, std::collections::HashMap<String, usize>, u64)> {
+    use std::io::{BufRead, BufReader};
+
+    let file = std::fs::File::open(path).with_context(|| format!("opening VCD {}", path.display()))?;
+    let mut reader = BufReader::new(file);
+    let mut line = String::new();
+    let mut signals: Vec<(String, usize)> = Vec::new();
+    let mut ids = std::collections::HashMap::new();
+    let mut changes = 0u64;
+    let mut line_number = 0usize;
+
+    loop {
+        line.clear();
+        if reader.read_line(&mut line)? == 0 {
+            break;
+        }
+        line_number += 1;
+        let text = line.trim();
+        if let Some(rest) = text.strip_prefix("$var") {
+            let fields: Vec<&str> = rest.split_whitespace().collect();
+            if fields.len() < 4 {
+                anyhow::bail!("malformed VCD $var declaration at line {}", line_number);
+            }
+            let width = fields[1]
+                .parse::<usize>()
+                .with_context(|| format!("invalid VCD signal width at line {}", line_number))?;
+            if width == 0 {
+                anyhow::bail!("zero-width VCD signal at line {}", line_number);
+            }
+            let name = fields[3];
+            let index = signals
+                .iter()
+                .position(|(existing, existing_width)| existing == name && *existing_width == width)
+                .unwrap_or_else(|| {
+                    signals.push((name.to_string(), width));
+                    signals.len() - 1
+                });
+            ids.insert(fields[2].to_string(), index);
+        } else if let Some(time) = text.strip_prefix('#') {
+            time.parse::<u64>()
+                .with_context(|| format!("invalid VCD timestamp at line {}", line_number))?;
+        } else if let Some((_, id)) = vcd_value_change(text) {
+            if ids.contains_key(id) {
+                changes = changes.checked_add(1).context("VCD change count overflow")?;
+            }
+        }
+    }
+
+    if signals.is_empty() {
+        anyhow::bail!("VCD contains no signal declarations");
+    }
+    Ok((signals, ids, changes))
+}
+
+fn write_vcd_records<R: std::io::BufRead, W: std::io::Write>(
+    reader: &mut R,
+    writer: &mut W,
+    ids: &std::collections::HashMap<String, usize>,
+) -> Result<u64> {
+    let mut line = String::new();
+    let mut time = 0u64;
+    let mut count = 0u64;
+    loop {
+        line.clear();
+        if reader.read_line(&mut line)? == 0 {
+            break;
+        }
+        let text = line.trim();
+        if let Some(timestamp) = text.strip_prefix('#') {
+            time = timestamp.parse().context("invalid VCD timestamp during conversion")?;
+            continue;
+        }
+        let Some((bits, id)) = vcd_value_change(text) else {
+            continue;
+        };
+        let Some(&signal) = ids.get(id) else {
+            continue;
+        };
+        let value = VVal::from_bits_str(bits);
+        if value.width() == 0 || value.width() > (REC - 16) * 4 {
+            anyhow::bail!(
+                "VCD signal value width {} cannot be represented in a .vwm record (maximum 64 bits)",
+                value.width()
+            );
+        }
+
+        let mut record = [0u8; REC];
+        record[0..8].copy_from_slice(&time.to_le_bytes());
+        let signal = u32::try_from(signal).context("too many VCD signals for .vwm format")?;
+        record[8..12].copy_from_slice(&signal.to_le_bytes());
+        let width = u32::try_from(value.width()).context("VCD signal width exceeds .vwm limits")?;
+        record[12..16].copy_from_slice(&width.to_le_bytes());
+        for (index, bit) in value.bits.iter().enumerate() {
+            let encoded = match bit {
+                crate::Bit::Zero => 0,
+                crate::Bit::One => 1,
+                crate::Bit::Z => 2,
+                crate::Bit::X => 3,
+            };
+            record[16 + index / 4] |= encoded << ((index % 4) * 2);
+        }
+        writer.write_all(&record)?;
+        count = count.checked_add(1).context("VCD change count overflow")?;
+    }
+    Ok(count)
+}
+
+/// Convert VCD to the existing .vwm record layout without retaining trace changes in memory.
+///
+/// The source is scanned once for declarations and the record count, then streamed again into
+/// an aligned temporary file. Memory use is bounded by the VCD header and the current input line.
+pub fn convert_vcd_to_vwm_streaming(
+    input: &std::path::Path,
+    output: &std::path::Path,
+) -> Result<VcdToVwmStats> {
+    use std::io::{BufReader, BufWriter, Write};
+
+    let (signals, ids, expected_changes) = scan_vcd(input)?;
+    let input_bytes = std::fs::metadata(input)
+        .with_context(|| format!("reading VCD metadata for {}", input.display()))?
+        .len();
+    let output_name = output.file_name().context("output path has no file name")?.to_string_lossy();
+    let temporary = output.with_file_name(format!(".{}.{}.tmp", output_name, std::process::id()));
+
+    let write_result = (|| -> Result<()> {
+        let file = std::fs::File::create(&temporary)
+            .with_context(|| format!("creating temporary VWM {}", temporary.display()))?;
+        let mut writer = BufWriter::new(file);
+        writer.write_all(b"VIKASVWM")?;
+        writer.write_all(&u32::try_from(signals.len()).context("too many VCD signals for .vwm format")?.to_le_bytes())?;
+        for (name, width) in &signals {
+            writer.write_all(&u32::try_from(*width).context("VCD signal width exceeds .vwm limits")?.to_le_bytes())?;
+            writer.write_all(&u32::try_from(name.len()).context("VCD signal name exceeds .vwm limits")?.to_le_bytes())?;
+            writer.write_all(name.as_bytes())?;
+        }
+        writer.write_all(&expected_changes.to_le_bytes())?;
+        let offset = 8 + 4 + signals.iter().map(|(name, _)| 8 + name.len()).sum::<usize>() + 8;
+        let padding = (REC - offset % REC) % REC;
+        writer.write_all(&vec![0u8; padding])?;
+
+        let input_file = std::fs::File::open(input)
+            .with_context(|| format!("reopening VCD {}", input.display()))?;
+        let mut reader = BufReader::new(input_file);
+        let actual_changes = write_vcd_records(&mut reader, &mut writer, &ids)?;
+        if actual_changes != expected_changes {
+            anyhow::bail!(
+                "VCD changed while converting (counted {} records, wrote {})",
+                expected_changes,
+                actual_changes
+            );
+        }
+        writer.flush()?;
+        Ok(())
+    })();
+
+    if let Err(error) = write_result {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(error);
+    }
+    std::fs::rename(&temporary, output)
+        .with_context(|| format!("moving converted VWM into {}", output.display()))?;
+    let output_bytes = std::fs::metadata(output)
+        .with_context(|| format!("reading VWM metadata for {}", output.display()))?
+        .len();
+    Ok(VcdToVwmStats {
+        signals: signals.len(),
+        changes: expected_changes,
+        input_bytes,
+        output_bytes,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::*;
@@ -576,6 +776,88 @@ mod tests {
     #[test]
     fn vwm_roundtrip() {
         roundtrip(std::path::Path::new("/dev/shm/t.vwm"));
+    }
+
+    #[test]
+    fn streaming_vcd_to_vwm_multisignal_roundtrip() {
+        let stem = format!("vikas-stream-small-{}", std::process::id());
+        let input = std::env::temp_dir().join(format!("{stem}.vcd"));
+        let output = std::env::temp_dir().join(format!("{stem}.vwm"));
+        std::fs::write(
+            &input,
+            "$date test $end\n\
+             $timescale 1ns $end\n\
+             $scope module cpu $end\n\
+             $var wire 1 ! clk $end\n\
+             $var wire 8 \" pc [7:0] $end\n\
+             $var wire 4 # opcode [3:0] $end\n\
+             $upscope $end\n\
+             $enddefinitions $end\n\
+             $dumpvars\n\
+             0!\n\
+             b00000000 \"\n\
+             b0000 #\n\
+             $end\n\
+             #5\n\
+             1!\n\
+             b00000100 \"\n\
+             b0011 #\n\
+             #10\n\
+             0!\n\
+             b00001000 \"\n",
+        )
+        .unwrap();
+
+        let stats = super::convert_vcd_to_vwm_streaming(&input, &output).unwrap();
+        let from_vcd = WaveDump::load_vcd(&input).unwrap();
+        let from_vwm = super::read_vwm(&output).unwrap();
+        assert_eq!(stats.signals, 3);
+        assert_eq!(stats.changes, from_vcd.changes.len() as u64);
+        assert_eq!(from_vcd.signals.len(), from_vwm.signals.len());
+        assert_eq!(from_vcd.changes.len(), from_vwm.changes.len());
+        for (expected, actual) in from_vcd.changes.iter().zip(&from_vwm.changes) {
+            assert_eq!(
+                (expected.time, expected.sig, &expected.value),
+                (actual.time, actual.sig, &actual.value)
+            );
+        }
+        std::fs::remove_file(input).unwrap();
+        std::fs::remove_file(output).unwrap();
+    }
+
+    #[test]
+    fn streaming_vcd_to_vwm_handles_generated_large_trace() {
+        use std::io::Write;
+
+        let stem = format!("vikas-stream-large-{}", std::process::id());
+        let input = std::env::temp_dir().join(format!("{stem}.vcd"));
+        let output = std::env::temp_dir().join(format!("{stem}.vwm"));
+        let mut file = std::fs::File::create(&input).unwrap();
+        writeln!(file, "$scope module rv32i $end").unwrap();
+        writeln!(file, "$var wire 1 ! clk $end").unwrap();
+        writeln!(file, "$var wire 32 \" pc [31:0] $end").unwrap();
+        writeln!(file, "$var wire 32 # instr [31:0] $end").unwrap();
+        writeln!(file, "$var wire 1 $ commit $end").unwrap();
+        writeln!(file, "$upscope $end\n$enddefinitions $end\n$dumpvars").unwrap();
+        writeln!(file, "0!\nb00000000000000000000000000000000 \"\nb00000000000000000000000000010011 #\n0$").unwrap();
+        writeln!(file, "$end").unwrap();
+        for cycle in 1..=10_000u64 {
+            writeln!(file, "#{cycle}").unwrap();
+            writeln!(file, "{}!", cycle % 2).unwrap();
+            writeln!(file, "b{:032b} \"", cycle * 4).unwrap();
+            writeln!(file, "b{:032b} #", 0x13u64 + cycle).unwrap();
+            writeln!(file, "{}$", cycle % 2).unwrap();
+        }
+        file.flush().unwrap();
+
+        let stats = super::convert_vcd_to_vwm_streaming(&input, &output).unwrap();
+        let converted = super::read_vwm(&output).unwrap();
+        assert_eq!(stats.signals, 4);
+        assert_eq!(stats.changes, 4 * 10_000 + 4);
+        assert_eq!(converted.changes.len() as u64, stats.changes);
+        assert!(stats.output_bytes > stats.input_bytes);
+        std::fs::remove_file(input).unwrap();
+        std::fs::remove_file(output).unwrap();
     }
 
     #[test]

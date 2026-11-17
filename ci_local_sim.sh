@@ -40,8 +40,10 @@ echo "══ JOB 4: proof (NOVA-SoC + Polyglot AI Cluster + goldens + signoff) �
 rm -f /tmp/nova_studio.bundle
 step "proof:version"  0 "$VIKAS" version
 step "proof:doctor"   0 "$VIKAS" doctor
+step_grep "proof:vcd-streaming-bench" "MB/s" "$VIKAS" vcd-bench
 step_grep "proof:multifile-result200" "result=200" "$VIKAS" run examples/multifile_proj/project.f
 step_grep "proof:polyglot-cluster-6of6" "CLUSTER-PASS 6/6" "$VIKAS" run examples/polyglot_ai_cluster/cluster.f --max-ns 600
+step_grep "proof:polyglot-generators" "POLYGLOT-EXAMPLES-PASS 2/2" "$VIKAS" run examples/polyglot_ai_cluster --max-ns 600
 step_grep "proof:nova-9of9" "NOVA-PASS 9/9" "$VIKAS" run examples/nova_soc/nova.f --max-ns 8000
 step "proof:signoff"  0 "$VIKAS" signoff examples/nova_soc/nova.f --max-ns 8000
 step "proof:latch-trap-rc2" 2 "$VIKAS" latch examples/demo_latch_trap.sv

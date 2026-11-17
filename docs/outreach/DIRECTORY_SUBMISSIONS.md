@@ -24,4 +24,6 @@ Use the direct source repository link: <https://github.com/ginnela-sairam/Vikas>
 
 ## Automation
 
+For manual browser-based submissions, see [one-click submission links](ONE_CLICK_SUBMIT.md).
+
 [`../../scripts/submit_global_eda_directories.sh`](../../scripts/submit_global_eda_directories.sh) creates a Garden of EDA suggestion issue and proposes PRs for the supported README-based lists using `gh`, forks, and branches. It prompts before making external changes and skips `rust-unofficial/awesome-rust` unless the documented popularity threshold is met. `hdl/awesome` is left as a manual metadata-based submission; the script does not create its required discussion issue or guess its `talk` field. Review every generated diff and the destination maintainer instructions before creating PRs.

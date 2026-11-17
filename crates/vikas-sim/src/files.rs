@@ -104,7 +104,10 @@ impl Loader {
         // files recursively so bulk directory sweeps compile every module in the tree.
         for path in entries {
             let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if name.starts_with('.') || name == "node_modules" || name == "target" || name == "dist" {
+            // Language-generator source projects are build inputs, not RTL for directory runs.
+            if name.starts_with('.')
+                || matches!(name, "node_modules" | "target" | "dist" | "generators")
+            {
                 continue;
             }
             if path.is_dir() {

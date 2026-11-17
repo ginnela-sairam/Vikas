@@ -318,9 +318,78 @@ pub fn cmd_editor(file: Option<PathBuf>) -> Result<()> {
 
 // ============================== BREAKTHROUGH 13 ==============================
 
-pub fn cmd_latch(files: Vec<PathBuf>, json: bool) -> Result<()> {
+fn latch_sarif(latches: &[vikas_kdb::InferredLatch], fallback_file: Option<&Path>) -> serde_json::Value {
+    let results: Vec<serde_json::Value> = latches
+        .iter()
+        .map(|latch| {
+            let mut result = serde_json::json!({
+                "ruleId": "VIKAS-LATCH-001",
+                "level": "warning",
+                "message": {
+                    "text": format!(
+                        "Inferred latch for `{}`: {}. Suggested fix: {}",
+                        latch.signal, latch.enable_condition, latch.missing_branch_hint
+                    )
+                }
+            });
+            let source_file = if latch.file.is_empty() {
+                fallback_file.map(|path| path.to_string_lossy().into_owned())
+            } else {
+                Some(latch.file.clone())
+            };
+            if let Some(source_file) = source_file {
+                let start_line = if latch.file.is_empty() && fallback_file.is_some() {
+                    // parse_project prefixes a single source with two merged-text lines.
+                    latch.line.saturating_sub(2).max(1)
+                } else {
+                    latch.line.max(1)
+                };
+                result["locations"] = serde_json::json!([{
+                    "physicalLocation": {
+                        "artifactLocation": { "uri": source_file },
+                        "region": { "startLine": start_line }
+                    }
+                }]);
+            }
+            result
+        })
+        .collect();
+
+    serde_json::json!({
+        "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/schemas/sarif-schema-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [{
+            "tool": {
+                "driver": {
+                    "name": "VIKAS Latch Signoff",
+                    "rules": [{
+                        "id": "VIKAS-LATCH-001",
+                        "shortDescription": { "text": "Inferred latch detected" }
+                    }]
+                }
+            },
+            "results": results
+        }]
+    })
+}
+
+pub fn cmd_latch(files: Vec<PathBuf>, json: bool, sarif: bool) -> Result<()> {
     let (mods, _top, _, _) = crate::parse_project(&files, None)?;
     let kdb = vikas_kdb::build(&mods, &_top);
+    if sarif {
+        let fallback_file = files.first().filter(|path| {
+            files.len() == 1
+                && !matches!(
+                    path.extension().and_then(|ext| ext.to_str()).unwrap_or(""),
+                    "f" | "flist" | "filelist" | "args" | "scr" | "q" | "cmd" | "files" | "list"
+                )
+        }).map(PathBuf::as_path);
+        println!("{}", serde_json::to_string_pretty(&latch_sarif(&kdb.inferred_latches, fallback_file))?);
+        if !kdb.inferred_latches.is_empty() {
+            std::process::exit(2);
+        }
+        return Ok(());
+    }
     if json {
         println!("{}", serde_json::to_string_pretty(&kdb.inferred_latches)?);
         if !kdb.inferred_latches.is_empty() {
@@ -1081,6 +1150,29 @@ pub fn cmd_convert(input: PathBuf, output: PathBuf) -> Result<()> {
     let before = std::fs::metadata(&input)?.len();
     let after = std::fs::metadata(&output)?.len();
     println!("{} {} ({} B) -> {} ({} B) · {} events lossless-converted", c("[VIKAS CONVERT]", GREEN), input.display(), before, output.display(), after, d.changes.len());
+    Ok(())
+}
+
+pub fn cmd_vcd_bench(input: PathBuf, output: PathBuf) -> Result<()> {
+    if let Some(parent) = output.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let started = std::time::Instant::now();
+    let stats = vikas_wave::natformats::convert_vcd_to_vwm_streaming(&input, &output)?;
+    let elapsed = started.elapsed();
+    let seconds = elapsed.as_secs_f64().max(f64::MIN_POSITIVE);
+    println!(
+        "{} {} signals, {} changes · {} B VCD -> {} B VWM · {:.3}s · {:.2} MB/s, {:.0} changes/s",
+        c("[VIKAS VCD-BENCH]", GREEN),
+        stats.signals,
+        stats.changes,
+        stats.input_bytes,
+        stats.output_bytes,
+        seconds,
+        stats.output_bytes as f64 / seconds / 1_000_000.0,
+        stats.changes as f64 / seconds
+    );
+    println!("  output: {}", output.display());
     Ok(())
 }
 

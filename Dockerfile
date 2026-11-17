@@ -25,6 +25,9 @@ RUN npm run build
 FROM node:20-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
+LABEL org.opencontainers.image.source="https://github.com/ginnela-sairam/Vikas"
+LABEL org.opencontainers.image.description="VIKAS RTL simulation, static latch/CDC signoff, and binary waveform workbench"
+LABEL org.opencontainers.image.licenses="MIT OR Apache-2.0"
 WORKDIR /work
 COPY --from=cli-build /src/target/release/vikas /usr/local/bin/vikas
 COPY --from=workbench-build /app /app

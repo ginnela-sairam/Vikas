@@ -21,7 +21,7 @@ pub fn catalog() {
             ("edit [file]", "VIKAS-VED built-in modal editor (modal keys: h j k l i :w :q)"),
         ]),
         ("BREAKTHROUGH 13 — LATCH DETECTION (3 layers)", &[
-            ("latch <files> [--json]", "L1 static AST + L3 patch; exit 2 when inferred latches found"),
+            ("latch <files> [--json|--sarif]", "L1 static AST + L3 patch; SARIF 2.1.0; exit 2 when inferred latches found"),
         ]),
         ("OPEN-KDB DEBUG (Verdi-class, features 11-20)", &[
             ("kdb <files> [--top]", "build Open-KDB CSR graph -> .vikas/open_kdb.vikas.json"),
@@ -57,6 +57,7 @@ pub fn catalog() {
             ("delta <t1> <t2>", "Δt/frequency/latency calculator (46)"),
             ("cycles <t> <period-ns>", "ns <-> clock-cycle ruler (45)"),
             ("convert <in> <out.vwf|vwt|vwe|vwp|vwi|vwm|vcd>", "lossless format conversion"),
+            ("vcd-bench [input.vcd] [output.vwm]", "stream a VCD trace into .vwm; defaults to the checked-in RV32I fixture"),
             ("formats", "native innovative format reference"),
         ]),
         ("SILICON PHYSICS (breakthroughs 2/3/5/6/7/9)", &[

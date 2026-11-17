@@ -18,7 +18,7 @@ enum Cmd {
     Studio { files: Vec<PathBuf>, top: Option<String>, max_ns: u64, out: Option<PathBuf>, open: bool },
     Quickrun { files: Vec<PathBuf> },
     Watch { files: Vec<PathBuf> },
-    Latch { files: Vec<PathBuf>, json: bool },
+    Latch { files: Vec<PathBuf>, json: bool, sarif: bool },
     Help,
     Version,
     HelpFormats,
@@ -54,6 +54,7 @@ enum Cmd {
     ExportTb { dump: PathBuf },
     InfoFormats,
     Convert { input: PathBuf, output: PathBuf },
+    VcdBench { input: PathBuf, output: PathBuf },
     Anomaly { dump: PathBuf },
     Delta { a: u64, b: u64 },
     Cycles { time: u64, period: u64 },
@@ -231,7 +232,11 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
         }),
         "quickrun" => Ok(Cmd::Quickrun { files: files(&rest) }),
         "watch" => Ok(Cmd::Watch { files: files(&rest) }),
-        "latch" => Ok(Cmd::Latch { files: files(&rest), json: rest.contains(&"--json".into()) }),
+        "latch" => Ok(Cmd::Latch {
+            files: files(&rest),
+            json: rest.contains(&"--json".into()),
+            sarif: rest.contains(&"--sarif".into()),
+        }),
         "help" | "--help" | "-h" => Ok(Cmd::Help),
         "version" | "--version" | "-V" => Ok(Cmd::Version),
         "help-formats" => Ok(Cmd::HelpFormats),
@@ -288,6 +293,16 @@ fn parse_args(args: &[String]) -> Result<Cmd> {
                 bail!("usage: vikas convert <in.vcd> <out.vwf|vwt|vwe|vwp|vwi|vwm>");
             }
             Ok(Cmd::Convert { input: f[0].clone(), output: f[1].clone() })
+        }
+        "vcd-bench" => {
+            let f = files(&rest);
+            if f.len() > 2 {
+                bail!("usage: vikas vcd-bench [input.vcd] [output.vwm]");
+            }
+            Ok(Cmd::VcdBench {
+                input: f.first().cloned().unwrap_or_else(|| PathBuf::from("examples/riscv_core/rv32i_core_trace.vcd")),
+                output: f.get(1).cloned().unwrap_or_else(|| PathBuf::from(".vikas/rv32i_core_trace.vwm")),
+            })
         }
         "anomaly" | "scan" => Ok(Cmd::Anomaly { dump: rest.first().map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".vikas/vikas_wave.vwf")) }),
         "delta" => Ok(Cmd::Delta { a: rest.first().and_then(|v| v.parse().ok()).unwrap_or(0), b: rest.get(1).and_then(|v| v.parse().ok()).unwrap_or(0) }),
@@ -536,7 +551,7 @@ fn main() {
             std::process::exit(2);
         }
     };
-    let quiet_json = args.iter().any(|a| a == "--json");
+    let quiet_json = args.iter().any(|a| a == "--json" || a == "--sarif");
     if !matches!(cmd, Cmd::Help) && !quiet_json {
         util::banner();
     }
@@ -608,7 +623,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::Studio { files, top, max_ns, out, open } => cmds::cmd_studio(files, top, max_ns, out, open),
         Cmd::Quickrun { files } => cmds::cmd_quickrun(files),
         Cmd::Watch { files } => cmds::cmd_watch(files),
-        Cmd::Latch { files, json } => cmds::cmd_latch(files, json),
+        Cmd::Latch { files, json, sarif } => cmds::cmd_latch(files, json, sarif),
         Cmd::Kdb { files, top } => cmds::cmd_kdb(files, top),
         Cmd::Trace { signal, files } => cmds::cmd_trace(signal, files),
         Cmd::Xtrace { signal, files } => cmds::cmd_xtrace(signal, files),
@@ -637,6 +652,7 @@ fn dispatch(cmd: Cmd) -> Result<()> {
         Cmd::ExportDoc { dump, from, to } => cmds::cmd_export_doc(dump, from, to),
         Cmd::ExportTb { dump } => cmds::cmd_export_tb(dump),
         Cmd::Convert { input, output } => cmds::cmd_convert(input, output),
+        Cmd::VcdBench { input, output } => cmds::cmd_vcd_bench(input, output),
         Cmd::Anomaly { dump } => cmds::cmd_anomaly(dump),
         Cmd::Delta { a, b } => cmds::cmd_delta(a, b),
         Cmd::Cycles { time, period } => cmds::cmd_cycles(time, period),
