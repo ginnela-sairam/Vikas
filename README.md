@@ -127,9 +127,44 @@ The project CI runs these workflows and checks their expected example outputs. S
 
 The CLI includes project-specific latch, CDC, FSM, and signoff checks. For example, `vikas latch examples/demo_latch_trap.sv` checks the supplied latch demonstration, while `vikas cdc examples/demo_cdc.sv` and `vikas fsm examples/demo_fsm_uart.sv` exercise the corresponding check paths. These are static heuristics and report generators, not a complete standards-compliance suite or formal CDC proof.
 
+For machine-readable latch results, use `vikas latch <files> --sarif`. The
+command emits SARIF 2.1.0 JSON and returns exit code 2 when it finds inferred
+latches; without `--sarif`, the existing human-readable report is unchanged.
+To upload results with GitHub code scanning, configure repository workflow
+permissions and a SARIF upload step explicitly, for example:
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+steps:
+  - run: |
+      set +e
+      ./target/release/vikas latch examples/demo_latch_trap.sv --sarif > results.sarif
+      status=$?
+      set -e
+      if [ "$status" -gt 2 ]; then exit "$status"; fi
+  - uses: github/codeql-action/upload-sarif@v3
+    with:
+      sarif_file: results.sarif
+```
+
+This example shows the required workflow setup; enabling code scanning and
+granting `security-events: write` are repository/organization configuration
+decisions and are not enabled automatically by VIKAS.
+
 ### Waveform formats
 
 Simulation runs write waveform data that can be inspected with the CLI. The waveform crate implements binary `.vwf` and `.vwm` formats and VCD interchange; format round-trip tests are in the Rust workspace. Format support does not imply a validated throughput claim for arbitrary trace sizes or hardware.
+
+To benchmark the checked-in RV32I VCD fixture with bounded-memory conversion,
+run `vikas vcd-bench`. You can supply an input trace and output path as
+`vikas vcd-bench input.vcd output.vwm`; the command reports measured byte
+counts, elapsed time, and throughput for that run.
+
+The Chisel 6 and SpinalHDL examples are documented in
+[`examples/polyglot_ai_cluster/README.md`](examples/polyglot_ai_cluster/README.md).
 
 ### Analytical physics examples
 

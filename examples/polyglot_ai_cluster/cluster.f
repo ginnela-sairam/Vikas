@@ -11,6 +11,8 @@
 inc/cluster_defs.vh
 rtl/noc_router.vhd
 rtl/tensor_mac.chisel
+rtl/generated/ChiselAiMacTile.sv
+rtl/generated/SpinalNoCRouter.sv
 rtl/dma_engine.fir
 rtl/csr_map.rdl
 rtl/cluster_power.upf
