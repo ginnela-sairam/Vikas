@@ -106,6 +106,23 @@ export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 vikas version
 ```
 
+For a prebuilt CLI (no Rust toolchain required), Linux x86_64 and Apple Silicon macOS users can install the latest release with:
+```bash
+curl -fsSL https://raw.githubusercontent.com/ginnela-sairam/Vikas/main/install.sh | sh
+```
+The installer places `vikas` in `~/.local/bin`; add that directory to your `PATH` if it is not already there.
+
+The GitHub Action accepts additional arguments as one argument per line. This preserves spaces in file paths without evaluating input as shell code:
+```yaml
+- uses: ginnela-sairam/Vikas@main
+  with:
+    command: run
+    args: |
+      examples/nova_soc/nova.f
+      --max-ns
+      8000
+```
+
 ---
 
 ### Path B: Enterprise / Air-Gapped Linux Servers (Zero Network Access)

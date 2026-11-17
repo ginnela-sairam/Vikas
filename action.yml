@@ -6,10 +6,17 @@ inputs:
     description: One VIKAS CLI command name, such as version or audit-7x
     required: false
     default: version
+  args:
+    description: Optional CLI arguments, with one argument per line (spaces within an argument are preserved)
+    required: false
+    default: ""
   workdir:
     description: Working directory in the caller repository
     required: false
     default: .
+branding:
+  icon: cpu
+  color: blue
 runs:
   using: composite
   steps:
@@ -23,6 +30,7 @@ runs:
       working-directory: ${{ inputs.workdir }}
       env:
         VIKAS_COMMAND: ${{ inputs.command }}
+        VIKAS_ARGS_RAW: ${{ inputs.args }}
       run: |
         case "$VIKAS_COMMAND" in
           ''|*[!a-z0-9-]*)
@@ -30,4 +38,13 @@ runs:
             exit 2
             ;;
         esac
-        "$GITHUB_ACTION_PATH/target/release/vikas" "$VIKAS_COMMAND"
+
+        args=()
+        if [[ -n "$VIKAS_ARGS_RAW" ]]; then
+          while IFS= read -r arg || [[ -n "$arg" ]]; do
+            [[ -z "$arg" ]] && continue
+            args+=("$arg")
+          done <<< "$VIKAS_ARGS_RAW"
+        fi
+
+        "$GITHUB_ACTION_PATH/target/release/vikas" "$VIKAS_COMMAND" "${args[@]}"
