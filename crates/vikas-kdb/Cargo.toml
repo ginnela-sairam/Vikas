@@ -4,9 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Static RTL analysis and design knowledge structures for VIKAS"
+keywords = ["eda", "rtl", "static-analysis", "verilog", "hardware"]
+categories = ["development-tools", "science"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 anyhow = "1"
-vikas-sim = { path = "../vikas-sim" }
+vikas-sim = { path = "../vikas-sim", version = "3.0.0" }

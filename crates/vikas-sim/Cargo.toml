@@ -4,9 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "RTL simulation engine used by the VIKAS EDA toolkit"
+keywords = ["eda", "verilog", "systemverilog", "rtl", "simulation"]
+categories = ["simulation", "development-tools"]
 
 [dependencies]
-vikas-wave = { path = "../vikas-wave" }
+vikas-wave = { path = "../vikas-wave", version = "3.0.0" }
 anyhow = "1"
 
 [dev-dependencies]

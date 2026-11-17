@@ -4,14 +4,19 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Command-line RTL simulation and analysis tools from VIKAS"
+keywords = ["eda", "verilog", "systemverilog", "rtl", "simulation"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
-vikas-kdb = { path = "../vikas-kdb" }
-vikas-linux = { path = "../vikas-linux" }
-vikas-physics = { path = "../vikas-physics" }
-vikas-sim = { path = "../vikas-sim" }
-vikas-wave = { path = "../vikas-wave" }
-vikas-wcp = { path = "../vikas-wcp" }
+vikas-kdb = { path = "../vikas-kdb", version = "3.0.0" }
+vikas-linux = { path = "../vikas-linux", version = "3.0.0" }
+vikas-physics = { path = "../vikas-physics", version = "3.0.0" }
+vikas-sim = { path = "../vikas-sim", version = "3.0.0" }
+vikas-wave = { path = "../vikas-wave", version = "3.0.0" }
+vikas-wcp = { path = "../vikas-wcp", version = "3.0.0" }
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

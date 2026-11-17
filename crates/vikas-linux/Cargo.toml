@@ -4,6 +4,11 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Linux-oriented runtime helpers for the VIKAS RTL simulation workspace"
+keywords = ["linux", "eda", "rtl", "simulation", "hardware"]
+categories = ["development-tools"]
 
 [dependencies]
 anyhow = "1"

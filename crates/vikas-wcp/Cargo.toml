@@ -4,9 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Workbench protocol and session bundle support for VIKAS"
+keywords = ["eda", "rtl", "workbench", "protocol", "hardware"]
+categories = ["development-tools", "network-programming"]
 
 [dependencies]
-vikas-wave = { path = "../vikas-wave" }
+vikas-wave = { path = "../vikas-wave", version = "3.0.0" }
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
