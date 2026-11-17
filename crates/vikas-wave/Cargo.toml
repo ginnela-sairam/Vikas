@@ -4,6 +4,11 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Waveform formats and analysis utilities for VIKAS"
+keywords = ["waveform", "eda", "verilog", "simulation", "hardware"]
+categories = ["simulation", "science"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
